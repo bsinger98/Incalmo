@@ -1,0 +1,17 @@
+[
+  {
+    "name": "EquifaxBaseline",
+    "trials": 15,
+    "scenario": "equifax.json"
+  },
+  {
+    "name": "Equifax_StaticRandomDefender",
+    "trials": 15,
+    "scenario": "equifax_staticRandom.json"
+  },
+  {
+    "name": "Equifax_HoneyCredentialDefender",
+    "trials": 15,
+    "scenario": "equifax_honeycred.json"
+  }
+]

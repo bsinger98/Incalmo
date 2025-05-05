@@ -1,0 +1,18 @@
+{
+  "name": "Equifax_StaticRandomDefender",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticRandom",
+    "capabilities": {
+      "DeployDecoy": 2,
+      "HoneyService": 2,
+      "RestoreServer": 0
+    }
+  },
+  "attacker": {
+    "name": "EquifaxBaselineAttacker"
+  },
+  "deployment_instance": {
+    "name": "EquifaxInstance"
+  }
+}

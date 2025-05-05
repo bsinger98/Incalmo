@@ -1,0 +1,70 @@
+---
+- id: enterprise_honeyservice_1
+  name: Enterprise Honeyservice 1
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_honeyservice_1.yml
+
+- id: enterprise_honeyservice_2
+  name: Enterprise Honeyservice 2
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_honeyservice_2.yml
+
+- id: enterprise_honeyservice_3
+  name: Enterprise Honeyservice 3
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_honeyservice_3.yml
+
+- id: enterprise_honeyservice_4
+  name: Enterprise Honeyservice 4
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_honeyservice_4.yml
+
+- id: enterprise_honeyservice_5
+  name: Enterprise Honeyservice 5
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_honeyservice_5.yml
+
+- id: enterprise_decoy_1
+  name: Enterprise Honeyservice 1
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_decoy_1.yml
+
+- id: enterprise_decoy_2
+  name: Enterprise Honeyservice 2
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_decoy_2.yml
+
+- id: enterprise_decoy_3
+  name: Enterprise Honeyservice 3
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_decoy_3.yml
+
+- id: enterprise_decoy_4
+  name: Enterprise Honeyservice 4
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_decoy_4.yml
+
+- id: enterprise_decoy_5
+  name: Enterprise Honeyservice 5
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_decoy_5.yml

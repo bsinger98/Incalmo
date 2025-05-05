@@ -1,0 +1,12 @@
+clouds:
+  default:
+    region_name: microstack
+    auth:
+      username: 'USERNAME'
+      user_domain_id: default
+      project_domain_id: default
+      password: 'PASSWORD'
+      project_name: 'PROJECT_NAME'
+      auth_url: 'https://128.237.154.129:5000/v3/'
+    verify: False
+      

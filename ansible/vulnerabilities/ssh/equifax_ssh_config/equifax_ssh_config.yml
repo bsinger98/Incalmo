@@ -1,0 +1,10 @@
+---
+- hosts: "{{ host }}"
+  become: true
+  become_user: '{{ host_user }}'
+  tasks:
+    - name: Copy ssh config
+      ansible.builtin.copy:
+        src: "config"
+        dest: "~/.ssh/config"
+        mode: '0600'

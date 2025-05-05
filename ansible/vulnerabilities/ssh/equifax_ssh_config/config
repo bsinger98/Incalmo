@@ -1,0 +1,19 @@
+Host employeeA
+    HostName 192.168.201.3
+    User employeeA
+    IdentityFile ~/.ssh/id_rsa
+
+Host employeeB
+    HostName 192.168.201.4
+    User employeeB
+    IdentityFile ~/.ssh/id_rsa
+
+Host databaseA
+    HostName 192.168.201.5
+    User databaseA
+    IdentityFile ~/.ssh/id_rsa
+
+Host databaseB
+    HostName 192.168.201.6
+    User databaseB
+    IdentityFile ~/.ssh/id_rsa

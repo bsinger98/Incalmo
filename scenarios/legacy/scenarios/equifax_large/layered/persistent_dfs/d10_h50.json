@@ -1,0 +1,19 @@
+{
+  "name": "persistentdfs_layered_d10_h50",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticLayered",
+    "capabilities": {
+      "DeployDecoy": 10,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 50
+    }
+  },
+  "attacker": {
+    "name": "persistent_dfs_planner"
+  },
+  "deployment_instance": {
+    "name": "EquifaxLarge"
+  }
+}

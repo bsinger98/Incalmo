@@ -1,0 +1,19 @@
+{
+  "name": "Random_decoy_3_HoneyCredential_0",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticRandom",
+    "capabilities": {
+      "DeployDecoy": 3,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 0
+    }
+  },
+  "attacker": {
+    "name": "RandomAttacker"
+  },
+  "deployment_instance": {
+    "name": "EquifaxInstance"
+  }
+}

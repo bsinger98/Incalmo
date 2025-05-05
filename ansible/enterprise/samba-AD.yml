@@ -1,0 +1,122 @@
+- name: Install Samba Active Directory, DNS, and LDAP
+  hosts: "{{ host }}"
+  remote_user: root
+  become: true
+
+  vars:
+    workgroup: "{{ samba_workgroup }}"
+    realm: "{{ samba_realm }}"
+    realm_admin_password: "{{ realm_password }}"
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Append line to /etc/hosts file
+      blockinfile:
+        path: /etc/hosts
+        block: |
+          {{ host }} yosimite yosimite.deception.lcl
+
+    - name: Stop systemd-resolved service
+      systemd:
+        name: systemd-resolved
+        state: stopped
+
+    - name: Disable systemd-resolved service
+      systemd:
+        name: systemd-resolved
+        enabled: no
+
+    - name: Remove symbolic link /etc/resolv.conf
+      file:
+        path: /etc/resolv.conf
+        state: absent
+
+    - name: Create new /etc/resolv.conf file
+      copy:
+        dest: /etc/resolv.conf
+        content: |
+          nameserver {{ host }}
+          search deception.lcl
+          nameserver 8.8.8.8
+          nameserver 8.8.4.4
+          nameserver 1.1.1.1
+
+    - name: Mask services
+      command: systemctl mask smbd nmbd winbind
+      ignore_errors: yes
+
+    - name: Disable services
+      command: systemctl disable smbd nmbd winbind
+      ignore_errors: yes
+
+    - name: Reboot the system
+      command: shutdown -r now
+      async: 0
+      poll: 0
+      ignore_errors: true
+
+    - name: Wait for server to come back online
+      wait_for_connection:
+        timeout: 300
+        delay: 10
+
+    - name: Install Samba, DNS, and LDAP packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - samba
+        - krb5-config
+        - krb5-user
+        - krb5-kdc
+        - libpam-krb5
+        - smbclient
+        - ldb-tools
+        - ldap-utils
+        - libnss-winbind
+        - libpam-winbind
+
+    - name: Remove existing smb.conf file
+      file:
+        path: /etc/samba/smb.conf
+        state: absent
+      become: true
+
+    - name: Unmask samba-ad-dc service
+      shell: sudo systemctl unmask samba-ad-dc
+
+    - name: Enable samba-ad-dc service
+      shell: sudo systemctl enable samba-ad-dc
+
+    - name: Set up Samba AD DC
+      command: samba-tool domain provision --use-rfc2307 --dns-backend=SAMBA_INTERNAL --server-role=dc --adminpass="nBMat41l0cY&" --realm="{{ samba_realm }}" --domain="DECEPTION"
+      become: true
+      args:
+        creates: /var/lib/samba/private/sam.ldb
+      register: samba_provision_output
+
+    - name: restart systemctl daemon
+      shell: systemctl daemon-reload
+
+    - name: Start samba-ad-dc service
+      systemd:
+        name: samba-ad-dc
+        state: started
+      ignore_errors: yes
+
+    - name: Reboot the system
+      command: shutdown -r now
+      async: 0
+      poll: 0
+      ignore_errors: yes
+
+    - name: Wait for server to come back online
+      wait_for_connection:
+        timeout: 300
+        delay: 10
+
+
+

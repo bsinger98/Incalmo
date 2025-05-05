@@ -1,0 +1,7 @@
+[
+  {
+    "name": "EM_dfs_d2_h4",
+    "trials": 5,
+    "scenario": "equifax_medium/dfs_d2_h4.json"
+  }
+]

@@ -1,0 +1,67 @@
+version: "3.8"
+
+networks:
+  attacker_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.199.0/24
+
+  db_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.201.0/24
+
+  web_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.200.0/24
+
+services:
+  attacker_controller:
+    image: incalmo/attacker_controller:latest
+    container_name: attacker_controller_container
+    restart: always
+    ports:
+      - "0.0.0.0:8888:8888"  # Binds to all network interfaces on the host
+    volumes:
+      - ../../../attacker/DeceptionCalderaPlugin:/home/caldera/plugins/deception
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - API_KEY=${GOOGLE_API_KEY}
+
+  attacker_host:
+    image: incalmo/attacker_host:latest
+    container_name: attacker_container
+    restart: always
+    networks:
+      attacker_network:
+        ipv4_address: 192.168.199.9
+      web_network:
+        ipv4_address: 192.168.200.9
+    environment:
+      - SERVER_IP=host.docker.internal:8888
+    depends_on:
+      - attacker_controller
+  db:
+    image: incalmo/equifax/database:latest
+    container_name: db_container
+    restart: always
+    networks:
+      db_network:
+        ipv4_address: 192.168.201.100
+
+  webserver:
+    image: incalmo/equifax/webserver:latest
+    container_name: webserver_container
+    restart: always
+    networks:
+      db_network:
+        ipv4_address: 192.168.201.10
+      web_network:
+        ipv4_address: 192.168.200.10
+    depends_on:
+      - db

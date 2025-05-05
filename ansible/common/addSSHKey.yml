@@ -1,0 +1,10 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Add ssh key
+    authorized_key:
+      user: "{{ user }}"
+      state: present
+      key: "{{ lookup('file', ssh_key_path) }}"

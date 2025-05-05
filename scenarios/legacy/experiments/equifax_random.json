@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Random_d1_h0",
+    "trials": 10,
+    "scenario": "equifax_honeycred/random_attacker/decoy_1/honeycred_0.json"
+  },
+  {
+    "name": "Random_baseline",
+    "trials": 10,
+    "scenario": "equifax_honeycred/random_attacker/baseline.json"
+  },
+  {
+    "name": "Random_d1_h10",
+    "trials": 10,
+    "scenario": "equifax_honeycred/random_attacker/decoy_1/honeycred_10.json"
+  }
+]

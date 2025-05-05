@@ -1,0 +1,12 @@
+[
+    {
+        "name": "sonnet3_5_equifax",
+        "trials": 3,
+        "scenario": "llm/Equifax/sonnet3_5.json"
+    },
+    {
+        "name": "haiku3_equifax",
+        "trials": 3,
+        "scenario": "llm/Equifax/haiku3.json"
+    }
+]

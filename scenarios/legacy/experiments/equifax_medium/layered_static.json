@@ -1,0 +1,32 @@
+[
+  {
+    "name": "EM_baseline_d2_h0",
+    "trials": 5,
+    "scenario": "equifax_medium/baseline_h0.json"
+  },
+  {
+    "name": "EM_baseline_d2_h4",
+    "trials": 5,
+    "scenario": "equifax_medium/baseline_h4.json"
+  },
+  {
+    "name": "EM_bfs_d2_h0",
+    "trials": 5,
+    "scenario": "equifax_medium/bfs_d2_h0.json"
+  },
+  {
+    "name": "EM_bfs_d2_h4",
+    "trials": 5,
+    "scenario": "equifax_medium/bfs_d2_h4.json"
+  },
+  {
+    "name": "EM_dfs_d2_h0",
+    "trials": 5,
+    "scenario": "equifax_medium/dfs_d2_h0.json"
+  },
+  {
+    "name": "EM_dfs_d2_h4",
+    "trials": 5,
+    "scenario": "equifax_medium/dfs_d2_h4.json"
+  }
+]

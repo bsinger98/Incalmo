@@ -1,0 +1,35 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Add rule to allow editing /etc/hosts as root using sudoedit
+    copy:
+      dest: /etc/sudoers.d/sudoedit_hosts
+      content: |
+        ALL ALL = (root) sudoedit /etc/hosts
+      owner: root
+      group: root
+      mode: '0440'
+
+  - name: Ensure sudo lecture is disabled
+    lineinfile:
+      path: /etc/sudoers.d/disable_lecture
+      state: present
+      line: 'Defaults lecture=never'
+      create: yes
+      owner: root
+      group: root
+      mode: '0440'
+
+  - name: Copy sudo.deb
+    copy:
+      src: sudo_1.8.26-2_amd64.deb
+      dest: /tmp/sudo_1.8.26-2_amd64.deb
+
+  - name: Install sudo
+    apt:
+      deb: /tmp/sudo_1.8.26-2_amd64.deb
+      state: present
+      force: yes
+      

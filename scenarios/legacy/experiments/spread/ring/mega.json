@@ -1,0 +1,87 @@
+[
+    {
+        "name": "targeted_standalone_d10_h0",
+        "trials": 2,
+        "scenario": "ring/standalone/targeted/d10_h0.json"
+    },
+    {
+        "name": "darkside_standalone_d10_h0",
+        "trials": 5,
+        "scenario": "ring/standalone/darkside/d10_h0.json"
+    },
+    {
+        "name": "persistentdfs_standalone_d10_h50",
+        "trials": 5,
+        "scenario": "ring/standalone/persistent_dfs/d10_h50.json"
+    },
+    {
+        "name": "dfs_standalone_d10_h50",
+        "trials": 5,
+        "scenario": "ring/standalone/dfs/d10_h50.json"
+    },
+    {
+        "name": "equifax_standalone_d10_h50",
+        "trials": 5,
+        "scenario": "ring/standalone/equifax/d10_h50.json"
+    },
+    {
+        "name": "darkside_standalone_d10_h50",
+        "trials": 5,
+        "scenario": "ring/standalone/darkside/d10_h50.json"
+    },
+    {
+        "name": "targeted_standalone_d10_h50",
+        "trials": 5,
+        "scenario": "ring/standalone/targeted/d10_h50.json"
+    },
+    {
+        "name": "persistentdfs_layered_d10_h50",
+        "trials": 5,
+        "scenario": "ring/layered/persistent_dfs/d10_h50.json"
+    },
+    {
+        "name": "dfs_layered_d10_h50",
+        "trials": 5,
+        "scenario": "ring/layered/dfs/d10_h50.json"
+    },
+    {
+        "name": "equifax_layered_d10_h50",
+        "trials": 5,
+        "scenario": "ring/layered/equifax/d10_h50.json"
+    },
+    {
+        "name": "darkside_layered_d10_h50",
+        "trials": 5,
+        "scenario": "ring/layered/darkside/d10_h50.json"
+    },
+    {
+        "name": "targeted_layered_d10_h50",
+        "trials": 5,
+        "scenario": "ring/layered/targeted/d10_h50.json"
+    },
+    {
+        "name": "targeted_reactiveSimple",
+        "trials": 5,
+        "scenario": "ring/reactive/targeted/simple_honeypot.json"
+    },
+    {
+        "name": "equifax_reactiveSimple",
+        "trials": 5,
+        "scenario": "ring/reactive/equifax/simple_honeypot.json"
+    },
+    {
+        "name": "dfs_reactiveSimple",
+        "trials": 5,
+        "scenario": "ring/reactive/dfs/simple_honeypot.json"
+    },
+    {
+        "name": "darkside_reactiveSimple",
+        "trials": 5,
+        "scenario": "ring/reactive/darkside/simple_honeypot.json"
+    },
+    {
+        "name": "persistentdfs_reactiveSimple",
+        "trials": 5,
+        "scenario": "ring/reactive/persistent_dfs/simple_honeypot.json"
+    }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "name": "baseline_standalone_d0_h0",
+    "trials": 0,
+    "scenario": "equifax_small/standalone/baseline_standalone_d0_h0.json"
+  },
+  {
+    "name": "baseline_standalone_d10_h50",
+    "trials": 0,
+    "scenario": "equifax_small/standalone/baseline_standalone_d10_h50.json"
+  },
+  {
+    "name": "baseline_layered_d10_h50",
+    "trials": 0,
+    "scenario": "equifax_small/layered/baseline_layered_d10_h50.json"
+  },
+  {
+    "name": "baseline_reactiveStandalone_d10_h50",
+    "trials": 0,
+    "scenario": "equifax_small/reactive/baseline_reactiveStandalone_d10_h50.json"
+  },
+  {
+    "name": "baseline_reactiveStandalone_d0_h50",
+    "trials": 0,
+    "scenario": "equifax_small/reactive/baseline_reactiveStandalone_d0_h50.json"
+  },
+  {
+    "name": "baseline_reactiveStandalone_d10_h0",
+    "trials": 0,
+    "scenario": "equifax_small/reactive/baseline_reactiveStandalone_d10_h0.json"
+  },
+  {
+    "name": "baseline_reactiveLayered_d10_h50",
+    "trials": 10,
+    "scenario": "equifax_small/reactive/baseline_reactiveLayered_d10_h50.json"
+  }
+]

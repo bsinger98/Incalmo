@@ -1,0 +1,10 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Perform action on a service
+    ansible.builtin.service:
+      name: "{{ service_name }}"
+      state: "{{ state_name }}"
+      enabled: yes

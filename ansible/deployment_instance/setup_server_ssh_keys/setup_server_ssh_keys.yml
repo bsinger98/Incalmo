@@ -1,0 +1,52 @@
+# Old version of copying SSH keys
+# Each server gets their own public key, but cant run in parrellel because
+# ansible has to fetch the public key from the leader server
+---
+- hosts: "{{ host }}"
+  tasks:
+    - name: create .ssh directory
+      become: true
+      become_user: "{{ host_user }}"
+      file:
+        path: "~/.ssh"
+        state: directory
+        mode: "0700"
+
+    - name: generate key pair
+      become: true
+      become_user: "{{ host_user }}"
+      shell:
+        cmd: ssh-keygen -b 2048 -t rsa -f '.ssh/id_rsa' -q -N ""
+        creates: "~/.ssh/id_rsa"
+        chdir: "~"
+
+    - name: fetch public key
+      become: true
+      become_user: "{{ host_user }}"
+      fetch:
+        src: "~/.ssh/id_rsa.pub"
+        dest: ssh_keys/
+        flat: yes
+
+    - name: add to ssh config
+      become: true
+      become_user: "{{ host_user }}"
+      blockinfile:
+        state: present
+        insertafter: EOF
+        dest: "~/.ssh/config"
+        content: |
+          Host {{ follower_user }}
+            HostName {{ follower }}
+            User {{ follower_user }}
+            IdentityFile ~/.ssh/id_rsa
+        create: true
+        mode: "0600"
+        marker: ""
+
+- hosts: "{{ follower }}"
+  tasks:
+    - name: add leader public key to followers
+      authorized_key:
+        user: "{{ follower_user }}"
+        key: "{{ lookup('file', 'ssh_keys/id_rsa.pub') }}"

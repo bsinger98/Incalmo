@@ -1,0 +1,22 @@
+[
+  {
+    "name": "targeted_advancedReactive_d0_h50",
+    "trials": 5,
+    "scenario": "ics_inspired/reactive/targeted/advanced_d0_d50.json"
+  },
+  {
+    "name": "targeted_advancedReactive_d10_h50",
+    "trials": 5,
+    "scenario": "ics_inspired/reactive/targeted/advanced_d10_d50.json"
+  },
+  {
+    "name": "targeted_advancedReactive_d10_h0",
+    "trials": 5,
+    "scenario": "ics_inspired/reactive/targeted/advanced_d10.json"
+  },
+  {
+    "name": "targeted_advancedReactive_layered_d10_h50",
+    "trials": 5,
+    "scenario": "ics_inspired/reactive/targeted/advanced_layered_d10_d50.json"
+  }
+]

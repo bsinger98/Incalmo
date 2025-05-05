@@ -1,0 +1,9 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Clone Git Repository
+    ansible.builtin.git:
+      repo: "{{ git_repo }}"
+      dest: "{{ git_dest }}"

@@ -1,0 +1,18 @@
+{
+  "name": "SolarWinds Baseline",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "DoNothing",
+    "capabilities": {
+      "DeployDecoy": 0,
+      "HoneyService": 0,
+      "RestoreServer": 0
+    }
+  },
+  "attacker": {
+    "name": "RandomAttacker"
+  },
+  "deployment_instance": {
+    "name": "SolarWindsInstance"
+  }
+}

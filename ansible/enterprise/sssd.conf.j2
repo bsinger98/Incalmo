@@ -1,0 +1,23 @@
+[sssd]
+config_file_version = 2
+services = nss, pam
+domains = DECEPTION.LCL
+
+[nss]
+filter_users = root,ldap,named,avahi,haldaemon,dbus,radiusd,news,nscd
+
+[pam]
+
+[domain/DECEPTION.LCL]
+id_provider = ad
+auth_provider = ad
+access_provider = ad
+chpass_provider = ad
+dyndns_update = false
+ad_server = yosimite.deception.lcl
+ad_domain = deception.lcl
+krb5_realm = DECEPTION.LCL
+realmd_tags = manages-system joined-with-adcli
+cache_credentials = true
+default_shell = /bin/bash
+fallback_homedir = /home/%u

@@ -1,0 +1,19 @@
+{
+  "name": "targeted_advancedReactive_d0_d50",
+  "defender": {
+    "telemetry": "ReactiveCredentials",
+    "strategy": "ReactiveStandalone",
+    "capabilities": {
+      "DeployDecoy": 0,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 50
+    }
+  },
+  "attacker": {
+    "name": "targeted"
+  },
+  "deployment_instance": {
+    "name": "EquifaxLarge"
+  }
+}

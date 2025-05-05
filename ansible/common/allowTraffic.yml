@@ -1,0 +1,12 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Allow connections on specific ports
+    ansible.builtin.iptables:
+      chain: INPUT
+      protocol: "{{ proto }}"
+      destination_ports:
+        - "{{ port_no }}"
+      jump: ACCEPT

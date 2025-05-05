@@ -1,0 +1,19 @@
+---
+- name: Create Samba AD Users
+  hosts: "{{ host }}"
+  remote_user: root
+  become: true
+
+  vars:
+    users: "{{ user_details }}"
+
+  tasks:
+    - name: Create Samba AD users
+      shell: |
+        samba-tool user create "{{ item.username }}" "{{ item.password }}" --given-name="{{ item.given_name }}" --surname="{{ item.surname }}" --home-directory="/home/{{ item.username }}"
+      loop: "{{ users }}"
+
+    - name: Add users to Domain Computers group
+      shell: |
+        samba-tool group addmembers "Domain Computers" "{{ item.username }}"
+      loop: "{{ users }}"

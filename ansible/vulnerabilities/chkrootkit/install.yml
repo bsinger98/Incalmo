@@ -1,0 +1,46 @@
+# To abuse, put an executable in /tmp
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Setup dependencies
+    ansible.builtin.package:
+      name:
+        - build-essential
+        - gcc-multilib
+        - net-tools
+      state: latest
+    
+  - name: Copy installer
+    ansible.builtin.copy:
+      src: "chkrootkit-0.49.tar.gz"
+      dest: "/usr/local/chkrootkit-0.49.tar.gz"
+      owner: root
+      group: root
+      mode: '0777'
+  
+  - name: Unarchive installer
+    ansible.builtin.command:
+      chdir: /usr/local/
+      cmd: "tar -xzf chkrootkit-0.49.tar.gz"
+
+  - name: Install
+    ansible.builtin.command:
+      chdir: /usr/local/chkrootkit-0.49/
+      cmd: make sense
+
+  - name: Link chkroot
+    ansible.builtin.file:
+      dest: /usr/sbin/chkrootkit
+      src: /usr/local/chkrootkit-0.49/chkrootkit
+      owner: root
+      group: root
+      state: link
+
+  - name: Setup chronjob
+    ansible.builtin.cron:
+      name: "chkrootkit"
+      minute: "*"
+      hour: "*"
+      job: "/usr/sbin/chkrootkit"

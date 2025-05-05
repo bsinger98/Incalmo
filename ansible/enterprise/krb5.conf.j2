@@ -1,0 +1,14 @@
+[libdefaults]
+  default_realm = DECEPTION.LCL
+  dns_lookup_realm = false
+  dns_lookup_kdc = true
+
+[realms]
+  DECEPTION.LCL = {
+    kdc = yosimite.deception.lcl
+    admin_server = yosimite.deception.lcl
+  }
+
+[domain_realm]
+  .deception.lcl = DECEPTION.LCL
+  deception.lcl = DECEPTION.LCL

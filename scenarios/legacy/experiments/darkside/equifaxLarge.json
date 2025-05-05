@@ -1,0 +1,37 @@
+[
+  {
+    "name": "darkside_standalone_d0_h0",
+    "trials": 7,
+    "scenario": "equifax_large/standalone/darkside/d0_h0.json"
+  },
+  {
+    "name": "darkside_standalone_d10_h50",
+    "trials": 7,
+    "scenario": "equifax_large/standalone/darkside/d10_h50.json"
+  },
+  {
+    "name": "darkside_layered_d10_h50",
+    "trials": 0,
+    "scenario": "equifax_large/layered/darkside/d10_h50.json"
+  },
+  {
+    "name": "darkside_reactiveLayered_d10_h50",
+    "trials": 0,
+    "scenario": "equifax_large/reactive/darkside/reactiveLayered_d10_h50.json"
+  },
+  {
+    "name": "darkside_reactiveStandalone_d10_h0",
+    "trials": 0,
+    "scenario": "equifax_large/reactive/darkside/reactiveStandalone_d10_h0.json"
+  },
+  {
+    "name": "darkside_reactiveStandalone_d0_h50",
+    "trials": 0,
+    "scenario": "equifax_large/reactive/darkside/reactiveStandalone_d0_h50.json"
+  },
+  {
+    "name": "darkside_reactiveStandalone_d10_h50",
+    "trials": 0,
+    "scenario": "equifax_large/reactive/darkside/reactiveStandalone_d10_h50.json"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "name": "dfs_standalone_d2_h0",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticStandalone",
+    "capabilities": {
+      "DeployDecoy": 2,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 0
+    }
+  },
+  "attacker": {
+    "name": "DFSAttacker"
+  },
+  "deployment_instance": {
+    "name": "EquifaxMedium"
+  }
+}

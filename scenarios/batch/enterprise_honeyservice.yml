@@ -1,0 +1,7 @@
+---
+- id: enterprise_honeyservice
+  name: Enterprise Honeyservice
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: enterprise_honeyservice.yml

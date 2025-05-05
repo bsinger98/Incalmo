@@ -1,0 +1,69 @@
+---
+- hosts: "{{ host }}"
+  tasks:
+    - name: Check if SSH private key exists
+      become: true
+      become_user: "{{ host_user }}"
+      stat:
+        path: "~/.ssh/id_rsa"
+      register: ssh_key_check
+
+    - name: Create SSH directory if it does not exist
+      become: true
+      become_user: "{{ host_user }}"
+      file:
+        path: "~/.ssh"
+        state: directory
+        mode: "0700"
+      when: not ssh_key_check.stat.exists
+
+    - name: Generate SSH key if it does not exist
+      become: true
+      become_user: "{{ host_user }}"
+      shell:
+        cmd: ssh-keygen -b 2048 -t rsa -f '.ssh/id_rsa' -q -N ""
+        creates: "~/.ssh/id_rsa"
+        chdir: "~"
+      when: not ssh_key_check.stat.exists
+
+    - name: Ensure correct permissions for SSH key
+      become: true
+      become_user: "{{ host_user }}"
+      file:
+        path: ~/.ssh/id_rsa
+        mode: '0600'
+      when: ssh_key_check.stat.exists
+
+    - name: Read SSH key
+      become: true
+      become_user: "{{ host_user }}"
+      ansible.builtin.slurp:
+        src: "~/.ssh/id_rsa.pub"
+      register: leader_ssh_key
+
+    - name: Save the public key for use
+      set_fact:
+        public_key: "{{ leader_ssh_key['content'] | b64decode }}"
+
+    - name: add to ssh config
+      become: true
+      become_user: "{{ host_user }}"
+      blockinfile:
+        state: present
+        insertafter: EOF
+        dest: "~/.ssh/config"
+        content: |
+          Host {{ follower_user }}
+            HostName {{ follower }}
+            User {{ follower_user }}
+            IdentityFile ~/.ssh/id_rsa
+        create: true
+        mode: "0600"
+        marker: ""
+
+- hosts: "{{ follower }}"
+  tasks:
+    - name: Add public SSH key to authorized keys
+      authorized_key:
+        user: "{{ follower_user }}"
+        key: "{{ hostvars[host]['public_key'] }}"

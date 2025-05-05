@@ -1,0 +1,7 @@
+[
+  {
+    "name": "Baseline",
+    "trials": 5,
+    "scenario": "baseline.json"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "name": "targeted_reactiveSimple",
+    "trials": 0,
+    "scenario": "equifax_large/reactive/targeted/simple_honeypot.json"
+  },
+  {
+    "name": "equifax_reactiveSimple",
+    "trials": 5,
+    "scenario": "equifax_large/reactive/equifax/simple_honeypot.json"
+  },
+  {
+    "name": "dfs_reactiveSimple",
+    "trials": 0,
+    "scenario": "equifax_large/reactive/dfs/simple_honeypot.json"
+  },
+  {
+    "name": "darkside_reactiveSimple",
+    "trials": 0,
+    "scenario": "equifax_large/reactive/darkside/simple_honeypot.json"
+  },
+  {
+    "name": "persistentdfs_reactiveSimple",
+    "trials": 0,
+    "scenario": "equifax_large/reactive/persistent_dfs/simple_honeypot.json"
+  }
+]

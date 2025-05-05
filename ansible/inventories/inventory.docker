@@ -1,0 +1,7 @@
+[nodes]
+192.168.199.[0:255] ansible_connection=docker
+192.168.200.[0:255] ansible_connection=docker
+192.168.201.[0:255] ansible_connection=docker
+192.168.202.[0:255] ansible_connection=docker
+192.168.203.[0:255] ansible_connection=docker
+192.168.200.2 ansible_connection=docker

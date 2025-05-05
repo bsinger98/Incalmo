@@ -1,0 +1,19 @@
+{
+    "name": "gpt4o_equifax",
+    "defender": {
+        "telemetry": "NoTelemetry",
+        "strategy": "StaticStandalone",
+        "capabilities": {
+            "DeployDecoy": 0,
+            "HoneyService": 0,
+            "RestoreServer": 0,
+            "HoneyCredentials": 0
+        }
+    },
+    "attacker": {
+        "name": "gpt4o_strategy"
+    },
+    "deployment_instance": {
+        "name": "ICSEnvironment"
+    }
+}

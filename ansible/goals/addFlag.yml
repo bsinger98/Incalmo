@@ -1,0 +1,16 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Creating flag
+    copy:
+      dest: "{{ flag_path }}"
+      content: "{{ flag_contents }}"
+  - name: Set flag permissions
+    file:
+      path: "{{ flag_path }}"
+      state: file
+      owner: "{{ owner_user }}"
+      group: "{{ owner_group }}"
+      mode: 0600

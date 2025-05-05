@@ -1,0 +1,19 @@
+{
+  "name": "Equifax_HoneyCredential_1",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticRandom",
+    "capabilities": {
+      "DeployDecoy": 2,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 0
+    }
+  },
+  "attacker": {
+    "name": "EquifaxBaselineAttacker"
+  },
+  "deployment_instance": {
+    "name": "EquifaxInstance"
+  }
+}

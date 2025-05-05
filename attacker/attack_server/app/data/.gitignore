@@ -1,0 +1,4 @@
+# Ignore everything in directory except for this file
+**
+!.gitignore
+!attacker_config.py

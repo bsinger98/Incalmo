@@ -1,0 +1,10 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Install Package
+    ansible.builtin.apt:
+      name: "{{ package }}"
+      state: present
+      update_cache: yes

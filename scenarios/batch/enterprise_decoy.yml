@@ -1,0 +1,7 @@
+---
+- id: enterprise_decoy_4
+  name: Enterprise Honeyservice 4
+  description: this is a description
+  trials: 5
+  setup:
+    scenario: telemetry/enterprise_decoy_4.yml

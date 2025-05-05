@@ -1,0 +1,19 @@
+{
+  "name": "bfs_d2_h4",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticRandom",
+    "capabilities": {
+      "DeployDecoy": 2,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 4
+    }
+  },
+  "attacker": {
+    "name": "RandomAttacker"
+  },
+  "deployment_instance": {
+    "name": "EquifaxMedium"
+  }
+}

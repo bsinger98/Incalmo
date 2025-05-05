@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "perry"
+version = "0.1.0"
+description = ""
+authors = ["Brian <brian@convolve.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+ansible = "^10.4.0"
+click = "^8.1.7"
+openstacksdk = "^4.0.0"
+docker = "^7.1.0"
+ansible-runner = "^2.4.0"
+rich = "^13.8.1"
+pydantic = "^2.9.1"
+colorama = "^0.4.6"
+faker = "^28.4.1"
+elasticsearch = "^8.15.1"
+passlib = "^1.7.4"
+black = "^24.8.0"
+flake8 = "^7.1.1"
+psutil = "^6.0.0"
+jupyterlab = "^4.2.5"
+matplotlib = "^3.9.2"
+pandas = "^2.2.3"
+seaborn = "^0.13.2"
+google-genai = "^1.10.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+perry = "perry:main"

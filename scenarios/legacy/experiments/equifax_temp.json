@@ -1,0 +1,7 @@
+[
+  {
+    "name": "Equifax_Greedy",
+    "trials": 10,
+    "scenario": "equifax/equifax_greedy.json"
+  }
+]

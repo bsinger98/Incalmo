@@ -1,0 +1,19 @@
+{
+  "name": "dfs_standalone_d10_h50",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticStandalone",
+    "capabilities": {
+      "DeployDecoy": 10,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 50
+    }
+  },
+  "attacker": {
+    "name": "network_DFS"
+  },
+  "deployment_instance": {
+    "name": "EquifaxLarge"
+  }
+}

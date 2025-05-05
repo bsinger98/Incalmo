@@ -1,0 +1,19 @@
+{
+  "name": "persistentdfs_standalone_d10_h0",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticStandalone",
+    "capabilities": {
+      "DeployDecoy": 10,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 0
+    }
+  },
+  "attacker": {
+    "name": "persistent_dfs_planner"
+  },
+  "deployment_instance": {
+    "name": "RingEnvironment"
+  }
+}

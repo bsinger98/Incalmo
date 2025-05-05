@@ -1,0 +1,27 @@
+[
+  {
+    "name": "persistentdfs_standalone_d10_h50",
+    "trials": 5,
+    "scenario": "ring/standalone/persistent_dfs/d10_h50.json"
+  },
+  {
+    "name": "dfs_standalone_d10_h50",
+    "trials": 5,
+    "scenario": "ring/standalone/dfs/d10_h50.json"
+  },
+  {
+    "name": "equifax_standalone_d10_h50",
+    "trials": 5,
+    "scenario": "ring/standalone/equifax/d10_h50.json"
+  },
+  {
+    "name": "darkside_standalone_d10_h50",
+    "trials": 5,
+    "scenario": "ring/standalone/darkside/d10_h50.json"
+  },
+  {
+    "name": "targeted_standalone_d10_h50",
+    "trials": 5,
+    "scenario": "ring/standalone/targeted/d10_h50.json"
+  }
+]

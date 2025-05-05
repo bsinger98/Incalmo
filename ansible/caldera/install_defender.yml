@@ -1,0 +1,13 @@
+---
+- hosts: "{{ host }}"
+  remote_user: "{{ user }}"
+
+  tasks:
+    - copy:
+        src: "install_defender.sh"
+        dest: "~/install_defender.sh"
+
+    - command: "chmod +x ~/install_defender.sh"
+
+    - name: Run installer
+      shell: "nohup ~/install_defender.sh {{ caldera_ip }} >/dev/null 2>&1 &"

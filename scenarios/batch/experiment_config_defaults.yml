@@ -1,0 +1,41 @@
+#
+# @name: Experiment Config Defaults
+# @author: Yusuf Saquib <ysaquib@andrew.cmu.edu>
+# @brief:
+# This file shows the setup for an experiment configuration file and the default values for each field.
+# Some of the fields are optional, while some are required, and have been labelled appropriately with defaults.
+# The file is parsed in the emulator.py file and the values are used to run the experiment.
+# In order to run multiple experiments using a single config file, create a second experiment block
+# with a different ID and place it below the first one.
+#
+# NOTE: PLEASE DO NOT MODIFY ANY VALUES IN THIS FILE.
+#       IF YOU WANT TO CHANGE THE VALUES, PLEASE CREATE ANOTHER FILE.
+#       THIS FILE IS ONLY FOR REFERENCE AND IS USED BY THE EMULATOR.
+#
+
+---
+- id: exp_id # (REQUIRED FIELD) Unique ID for the experiment. Will be used as output dir name
+  name: name # Name of the experiment
+  description: description # Description of the experiment
+  trials: 1 # Number of times the experiment will be run
+  setup: # (REQUIRED FIELD) Setup for the experiment
+    scenario: scenario_example.yml # Scanerio from /scenarios
+  flags: # (OPTIONAL FIELD) Will use the shown defaults if not specified
+    use_subdir: true # Defaults to true. Can be set to false if you want to use the root /metrics/ and /results/ directory
+    redeploy_hosts: false # Default is false. Can be set to true if you want to redeploy hosts between trials
+    redeploy_network: false # Default is false. Can be set to true if you want to redeploy network between trials
+    do_summary: true # Defaults to true. Can be set to false if you don't want to create summary and results files
+  output: # (OPTIONAL FIELD) Will use the shown defaults if not specified
+    subdir: exp_id # Defaults to experiment ID. Will be created under /results/ and /metrics/
+    summary: exp_id_summary.txt # Defaults to experiment_id_summary.txt under /results/output_subdir/                            #TODO : IMPLEMENT
+    results: exp_id_results.csv # Defaults to experiment_id_results.csv under /results/output_subdir/                            #TODO : IMPLEMENT
+  settings: # (OPTIONAL FIELD) Will use the shown defaults if not specified
+    on_error: skip # What to do if error occurs in trial. Defaults to skip trial. Options [skip, halt, retry]       #TODO : IMPLEMENT RETRY
+    on_exception: skip # What to do if exception occurs in trial. Defaults to skip. Options [skip, halt, retry]         #TODO : IMPLEMENT RETRY
+    max_errors: -1 # Max number of errors to allow before halting all remaining trials. Defaults to -1 (no limit)
+    max_exceptions: -1 # Max number of errors to allow before halting all remaining trials. Defaults to -1 (no limit)
+    max_retries: 3 # Number of times to retry a trial if on_error OR on_exception is set to retry. Defaults to 3    #TODO : IMPLEMENT
+  logging: # (OPTIONAL FIELD) Will use the shown defaults if not specified
+    log_type: console # Defaults to console. Options [both, console, file, none]                                       #TODO : IMPLEMENT
+    log_file: exp_id.log # Defaults to experiment_1.log under /logs/ . If set to null, will not log to file               #TODO : IMPLEMENT
+    log_level: INFO # Defaults to INFO. Options [DEBUG, INFO, WARNING, ERROR, CRITICAL]                              #TODO : IMPLEMENT

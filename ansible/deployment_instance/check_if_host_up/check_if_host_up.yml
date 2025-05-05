@@ -1,0 +1,13 @@
+---
+- hosts: "{{ host }}"
+  gather_facts: no
+  remote_user: root
+
+  tasks:
+  - name: Wait for host to go up
+    wait_for_connection:
+      delay: 0
+      timeout: 60
+    
+  - name: Gathering facts
+    setup:

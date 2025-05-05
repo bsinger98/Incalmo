@@ -1,0 +1,13 @@
+- name: Create Samba AD Groups
+  hosts: "{{ host }}"
+  remote_user: root
+  become: true
+
+  tasks:
+    - name: Create Samba AD groups
+      command: >
+        samba-tool group add "{{ item.name }}"
+      loop:
+        - name: admin
+        - name: employee
+        - name: management

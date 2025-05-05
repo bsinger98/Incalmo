@@ -1,0 +1,7 @@
+---
+- hosts: "{{ host }}"
+  tasks:
+    - name: delete ssh config file
+      file:
+        path: "/home/{{ host_user }}/.ssh/config"
+        state: absent

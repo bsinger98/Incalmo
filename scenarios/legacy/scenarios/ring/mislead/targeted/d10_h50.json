@@ -1,0 +1,19 @@
+{
+  "name": "targeted_mislead",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticLayered",
+    "capabilities": {
+      "DeployDecoy": 10,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 50
+    }
+  },
+  "attacker": {
+    "name": "targeted_tricked"
+  },
+  "deployment_instance": {
+    "name": "RingEnvironment"
+  }
+}

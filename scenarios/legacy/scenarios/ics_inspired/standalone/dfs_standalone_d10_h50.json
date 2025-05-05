@@ -1,0 +1,19 @@
+{
+  "name": "Baseline",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticStandalone",
+    "capabilities": {
+      "DeployDecoy": 10,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 50
+    }
+  },
+  "attacker": {
+    "name": "DFSAttacker"
+  },
+  "deployment_instance": {
+    "name": "ICSEnvironment"
+  }
+}

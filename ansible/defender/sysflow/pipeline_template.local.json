@@ -1,0 +1,27 @@
+{
+    "pipeline": [
+        {
+            "processor": "sysflowreader",
+            "handler": "flattener",
+            "in": "sysflow sysflowchan",
+            "out": "flat flattenerchan"
+        },
+        {
+            "processor": "policyengine",
+            "in": "flat flattenerchan",
+            "out": "evt eventchan",
+            "policies": "/etc/sysflow/policies/distribution/filter.yaml",
+            "mode": "alert"
+        },
+        {
+            "processor": "exporter",
+            "in": "evt eventchan",
+            "export": "es",
+            "format": "ecs",
+            "es.bulk.numWorkers": "1",
+            "es.bulk.flushBuffer": "5000000",
+            "es.bulk.flushTimeout": "30s",
+            "buffer": "1000"
+        }
+    ]
+}

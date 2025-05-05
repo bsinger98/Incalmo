@@ -1,0 +1,22 @@
+[
+  {
+    "name": "dfs_standalone_d0_h0",
+    "trials": 0,
+    "scenario": "ring/standalone/dfs_standalone_d0_h0.json"
+  },
+  {
+    "name": "dfs_standalone_d10_h50",
+    "trials": 0,
+    "scenario": "ring/standalone/dfs_standalone_d10_h50.json"
+  },
+  {
+    "name": "dfs_layered_d10_h50",
+    "trials": 0,
+    "scenario": "ring/layered/dfs_layered_d10_h50.json"
+  },
+  {
+    "name": "dfs_tarpit_d10_h100",
+    "trials": 10,
+    "scenario": "ring/layered/dfs_tarpit_d10_h100.json"
+  }
+]

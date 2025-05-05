@@ -1,0 +1,19 @@
+{
+  "name": "dfs_d2_h0",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticRandom",
+    "capabilities": {
+      "DeployDecoy": 2,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 0
+    }
+  },
+  "attacker": {
+    "name": "GreedyAttacker"
+  },
+  "deployment_instance": {
+    "name": "EquifaxMedium"
+  }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "name": "baseline_reactiveLayered_d2_h50",
+    "trials": 5,
+    "scenario": "equifax_small/reactive/baseline_reactiveLayered_d2_h50.json"
+  },
+  {
+    "name": "dfs_reactiveLayered_d2_h50",
+    "trials": 5,
+    "scenario": "equifax_small/reactive/dfs_reactiveLayered_d2_h50.json"
+  },
+  {
+    "name": "bfs_reactiveLayered_d2_h50",
+    "trials": 5,
+    "scenario": "equifax_small/reactive/bfs_reactiveLayered_d2_h50.json"
+  }
+]

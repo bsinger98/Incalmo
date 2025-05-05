@@ -1,0 +1,98 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+    - name: Update the System Packages
+      apt:
+        update_cache: yes
+
+    - name: Create a Tomcat User
+      user:
+        name: tomcat
+
+    - name: Create a Tomcat Group
+      group:
+        name: tomcat
+
+    - name: Install JAVA
+      apt:
+        name: default-jdk
+        update_cache: yes
+        state: present
+
+    - name: Create a Tomcat Directory
+      file:
+        path: /opt/tomcat
+        owner: tomcat
+        group: tomcat
+        mode: 755
+        recurse: yes
+
+    - name: Create a temporary directory
+      file:
+        path: /tmp/tomcat_extract
+        state: directory
+        mode: '0755'
+      
+    - name: Extract archive to temporary location
+      unarchive:
+        src: apache-tomcat-9.0.83.zip
+        dest: /tmp/tomcat_extract
+      
+    - name: Copy Tomcat files to final destination
+      shell: cp -r /tmp/tomcat_extract/apache-tomcat-9.0.83/* /opt/tomcat/
+
+    - name: Set proper permissions
+      file:
+        path: /opt/tomcat
+        owner: tomcat
+        group: tomcat
+        mode: '0755'
+        recurse: yes
+
+    - name: Cleanup temporary directory
+      file:
+        path: /tmp/tomcat_extract
+        state: absent
+
+    - name: Change ownership of tomcat directory
+      file:
+        path: /opt/tomcat
+        owner: tomcat
+        group: tomcat
+        mode: "u+rwx,g+rx,o=rx"
+        recurse: yes
+        state: directory
+
+    - name: Copy Tomcat service from local to remote
+      copy:
+        src: tomcat.service
+        dest: /etc/systemd/system/
+        mode: 0755
+
+    - name: Start and Enable Tomcat on sever
+      systemd:
+        name: tomcat
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Creates directory
+      ansible.builtin.file:
+        path: /home/tomcat/.ssh
+        state: directory
+        owner: tomcat
+        group: tomcat
+        mode: 0700
+
+    # Touch .ssh/config if it does not exist,
+    # Forces openstack snapshot to save information about tomcat user
+    - name: ensure file exists
+      copy:
+        content: ""
+        dest: /home/tomcat/.ssh/config
+        force: false
+        group: tomcat
+        owner: tomcat
+        mode: 0600

@@ -1,0 +1,102 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Allow connections on port 21
+    ansible.builtin.iptables:
+      chain: INPUT
+      protocol: tcp
+      destination_ports:
+        - 21
+      jump: ACCEPT
+  
+  - name: Add i386 architecture
+    command: /usr/bin/dpkg --add-architecture i386
+
+  - name: Setup dependencies
+    ansible.builtin.package:
+      name:
+        - build-essential
+        - libssl-dev
+        - libpam0g-dev
+        - libssl-dev:i386
+        - libpam0g-dev:i386
+        - gcc-multilib
+        - net-tools
+      state: latest
+      update_cache: yes
+
+  - name: Copy vsftp234 installer archive
+    ansible.builtin.copy:
+      src: "vsftpd-2.3.4.tar.gz"
+      dest: "~/vsftpd-2.3.4.tar.gz"
+      owner: root
+      group: root
+      mode: '0777'
+
+  - name: Copy vsftp234 Makefile
+    ansible.builtin.copy:
+      src: "Makefile"
+      dest: "~/Makefile"
+      owner: root
+      group: root
+      mode: '0777'
+
+  - name: Create /usr/share/empty directory if it does not exist
+    ansible.builtin.file:
+      path: "/usr/share/empty"
+      state: directory
+      mode: "0755"
+  
+  - name: Create /var/ftp directory directory if it does not exist
+    ansible.builtin.file:
+      path: "/var/ftp"
+      state: directory
+      mode: "0755"
+
+  - name: Create /usr/local/man/man5 directory directory if it does not exist
+    ansible.builtin.file:
+      path: "/usr/local/man/man5"
+      state: directory
+      mode: "0755"
+
+  - name: Create /usr/local/man/man8 directory directory if it does not exist
+    ansible.builtin.file:
+      path: "/usr/local/man/man8"
+      state: directory
+      mode: "0755"
+
+  - name: Extract vsftpd installer archive
+    command: tar -xzf ~/vsftpd-2.3.4.tar.gz -C /usr/local/src/
+
+  - name: Copy MakeFile
+    command: cp ~/Makefile /usr/local/src/vsftpd-2.3.4/
+  
+  - name: Make
+    command: make -C /usr/local/src/vsftpd-2.3.4/
+  
+  - name: Make install
+    command: make install -C /usr/local/src/vsftpd-2.3.4/
+
+  - name: Copy vsftpd init.d file
+    ansible.builtin.copy:
+      src: "vsftpd_init.d"
+      dest: "/etc/init.d/vsftpd"
+      owner: root
+      group: root
+      mode: '0777'
+
+  - name: Copy vsftpd config file
+    ansible.builtin.copy:
+      src: "vsftpd.conf"
+      dest: "/etc/vsftpd.conf"
+      owner: root
+      group: root
+      mode: '0777'
+
+# - name: Run vsftpd
+#   hosts: "{{ host }}"
+#   tasks:
+#   - name: Execute vsftpd
+#     shell: "vsftpd >/dev/null 2>&1 &"

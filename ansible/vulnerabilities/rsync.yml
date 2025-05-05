@@ -1,0 +1,18 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+  tasks:
+  - name: Create rsync config
+    shell: "echo \"motd file = /etc/rsyncd.motd\nlock file = /var/run/rsync.lock\nlog file = /var/log/rsyncd.log\npid file = /var/run/rsyncd.pid\n \n[files]\n path = /\n comment = Remote file share.\n uid = 0\n gid = 0\n read only = no\n list = yes\" > /etc/rsyncd.conf"
+
+- name: Allow traffic on port 873
+  ansible.builtin.import_playbook: ../common/allowTraffic.yml
+  vars:
+    port_no: "873"
+    proto: tcp
+
+- name: Run rsync service
+  ansible.builtin.import_playbook: ../common/serviceAction.yml
+  vars:
+    service_name: rsync
+    state_name: started

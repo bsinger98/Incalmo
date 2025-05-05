@@ -1,0 +1,14 @@
+---
+- id: enterprise_baseline
+  name: Enterprise Baseline
+  description: this is a description
+  trials: 3
+  setup:
+    scenario: enterprise_baseline.yml
+
+- id: enterprise_honeyservice
+  name: Enterprise Honeyservice
+  description: this is a description
+  trials: 3
+  setup:
+    scenario: enterprise_honeyservice.yml

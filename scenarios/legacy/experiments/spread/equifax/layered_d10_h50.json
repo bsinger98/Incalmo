@@ -1,0 +1,27 @@
+[
+  {
+    "name": "persistentdfs_layered_d10_h50",
+    "trials": 5,
+    "scenario": "equifax_large/layered/persistent_dfs/d10_h50.json"
+  },
+  {
+    "name": "dfs_layered_d10_h50",
+    "trials": 5,
+    "scenario": "equifax_large/layered/dfs/d10_h50.json"
+  },
+  {
+    "name": "equifax_layered_d10_h50",
+    "trials": 0,
+    "scenario": "equifax_large/layered/equifax/d10_h50.json"
+  },
+  {
+    "name": "darkside_layered_d10_h50",
+    "trials": 5,
+    "scenario": "equifax_large/layered/darkside/d10_h50.json"
+  },
+  {
+    "name": "targeted_layered_d10_h50",
+    "trials": 5,
+    "scenario": "equifax_large/layered/targeted/d10_h50.json"
+  }
+]

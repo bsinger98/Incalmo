@@ -1,0 +1,12 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+  
+  tasks:
+    - name: Read the contents of a file
+      command: cat "{{ file_path }}"
+      register: file_content
+
+    - name: Print the contents of a file
+      debug:
+        msg: "{{ file_content.stdout }}"

@@ -1,0 +1,35 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+    # - name: Download sysflow packages
+    #   shell: |
+    #     wget https://github.com/sysflow-telemetry/sf-collector/releases/download/0.5.0/sfcollector-0.5.0-x86_64.deb
+    #     wget https://github.com/sysflow-telemetry/sf-processor/releases/download/0.5.0/sfprocessor-0.5.0-x86_64.deb
+    - name: Copy sysflow collector
+      ansible.builtin.copy:
+        src: "sfcollector-0.5.0-x86_64.deb"
+        dest: "/root/sfcollector-0.5.0-x86_64.deb"
+
+    - name: Copy sysflow processor
+      ansible.builtin.copy:
+        src: "sfprocessor-0.5.0-x86_64.deb"
+        dest: "/root/sfprocessor-0.5.0-x86_64.deb"
+
+    - name: Install dependencies
+      ansible.builtin.apt:
+        pkg:
+          - llvm
+          - linux-headers-generic
+
+    - name: Install sysflow
+      command: "dpkg -i sfcollector-0.5.0-x86_64.deb sfprocessor-0.5.0-x86_64.deb"
+
+    - name: Copy config
+      ansible.builtin.copy:
+        src: "pipeline.local.json"
+        dest: "/etc/sysflow/pipelines/pipeline.local.json"
+
+    - name: Start sysflow
+      command: "sysflow start"

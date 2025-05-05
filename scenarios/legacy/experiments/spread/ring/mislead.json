@@ -1,0 +1,27 @@
+[
+  {
+    "name": "targeted_mislead",
+    "trials": 5,
+    "scenario": "ring/mislead/targeted/d10_h0.json"
+  },
+  {
+    "name": "dfs_mislead",
+    "trials": 5,
+    "scenario": "ring/layered/dfs/d10_h50.json"
+  },
+  {
+    "name": "persistentdfs_mislead",
+    "trials": 5,
+    "scenario": "ring/layered/persistent_dfs/d10_h50.json"
+  },
+  {
+    "name": "equifax_mislead",
+    "trials": 5,
+    "scenario": "ring/layered/equifax/d10_h50.json"
+  },
+  {
+    "name": "darkside_mislead",
+    "trials": 5,
+    "scenario": "ring/layered/darkside/d10_h50.json"
+  }
+]

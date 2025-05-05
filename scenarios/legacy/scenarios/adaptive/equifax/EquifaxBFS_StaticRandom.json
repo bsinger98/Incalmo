@@ -1,0 +1,19 @@
+{
+  "name": "EquifaxBaseline_WaitAndStop",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "WaitAndStop",
+    "capabilities": {
+      "DeployDecoy": 2,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 4
+    }
+  },
+  "attacker": {
+    "name": "RandomAttacker"
+  },
+  "deployment_instance": {
+    "name": "EquifaxInstance"
+  }
+}

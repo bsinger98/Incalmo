@@ -1,0 +1,19 @@
+{
+  "name": "dfs_reactiveSimple",
+  "defender": {
+    "telemetry": "SimpleTelemetryAnalysis",
+    "strategy": "ReactiveStandalone",
+    "capabilities": {
+      "DeployDecoy": 10,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 0
+    }
+  },
+  "attacker": {
+    "name": "network_DFS"
+  },
+  "deployment_instance": {
+    "name": "RingEnvironment"
+  }
+}

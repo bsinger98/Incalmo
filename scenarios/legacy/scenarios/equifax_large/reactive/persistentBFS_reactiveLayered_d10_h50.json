@@ -1,0 +1,19 @@
+{
+  "name": "persistentBFS_reactiveLayered_d10_h50",
+  "defender": {
+    "telemetry": "SimpleTelemetryAnalysis",
+    "strategy": "ReactiveLayered",
+    "capabilities": {
+      "DeployDecoy": 10,
+      "HoneyService": 0,
+      "RestoreServer": -1,
+      "HoneyCredentials": 50
+    }
+  },
+  "attacker": {
+    "name": "PersistentBFSAttacker"
+  },
+  "deployment_instance": {
+    "name": "EquifaxLarge"
+  }
+}

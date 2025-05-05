@@ -1,0 +1,19 @@
+{
+  "name": "targeted_advancedReactive_layered_d10_d50",
+  "defender": {
+    "telemetry": "ReactiveCredentials",
+    "strategy": "ReactiveLayered",
+    "capabilities": {
+      "DeployDecoy": 10,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 50
+    }
+  },
+  "attacker": {
+    "name": "targeted"
+  },
+  "deployment_instance": {
+    "name": "ICSEnvironment"
+  }
+}

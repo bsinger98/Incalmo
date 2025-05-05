@@ -1,0 +1,18 @@
+---
+- hosts: "{{ host }}"
+  tasks:
+    - name: create .ssh directory
+      become: true
+      become_user: "{{ host_user }}"
+      file:
+        path: "~/.ssh"
+        state: directory
+        mode: "0700"
+
+    - name: generate key pair
+      become: true
+      become_user: "{{ host_user }}"
+      shell:
+        cmd: ssh-keygen -b 2048 -t rsa -f '.ssh/id_rsa' -q -N ""
+        creates: "~/.ssh/id_rsa"
+        chdir: "~"

@@ -1,0 +1,9 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Copy file
+    ansible.builtin.copy:
+      src: "{{ source }}"
+      dest: "{{ destination }}"

@@ -1,0 +1,40 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+- name: Allow traffic on port 80
+  ansible.builtin.import_playbook: ../common/allowTraffic.yml
+  vars:
+    port_no: "80"
+    proto: tcp
+
+- name: Install build-essential
+  ansible.builtin.import_playbook: ../common/installPackage.yml
+  vars:
+    package: build-essential
+
+- name: Install libssl-dev
+  ansible.builtin.import_playbook: ../common/installPackage.yml
+  vars:
+    package: libssl-dev
+
+- name: Executing sequence of commands
+  hosts: "{{ host }}"
+  tasks:
+  - name: Download nostromo archive
+    shell: "wget https://www.nazgul.ch/dev/nostromo-1.9.6.tar.gz -P ~"
+
+  - name: Extract nostromo archive
+    shell: "tar xvf ~/nostromo-1.9.6.tar.gz"
+
+  - name: Nostromo installation
+    shell: "cd ~/nostromo-1.9.6 && make && make install"
+
+  - name: Download Nostromo Configuration
+    shell: "wget https://raw.githubusercontent.com/bleubyte/nostromo_nhttpd/main/nostromo/conf/nhttpd.conf -P /var/nostromo/conf/"
+
+  - name: Chmod on Nostromo logs path
+    shell: "chmod 777 /var/nostromo/logs/"
+
+  - name: Run nhttpd
+    shell: "nhttpd"

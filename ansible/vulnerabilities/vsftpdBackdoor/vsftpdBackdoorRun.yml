@@ -1,0 +1,15 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Allow connections on port 21
+    ansible.builtin.iptables:
+      chain: INPUT
+      protocol: tcp
+      destination_ports:
+        - 21
+      jump: ACCEPT
+
+  - name: Execute vsftpd
+    shell: "vsftpd >/dev/null 2>&1 &"

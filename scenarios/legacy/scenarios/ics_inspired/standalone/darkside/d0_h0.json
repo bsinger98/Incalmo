@@ -1,0 +1,19 @@
+{
+  "name": "darkside_standalone_d0_h0",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "StaticStandalone",
+    "capabilities": {
+      "DeployDecoy": 0,
+      "HoneyService": 0,
+      "RestoreServer": 0,
+      "HoneyCredentials": 0
+    }
+  },
+  "attacker": {
+    "name": "darkside"
+  },
+  "deployment_instance": {
+    "name": "ICSEnvironment"
+  }
+}

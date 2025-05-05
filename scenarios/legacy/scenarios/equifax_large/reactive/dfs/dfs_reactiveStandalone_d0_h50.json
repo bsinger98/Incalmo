@@ -1,0 +1,19 @@
+{
+  "name": "dfs_reactiveStandalone_d0_h50",
+  "defender": {
+    "telemetry": "ReactiveCredentials",
+    "strategy": "ReactiveStandalone",
+    "capabilities": {
+      "DeployDecoy": 0,
+      "HoneyService": 0,
+      "RestoreServer": -1,
+      "HoneyCredentials": 50
+    }
+  },
+  "attacker": {
+    "name": "network_DFS"
+  },
+  "deployment_instance": {
+    "name": "EquifaxLarge"
+  }
+}

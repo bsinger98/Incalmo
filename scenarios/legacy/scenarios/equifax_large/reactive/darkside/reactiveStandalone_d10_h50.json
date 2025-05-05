@@ -1,0 +1,19 @@
+{
+  "name": "darkside_reactiveStandalone_d10_h50",
+  "defender": {
+    "telemetry": "ReactiveCredentials",
+    "strategy": "ReactiveStandalone",
+    "capabilities": {
+      "DeployDecoy": 10,
+      "HoneyService": 0,
+      "RestoreServer": -1,
+      "HoneyCredentials": 50
+    }
+  },
+  "attacker": {
+    "name": "darkside"
+  },
+  "deployment_instance": {
+    "name": "EquifaxLarge"
+  }
+}

@@ -1,0 +1,40 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+- name: Allow traffic on port 20
+  ansible.builtin.import_playbook: ../common/allowTraffic.yml
+  vars:
+    port_no: "20"
+    proto: tcp
+
+- name: Allow traffic on port 21
+  ansible.builtin.import_playbook: ../common/allowTraffic.yml
+  vars:
+    port_no: "21"
+    proto: tcp
+
+- name: Install vsftpd
+  ansible.builtin.import_playbook: ../common/installPackage.yml
+  vars:
+    package: vsftpd
+
+- name: Enabling vsftpd
+  hosts: "{{ host }}"
+  tasks:
+  - name: Enabling vsftpd
+    ansible.builtin.service:
+      name: vsftpd
+      enabled: yes 
+
+  - name: Create user with access to root
+    shell: "useradd -d / user"
+
+  - name: Assign weak password to user
+    shell: "echo 'user:user' | chpasswd"
+
+- name: Restart FTP service
+  ansible.builtin.import_playbook: ../common/serviceAction.yml
+  vars:
+    service_name: vsftpd
+    state_name: restarted

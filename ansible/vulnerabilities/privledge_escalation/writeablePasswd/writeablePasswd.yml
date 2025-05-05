@@ -1,0 +1,10 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Set vulnerable passwd permissions
+    file:
+      path: "/etc/passwd"
+      state: file
+      mode: a+rw

@@ -1,0 +1,19 @@
+{
+  "name": "baseline_reactiveStandalone_d0_h25",
+  "defender": {
+    "telemetry": "ReactiveCredentials",
+    "strategy": "ReactiveStandalone",
+    "capabilities": {
+      "DeployDecoy": 0,
+      "HoneyService": 0,
+      "RestoreServer": -1,
+      "HoneyCredentials": 25
+    }
+  },
+  "attacker": {
+    "name": "equifax_baseline"
+  },
+  "deployment_instance": {
+    "name": "EquifaxSmall"
+  }
+}

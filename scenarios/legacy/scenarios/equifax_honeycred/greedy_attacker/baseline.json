@@ -1,0 +1,18 @@
+{
+  "name": "Greedy_baseline",
+  "defender": {
+    "telemetry": "NoTelemetry",
+    "strategy": "DoNothing",
+    "capabilities": {
+      "DeployDecoy": 0,
+      "HoneyService": 0,
+      "RestoreServer": 0
+    }
+  },
+  "attacker": {
+    "name": "GreedyAttacker"
+  },
+  "deployment_instance": {
+    "name": "EquifaxInstance"
+  }
+}

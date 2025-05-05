@@ -1,0 +1,32 @@
+[
+  {
+    "name": "EquifaxBaseline_d2_h0",
+    "trials": 5,
+    "scenario": "signaling/equifax_d2_h0.json"
+  },
+  {
+    "name": "EquifaxBaseline_d2_h2",
+    "trials": 5,
+    "scenario": "signaling/equifax_d2_h2.json"
+  },
+  {
+    "name": "EquifaxBaseline_d2_h4",
+    "trials": 5,
+    "scenario": "signaling/equifax_d2_h4.json"
+  },
+  {
+    "name": "EquifaxBaseline_d2_h6",
+    "trials": 5,
+    "scenario": "signaling/equifax_d2_h6.json"
+  },
+  {
+    "name": "EquifaxBaseline_d2_h8",
+    "trials": 5,
+    "scenario": "signaling/equifax_d2_h8.json"
+  },
+  {
+    "name": "EquifaxBaseline_d2_h10",
+    "trials": 5,
+    "scenario": "signaling/equifax_d2_h10.json"
+  }
+]

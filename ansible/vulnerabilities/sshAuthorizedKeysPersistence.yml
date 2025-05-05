@@ -1,0 +1,8 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Print path to caldera ability
+    ansible.builtin.debug:
+      msg: "Caldera Ability Path: /home/caldera/caldera/plugins/atomic/data/abilities/persistence/add2c8586afedd07182459351a5874e5.yml"

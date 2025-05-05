@@ -1,0 +1,10 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  tasks:
+  - name: Create a cron job
+    ansible.builtin.cron:
+      name: "Cron job executed after every reboot"
+      special_time: reboot
+      job: "{{ job_cmd }}"

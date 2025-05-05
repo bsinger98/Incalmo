@@ -1,0 +1,12 @@
+[
+  {
+    "name": "sonnet3_5_equifax",
+    "trials": 3,
+    "scenario": "llm/Colonial/sonnet3_5.json"
+  },
+  {
+    "name": "gpt4o_equifax",
+    "trials": 3,
+    "scenario": "llm/Colonial/gpt4o.json"
+  }
+]

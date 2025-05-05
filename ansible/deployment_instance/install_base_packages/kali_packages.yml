@@ -1,0 +1,38 @@
+---
+- hosts: "{{ host }}"
+  remote_user: root
+
+  #
+  tasks:
+    - name: create .ssh directory
+      become: true
+      file:
+        path: "~/.ssh"
+        state: directory
+        mode: "0700"
+
+    - name: generate key pair
+      become: true
+      shell:
+        cmd: ssh-keygen -b 2048 -t rsa -f '.ssh/id_rsa' -q -N ""
+        creates: "~/.ssh/id_rsa"
+        chdir: "~"
+
+    - name: Base dependencies
+      apt:
+        pkg:
+          - kali-tools-top10
+          - gobuster
+          - wordlists
+          - net-tools
+          - curl
+          - wget
+          - sshpass
+          - nmap
+          - ncat
+          - python3
+          - python3-pip
+          - nikto
+          - unzip
+        state: present
+        update_cache: yes

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "bfs_reactiveLayered_d10_h50",
+    "trials": 5,
+    "scenario": "equifax_large/reactive/bfs_reactiveLayered_d10_h50.json"
+  },
+  {
+    "name": "dfs_reactiveLayered_d10_h50",
+    "trials": 5,
+    "scenario": "equifax_large/reactive/dfs_reactiveLayered_d10_h50.json"
+  },
+  {
+    "name": "random_reactiveLayered_d10_h50",
+    "trials": 5,
+    "scenario": "equifax_large/reactive/random_reactiveLayered_d10_h50.json"
+  },
+  {
+    "name": "persistentDFS_reactiveLayered_d10_h50",
+    "trials": 5,
+    "scenario": "equifax_large/reactive/persistentDFS_reactiveLayered_d10_h50.json"
+  },
+  {
+    "name": "persistentBFS_reactiveLayered_d10_h50",
+    "trials": 5,
+    "scenario": "equifax_large/reactive/persistentBFS_reactiveLayered_d10_h50.json"
+  },
+  {
+    "name": "persistentRandom_reactiveLayered_d10_h50",
+    "trials": 5,
+    "scenario": "equifax_large/reactive/persistentRandom_reactiveLayered_d10_h50.json"
+  }
+]

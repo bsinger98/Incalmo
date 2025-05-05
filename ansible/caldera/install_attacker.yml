@@ -1,0 +1,23 @@
+---
+- hosts: "{{ host }}"
+  become: true
+  become_user: '{{ user }}'
+
+  tasks:
+    - name: Wait for host to go up
+      wait_for_connection:
+        delay: 0
+        timeout: 60
+        
+    - copy:
+        src: "install_attacker.sh"
+        dest: "/tmp/install_attacker.sh"
+
+    - command: "chmod +x /tmp/install_attacker.sh"
+
+    - name: Run installer
+      become: true
+      become_user: '{{ user }}'
+      shell: 
+        cmd: "nohup /tmp/install_attacker.sh {{ caldera_ip }} >/dev/null 2>&1 &"
+        chdir: "/tmp/"
