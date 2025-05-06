@@ -3,6 +3,11 @@ FROM kalilinux/kali-last-release
 RUN apt-get update && apt-get install -y python3 python3-pip
 RUN apt-get install -y nmap net-tools golang-go curl wget sshpass build-essential libssl-dev libffi-dev python3-dev
 
+RUN pip install --break-system-packages uv
+
+COPY uv.lock /server/uv.lock
+COPY pyproject.toml /server/pyproject.toml
+
 # Create ssh directory and server directory
 RUN mkdir -p /root/.ssh
 RUN mkdir -p /server
@@ -18,21 +23,19 @@ RUN chmod 700 /root/.ssh
 COPY /attacker/agents/sandcat.bin /tmp/sandcat.bin
 COPY /attacker/c2_server/server.py /server/server.py
 COPY /attacker/c2_server/Instruction.py /server/Instruction.py
-COPY /attacker/c2_server/requirements.txt /server/requirements.txt
 
 # Give permissions to the files
 RUN chmod +x /tmp/sandcat.bin
 RUN chmod +x /server/server.py
 RUN chmod +x /server/Instruction.py
 
-# Install requirements
-RUN pip3 install --break-system-packages -r /server/requirements.txt
-
 ENV SERVER_IP=0.0.0.0:8888
+
+WORKDIR /server
 
 # Create startup script
 RUN echo '#!/bin/bash\n\
-        python3 /server/server.py &\n\
+        uv run /server/server.py &\n\
         /tmp/sandcat.bin -server http://$SERVER_IP -group red\n\
         ' > /start.sh && chmod +x /start.sh
 
