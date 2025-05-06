@@ -1,8 +1,0 @@
-{
-    "exclude": [
-        "output/**",
-        "data_analysis/data/**",
-        "ansible/artifacts/**",
-        "paper/**",
-    ]
-}

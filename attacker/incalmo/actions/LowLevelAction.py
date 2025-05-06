@@ -1,11 +1,6 @@
 from abc import ABC, abstractmethod
 
-from app.objects.c_agent import Agent
-from app.service.knowledge_svc import KnowledgeService
-from app.objects.c_operation import Operation
-from app.service.planning_svc import PlanningService
-
-from plugins.deception.app.models.events import Event
+from models.events.Event import Event
 
 
 class LowLevelAction(ABC):

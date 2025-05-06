@@ -1,8 +1,5 @@
 import marshmallow as ma
 
-# from app.utility.base_object import BaseObject
-
-
 class InstructionSchema(ma.Schema):
     id = ma.fields.String()
     sleep = ma.fields.Int()

@@ -1,9 +1,7 @@
-from flask import Flask, request, jsonify, Response
-import os
+from flask import Flask, request, jsonify
 import json
 import base64
-from aiohttp import web
-import Instruction
+from instruction import Instruction
 import uuid
 import asyncio
 
@@ -97,7 +95,7 @@ async def send_command():
 
     commandId = str(uuid.uuid4())
 
-    instruction = Instruction.Instruction(
+    instruction = Instruction(
         id=commandId,
         command=encode_base64(command),
         executor="sh",

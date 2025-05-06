@@ -1,22 +1,16 @@
 import asyncio
 
-from app.utility.base_service import BaseService
-from app.objects.c_operation import Operation
-from app.service.planning_svc import PlanningService
-from app.service.knowledge_svc import KnowledgeService
-from app.objects.c_agent import Agent
-
-from plugins.deception.app.helpers.logging import (
+from helpers.logging import (
     PerryLogger,
     init_logger,
 )
 
-from plugins.deception.app.actions.HighLevel import *
-from plugins.deception.app.actions.LowLevel import MD5SumAttackerData
-from plugins.deception.app.models.network import *
-from plugins.deception.app.models.events import *
+from actions.HighLevel import *
+from actions.LowLevel import MD5SumAttackerData
+from models.network import *
+from models.events import *
 
-from plugins.deception.app.services import (
+from services import (
     EnvironmentStateService,
     AttackGraphService,
     LowLevelActionOrchestrator,
@@ -41,17 +35,10 @@ class EquifaxAttackerState(Enum):
 class PerryStrategy(ABC):
     def __init__(
         self,
-        operation: Operation,
-        planning_svc: PlanningService,
         stopping_conditions=(),
     ):
-        self.operation = operation
-        self.planning_svc = planning_svc
         self.stopping_conditions = stopping_conditions
         self.stopping_condition_met = False
-        self.knowledge_svc_handle: KnowledgeService = BaseService.get_service(
-            "knowledge_svc"
-        )  # type: ignore
 
         self.trusted_agents: list[Agent] = []
         self.initial_hosts: list[Host] = []
