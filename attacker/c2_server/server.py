@@ -74,10 +74,22 @@ def beacon():
 # Get agents
 @app.route("/agents", methods=["GET"])
 def get_agents():
-    agents_list = []
-
-    for paw, _ in agents.items():
-        agents_list.append(paw)
+    agents_list = {}
+    print("[DEBUG] Decoded Agents Info:")
+    for paw, data in agents.items():
+        try:
+            decoded_info = decode_base64(data["info"])
+            parsed_info = json.loads(decoded_info)
+            
+            agents_list[paw] = {
+                    "paw": paw,
+                    "username": parsed_info.get("username"),
+                    "privilege": parsed_info.get("privilege"),
+                    "pid": parsed_info.get("pid"),
+                    "host_ip_addrs": parsed_info.get("host_ip_addrs"),
+                }
+        except Exception as e:
+            print(f"[DEBUG] Failed to decode info for agent {paw}: {e}")
 
     return jsonify(agents_list)
 
