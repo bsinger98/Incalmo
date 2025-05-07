@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import json
 import base64
-from instruction import Instruction
+from Instruction import Instruction
 import uuid
 import asyncio
 
