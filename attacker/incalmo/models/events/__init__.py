@@ -1,4 +1,4 @@
-from plugins.deception.app.models.events.Event import Event
+from .Event import Event
 
 from .FlagFound import FlagFound
 from .HostsDiscovered import HostsDiscovered
