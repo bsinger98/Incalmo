@@ -1,5 +1,5 @@
-from plugins.deception.app.models.events import Event
-from plugins.deception.app.models.network import Host
+from incalmo.models.events import Event
+from incalmo.models.network import Host
 
 
 class ExfiltratedData(Event):
