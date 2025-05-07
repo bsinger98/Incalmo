@@ -1,4 +1,4 @@
-from ..HighLevelAction import HighLevelAction
+from ..high_level_action import HighLevelAction
 from ..LowLevel.ScanHost import ScanHost
 from ..LowLevel.ScanNetwork import ScanNetwork
 from ..LowLevel.nikto_scan import NiktoScan

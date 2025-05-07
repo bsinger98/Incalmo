@@ -1,4 +1,4 @@
-from actions.LowLevelAction import LowLevelAction
+from attacker.incalmo.actions.low_level_action import LowLevelAction
 from models.events.Event import Event
 
 from helpers.ability_helpers import run_ability

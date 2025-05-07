@@ -1,4 +1,4 @@
-from ..HighLevelAction import HighLevelAction
+from ..high_level_action import HighLevelAction
 from ..LowLevel.ListFilesInDirectory import ListFilesInDirectory
 from ..LowLevel.FindSSHConfig import FindSSHConfig
 

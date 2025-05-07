@@ -1,4 +1,4 @@
-from ..LowLevelAction import LowLevelAction
+from ..low_level_action import LowLevelAction
 
 from app.service.knowledge_svc import KnowledgeService
 from app.objects.c_operation import Operation

@@ -1,4 +1,4 @@
-from ..LowLevelAction import LowLevelAction
+from ..low_level_action import LowLevelAction
 from plugins.deception.app.models.events import Event, FilesFound
 from plugins.deception.app.helpers.logging import log_event
 

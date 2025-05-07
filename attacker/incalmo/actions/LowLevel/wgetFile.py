@@ -1,4 +1,4 @@
-from ..LowLevelAction import LowLevelAction
+from ..low_level_action import LowLevelAction
 
 from app.objects.c_agent import Agent
 
