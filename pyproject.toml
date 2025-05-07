@@ -9,4 +9,5 @@ dependencies = [
     "flask>=3.1.0",
     "marshmallow>=4.0.0",
     "pydantic>=2.11.4",
+    "pydantic-settings>=2.9.1",
 ]
