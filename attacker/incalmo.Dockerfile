@@ -5,9 +5,6 @@ RUN apt-get install -y nmap net-tools golang-go curl wget sshpass procps
 
 RUN pip install --break-system-packages uv
 
-COPY uv.lock /server/uv.lock
-COPY pyproject.toml /server/pyproject.toml
-
 # Create ssh directory and server directory
 RUN mkdir -p /root/.ssh
 RUN mkdir -p /server
@@ -19,20 +16,20 @@ RUN ssh-keygen -b 2048 -t rsa -f '/root/.ssh/id_rsa' -q -N ""
 RUN chmod 600 /root/.ssh/id_rsa
 RUN chmod 700 /root/.ssh
 
-# Copy agents and server files
-COPY /attacker/agents/sandcat.bin /tmp/sandcat.bin
-COPY /attacker/c2_server /server
-COPY /attacker/start.sh /start.sh
+# Copy attacker files
+COPY /attacker /attacker
+COPY uv.lock /attacker/uv.lock
+COPY pyproject.toml /attacker/pyproject.toml
 
 # Give permissions to the files
-RUN chmod +x /tmp/sandcat.bin
-RUN chmod +x /server/server.py
-RUN chmod +x /server/Instruction.py
-RUN chmod +x /start.sh
+RUN chmod +x /attacker/agents/sandcat.bin
+RUN chmod +x /attacker/c2_server/server.py
+RUN chmod +x /attacker/c2_server/Instruction.py
+RUN chmod +x /attacker/start.sh
 
 ENV SERVER_IP=localhost:8888
 ENV PYTHONUNBUFFERED=1
-WORKDIR /server
+WORKDIR /attacker
 
 # Run the startup script
-CMD ["/start.sh"]
+CMD ["./start.sh"]
