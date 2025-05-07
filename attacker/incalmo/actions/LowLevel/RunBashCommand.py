@@ -1,5 +1,5 @@
 import asyncio
-from ..LowLevelAction import LowLevelAction
+from ..low_level_action import LowLevelAction
 
 from app.objects.c_agent import Agent
 from app.objects.secondclass.c_fact import Fact

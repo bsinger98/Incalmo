@@ -1,7 +1,7 @@
 import os
 from app.objects.c_agent import Agent
 
-from ..HighLevelAction import HighLevelAction
+from ..high_level_action import HighLevelAction
 from ..LowLevel import MD5SumAttackerData, ReadFile, AddSSHKey, SCPFile, wgetFile
 from plugins.deception.app.models.network import Host
 from plugins.deception.app.models.events import Event, FileContentsFound

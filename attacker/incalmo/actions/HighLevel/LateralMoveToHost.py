@@ -8,7 +8,7 @@ from plugins.deception.app.services import (
     AttackGraphService,
 )
 
-from ..HighLevelAction import HighLevelAction
+from ..high_level_action import HighLevelAction
 from ..LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
 
 

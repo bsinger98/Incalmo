@@ -1,7 +1,7 @@
 from plugins.deception.app.helpers.logging import log_event
 
 from plugins.deception.app.models.network import AttackPath
-from ..HighLevelAction import HighLevelAction
+from ..high_level_action import HighLevelAction
 from ..LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
 from plugins.deception.app.models.events import InfectedNewHost, Event
 from plugins.deception.app.services import (

@@ -1,4 +1,4 @@
-from ..LowLevelAction import LowLevelAction
+from ..low_level_action import LowLevelAction
 from plugins.deception.app.helpers.agent_helpers import get_trusted_agents
 from plugins.deception.app.models.events import Event, InfectedNewHost
 
