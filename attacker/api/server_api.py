@@ -55,16 +55,7 @@ class C2ApiClient:
                     stdout=result.get("output"),
                     stderr=result.get("stderr"),
                 )
-            return Results(
-                message="No results found",
-                agent_time=None,
-                exit_code=None,
-                id=None,
-                pid=None,
-                status=None,
-                stdout=None,
-                stderr=None,
-            )
+            raise Exception("failed to get results for command")
         else:
             raise Exception(
                 f"Failed to send command: {response.status_code} {response.text}"
