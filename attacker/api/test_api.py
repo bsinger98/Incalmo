@@ -1,6 +1,7 @@
-from api.server_api import ApiClient
+from api.server_api import C2ApiClient
 from incalmo.actions.low_level_action import LowLevelAction
 from incalmo.models.events import Event
+
 
 class WhoamiAction(LowLevelAction):
     async def get_result(self, stdout: str | None, stderr: str | None) -> list[Event]:
@@ -8,8 +9,9 @@ class WhoamiAction(LowLevelAction):
         print("STDERR:", stderr)
         return []
 
+
 print("Get agents")
-client = ApiClient()
+client = C2ApiClient()
 prior_agents = client.get_agents()
 print("Agents:")
 for agent in prior_agents:
