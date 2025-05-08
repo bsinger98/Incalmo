@@ -1,4 +1,6 @@
 from attacker.incalmo.actions.low_level_action import LowLevelAction
+from incalmo.models.attacker.agent import Agent
+from api.server_api import C2ApiClient, Results
 from models.events.Event import Event
 
 from helpers.ability_helpers import run_ability
@@ -18,13 +20,18 @@ class LowLevelActionOrchestrator:
         self.low_level_action_log: list[tuple[str, list[str]]] = []
 
     def run_action(self, low_level_action: LowLevelAction) -> list[Event]:
+        c2client = C2ApiClient()
         # Get prior agents
-
+        prior_agents = c2client.get_agents()
         # Run action with C2C server and get result
-
+        command_result = c2client.send_command(low_level_action)
         # Check for any new agents
-       
-        return []
+        post_agents = c2client.get_agents()
+        agent_check_result = self.check_new_agents(
+            low_level_action.agent, prior_agents, post_agents
+        )
+        events = low_level_action.get_result(command_result)
+        return events + agent_check_result
 
     def check_new_agents(
         self, ability_agent: Agent, prior_agents: list[Agent], post_agents: list[Agent]

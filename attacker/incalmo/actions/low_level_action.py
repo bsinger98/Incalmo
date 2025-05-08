@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from incalmo.models.events.Event import Event
+from api.server_api import Results
 from incalmo.models.attacker.agent import Agent
 
 
@@ -16,13 +17,14 @@ class LowLevelAction(ABC):
         self.payloads = payloads if payloads is not None else []
 
     def __str__(self):
-      params = ", ".join(f"{key}={repr(value)}" for key, value in self.__dict__.items())
-      return f"{self.__class__.__name__}: {params}"
-    
+        params = ", ".join(
+            f"{key}={repr(value)}" for key, value in self.__dict__.items()
+        )
+        return f"{self.__class__.__name__}: {params}"
+
     @abstractmethod
     async def get_result(
         self,
-        stdout: str | None,
-        stderr: str | None,
+        results: Results,
     ) -> list[Event]:
         return []
