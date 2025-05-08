@@ -1,7 +1,7 @@
-from plugins.deception.app.models.events import Event
-from plugins.deception.app.models.network import Host
+from incalmo.models.events import Event
+from incalmo.models.network import Host
 
-from app.objects.c_agent import Agent
+from incalmo.models.attacker.agent import Agent
 
 
 class CriticalDataFound(Event):

