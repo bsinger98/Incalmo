@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from incalmo.models.events.Event import Event
-from api.server_api import Results
+from api.results import Results
 from incalmo.models.attacker.agent import Agent
 
 

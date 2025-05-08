@@ -1,30 +1,9 @@
 from incalmo.actions.low_level_action import LowLevelAction
+from api.results import Results
 from incalmo.models.attacker.agent import Agent
 from config.settings import settings
 import requests
 import json
-
-
-class Results:
-    def __init__(
-        self,
-        message: str | None,
-        agent_time: str | None,
-        exit_code: str | None,
-        id: str | None,
-        pid: str | None,
-        status: str | None,
-        stdout: str | None,
-        stderr: str | None,
-    ):
-        self.message = message
-        self.agent_time = agent_time
-        self.exit_code = exit_code
-        self.id = id
-        self.pid = pid
-        self.status = status
-        self.stdout = stdout
-        self.stderr = stderr
 
 
 class C2ApiClient:
@@ -78,6 +57,13 @@ class C2ApiClient:
                 )
             return Results(
                 message="No results found",
+                agent_time=None,
+                exit_code=None,
+                id=None,
+                pid=None,
+                status=None,
+                stdout=None,
+                stderr=None,
             )
         else:
             raise Exception(

@@ -1,6 +1,9 @@
-from api.server_api import C2ApiClient, Results
+from api.server_api import C2ApiClient
+from api.results import Results
 from incalmo.actions.low_level_action import LowLevelAction
 from incalmo.models.events import Event
+from incalmo.services.low_level_action_orchestrator import LowLevelActionOrchestrator
+import asyncio
 
 
 class WhoamiAction(LowLevelAction):
@@ -10,12 +13,17 @@ class WhoamiAction(LowLevelAction):
         return []
 
 
-print("Get agents")
-client = C2ApiClient()
-prior_agents = client.get_agents()
-print("Agents:")
-for agent in prior_agents:
-    print(agent.paw)
-action = WhoamiAction(agent=prior_agents[0], command="whoami")
-command_result = client.send_command(action)
-print(command_result.__str__())
+async def main():
+    print("Get agents")
+    client = C2ApiClient()
+    prior_agents = client.get_agents()
+    print("Agents:")
+    for agent in prior_agents:
+        print(agent.paw)
+    action = WhoamiAction(agent=prior_agents[0], command="whoami")
+    orchestrator = LowLevelActionOrchestrator()
+    events = await orchestrator.run_action(action)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
