@@ -3,21 +3,19 @@ from ..LowLevel.ScanHost import ScanHost
 from ..LowLevel.ScanNetwork import ScanNetwork
 from ..LowLevel.nikto_scan import NiktoScan
 
-from plugins.deception.app.models.events import (
+from incalmo.models.events import (
     HostsDiscovered,
     Event,
     ServicesDiscoveredOnHost,
 )
-from plugins.deception.app.models.network import Subnet, Host
-from plugins.deception.app.services import (
+from incalmo.models.network import Subnet, Host
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,
 )
 
 from collections import defaultdict
-
-from plugins.deception.app.helpers.logging import log_event
 
 
 class Scan(HighLevelAction):
@@ -34,7 +32,6 @@ class Scan(HighLevelAction):
         events = []
         scan_agent = self.scan_host.get_agent()
         if not scan_agent:
-            log_event("Scan", f"No agent found for host {self.scan_host}")
             return events
 
         # Scan the subnets specified by the user
@@ -46,7 +43,6 @@ class Scan(HighLevelAction):
                 continue
 
             scanned_subnets.add(subnet)
-            log_event("Scan", f"Scanning subnet: {subnet}")
             new_events = await low_level_action_orchestrator.run_action(
                 ScanNetwork(scan_agent, subnet.ip_mask)
             )
@@ -59,7 +55,6 @@ class Scan(HighLevelAction):
         collected_ips = _group_ips(collected_ips)
 
         for ip_to_scan in collected_ips:
-            log_event("Scan", f"Scanning host: {ip_to_scan}")
             new_events = await low_level_action_orchestrator.run_action(
                 ScanHost(scan_agent, ip_to_scan)
             )

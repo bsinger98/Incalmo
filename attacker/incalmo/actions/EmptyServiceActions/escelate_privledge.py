@@ -1,8 +1,6 @@
-import re
-
-from plugins.deception.app.actions.HighLevelAction import HighLevelAction
-from plugins.deception.app.actions.HighLevel import EscelatePrivledge
-from plugins.deception.app.services import EnvironmentStateService
+from incalmo.actions.high_level_action import HighLevelAction
+from incalmo.actions.HighLevel.escelate_privledge import EscelatePrivledge
+from incalmo.services import EnvironmentStateService
 
 
 class EscelatePrivledgeWrapper:

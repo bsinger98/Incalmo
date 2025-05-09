@@ -1,23 +1,21 @@
 import os
 from string import Template
 
-from plugins.deception.app.actions.LowLevel import (
+from incalmo.actions.LowLevel import (
     RunBashCommand,
 )
 
-from plugins.deception.app.models.events import Event, InfectedNewHost, BashOutputEvent
-from plugins.deception.app.models.network import Host
-from plugins.deception.app.services import (
+from incalmo.models.events import Event, InfectedNewHost, BashOutputEvent
+from incalmo.models.network import Host
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,
 )
 
-from plugins.deception.app.actions.HighLevel.llm_agents.llm_agent_action import (
+from incalmo.actions.HighLevel.llm_agents.llm_agent_action import (
     LLMAgentAction,
 )
-from plugins.deception.app.helpers.logging import log_event
-from plugins.deception.app.actions.HighLevel.llm_agents.llm_agent import LLMAgent
 
 
 class LLMPrivilegeEscalate(LLMAgentAction):
@@ -37,7 +35,6 @@ class LLMPrivilegeEscalate(LLMAgentAction):
         events = []
         agent = self.host.get_agent()
         if not agent:
-            log_event("LLMLateralMove", f"No agent found for host {self.host}")
             return events
 
         # Update preprompt with C2C server

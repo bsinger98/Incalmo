@@ -1,15 +1,15 @@
 import re
 
-from plugins.deception.app.actions.HighLevelAction import HighLevelAction
-from plugins.deception.app.actions.LowLevel import (
+from incalmo.actions.high_level_action import HighLevelAction
+from incalmo.actions.LowLevel import (
     GetSudoVersion,
     CheckPasswdPermissions,
     WriteablePasswdExploit,
     SudoBaronExploit,
 )
-from plugins.deception.app.models.events import Event, WriteablePasswd, SudoVersion
-from plugins.deception.app.models.network import Host
-from plugins.deception.app.services import (
+from incalmo.models.events import Event, WriteablePasswd, SudoVersion
+from incalmo.models.network import Host
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,

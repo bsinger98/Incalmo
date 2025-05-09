@@ -2,15 +2,14 @@ from ..high_level_action import HighLevelAction
 from ..LowLevel.ListFilesInDirectory import ListFilesInDirectory
 from ..LowLevel.FindSSHConfig import FindSSHConfig
 
-from plugins.deception.app.models.network import Host
-from plugins.deception.app.models.events import Event, CriticalDataFound, FilesFound
-from plugins.deception.app.services import (
+from incalmo.models.network import Host
+from incalmo.models.events import Event, CriticalDataFound, FilesFound
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,
 )
-from plugins.deception.app.helpers.logging import log_event
-from app.objects.c_agent import Agent
+from incalmo.models.attacker.agent import Agent
 
 
 class FindInformationOnAHost(HighLevelAction):

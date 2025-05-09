@@ -1,7 +1,5 @@
 from .low_level_action_orchestrator import LowLevelActionOrchestrator
 from .environment_state_service import EnvironmentStateService
-
-# TODO Fix these imports
-# from .attack_graph_service import AttackGraphService
-# from .high_level_action_orchestrator import HighLevelActionOrchestrator
-# from .config_service import ConfigService
+from .attack_graph_service import AttackGraphService
+from .high_level_action_orchestrator import HighLevelActionOrchestrator
+from .config_service import ConfigService

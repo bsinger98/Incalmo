@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
-from plugins.deception.app.actions.HighLevelAction import HighLevelAction
-from plugins.deception.app.actions.HighLevel.llm_agents.llm_agent import LLMAgent
+from incalmo.actions.high_level_action import HighLevelAction
+from incalmo.actions.HighLevel.llm_agents.llm_agent import LLMAgent
 
 
 class LLMAgentAction(HighLevelAction, ABC):

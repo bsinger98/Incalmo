@@ -1,8 +1,6 @@
-from plugins.deception.app.helpers.logging import log_event
-
-from plugins.deception.app.models.events import Event, InfectedNewHost
-from plugins.deception.app.models.network import Host
-from plugins.deception.app.services import (
+from incalmo.models.events import Event, InfectedNewHost
+from incalmo.models.network import Host
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,
@@ -41,10 +39,6 @@ class LateralMoveToHost(HighLevelAction):
             for cred in self.attacking_host.ssh_config:
                 if cred.host_ip == self.host_to_attack.ip_address:
                     agent = cred.agent_discovered
-                    log_event(
-                        "LATERAL MOVE",
-                        f"Agent {agent.paw} has credentials for {self.host_to_attack.ip_address}",
-                    )
                     new_events = await low_level_action_orchestrator.run_action(
                         SSHLateralMove(agent, cred.hostname)
                     )
@@ -60,10 +54,6 @@ class LateralMoveToHost(HighLevelAction):
         else:
             agent = self.attacking_host.get_agent()
             if not agent:
-                log_event(
-                    "LateralMoveToHost",
-                    f"No agent found for host {self.attacking_host}",
-                )
                 return events
 
             # If no credentials, try to exploit a service
@@ -71,12 +61,6 @@ class LateralMoveToHost(HighLevelAction):
                 port_to_attack,
                 service_to_attack,
             ) in self.host_to_attack.open_ports.items():
-                agent_info = f"{agent.paw} ({agent.host} - {agent.host_ip_addrs})"
-                log_event(
-                    "ATTACKING PORT",
-                    f"Agent {agent_info} is attacking {self.host_to_attack.ip_address}:{port_to_attack} with service {service_to_attack}",
-                )
-
                 action_to_run = None
 
                 if (

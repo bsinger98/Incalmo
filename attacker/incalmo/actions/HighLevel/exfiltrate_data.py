@@ -1,18 +1,16 @@
 import os
-from app.objects.c_agent import Agent
+from incalmo.models.attacker.agent import Agent
 
-from ..high_level_action import HighLevelAction
-from ..LowLevel import MD5SumAttackerData, ReadFile, AddSSHKey, SCPFile, wgetFile
-from plugins.deception.app.models.network import Host
-from plugins.deception.app.models.events import Event, FileContentsFound
-from plugins.deception.app.services import (
+from incalmo.actions.high_level_action import HighLevelAction
+from incalmo.actions.LowLevel import MD5SumAttackerData, ReadFile, AddSSHKey, SCPFile, wgetFile
+from incalmo.models.network import Host
+from incalmo.models.events import Event, FileContentsFound
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,
 )
-from plugins.deception.app.data.attacker_config import Environment
-
-from plugins.deception.app.helpers.logging import log_event
+from incalmo.data.attacker_config import Environment
 
 
 class ExfiltrateData(HighLevelAction):
@@ -47,11 +45,9 @@ class ExfiltrateData(HighLevelAction):
             raise Exception("No attacker agent found")
 
         if len(self.target_host.critical_data_files) == 0:
-            log_event("Exfiltrating Data", "Error, no critical data to exfiltrate")
             return []
 
         if target_agent is None:
-            log_event("Exfiltrating Data", "Error, no agents on target host")
             return []
 
         webserver_exists = False

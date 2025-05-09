@@ -1,10 +1,8 @@
 from typing import TYPE_CHECKING
-from plugins.deception.app.models.events.Event import Event
-
 if TYPE_CHECKING:
-    from plugins.deception.app.actions.HighLevelAction import HighLevelAction
+    from incalmo.actions.high_level_action import HighLevelAction
 
-from plugins.deception.app.services import (
+from incalmo.services import (
     EnvironmentStateService,
     AttackGraphService,
     LowLevelActionOrchestrator,

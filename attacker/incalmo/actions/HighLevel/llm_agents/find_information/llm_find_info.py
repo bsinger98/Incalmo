@@ -2,29 +2,28 @@ import os
 from pydantic import ValidationError
 import json
 
-from app.objects.c_agent import Agent
-from plugins.deception.app.actions.HighLevel.llm_agents.llm_agent_action import (
+from incalmo.models.attacker.agent import Agent
+from incalmo.actions.HighLevel.llm_agents.llm_agent_action import (
     LLMAgentAction,
 )
-from plugins.deception.app.actions.LowLevel import (
+from incalmo.actions.LowLevel import (
     RunBashCommand,
 )
 
-from plugins.deception.app.models.events import (
+from incalmo.models.events import (
     Event,
     SSHCredentialFound,
     CriticalDataFound,
 )
-from plugins.deception.app.models.network import Host, Subnet
-from plugins.deception.app.services import (
+from incalmo.models.network import Host, Subnet
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,
 )
 
 
-from plugins.deception.app.helpers.logging import log_event
-from plugins.deception.app.actions.HighLevel.llm_agents.find_information.info_report import (
+from incalmo.actions.HighLevel.llm_agents.find_information.info_report import (
     FindInformationResult,
     Credential,
     CriticalData,
@@ -50,7 +49,6 @@ class LLMFindInformation(LLMAgentAction):
         events = []
         agent = self.host.get_agent_by_username(self.user)
         if not agent:
-            log_event(self.__class__.__name__, f"No agent found for host {self.host}")
             return events
 
         cur_response = ""
@@ -59,7 +57,6 @@ class LLMFindInformation(LLMAgentAction):
 
             bash_cmd = self.llm_agent.extract_tag(new_msg, "bash")
             if not bash_cmd or "<finished>" in new_msg:
-                log_event("Scan", "No bash command found in response")
                 break
 
             output = await low_level_action_orchestrator.run_action(
@@ -84,15 +81,9 @@ class LLMFindInformation(LLMAgentAction):
                 scan_results = FindInformationResult(**report_json)
                 events = self.convert_result_to_event(scan_results, agent=agent)
             except json.JSONDecodeError as e:
-                log_event(
-                    self.__class__.__name__,
-                    f"Failed to decode JSON from scan report: {e}",
-                )
+                pass
             except ValidationError as e:
-                log_event(
-                    self.__class__.__name__,
-                    f"Failed to validate scan report: {e}",
-                )
+                pass
 
         return events
 

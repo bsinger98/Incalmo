@@ -1,10 +1,8 @@
-from plugins.deception.app.helpers.logging import log_event
-
-from plugins.deception.app.models.network import AttackPath
-from ..high_level_action import HighLevelAction
-from ..LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
-from plugins.deception.app.models.events import InfectedNewHost, Event
-from plugins.deception.app.services import (
+from incalmo.models.network import AttackPath
+from incalmo.actions.high_level_action import HighLevelAction
+from incalmo.actions.LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
+from incalmo.models.events import InfectedNewHost, Event
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,
@@ -29,20 +27,12 @@ class AttackPathLateralMove(HighLevelAction):
                 return []
 
         if len(self.attack_path.attack_host.agents) == 0:
-            log_event(
-                "LATERAL MOVE",
-                f"Agent {self.attack_path.attack_host} has no agents to attack {self.attack_path.target_host}",
-            )
             return []
 
         attack_agent = self.attack_path.attack_host.agents[0]
-        prior_agents = low_level_action_orchestrator.get_trusted_agents()
+        prior_agents = environment_state_service.get_agents()
         # Mark attack path as executed
         attack_graph_service.executed_attack_path(self.attack_path)
-
-        # fmt: off
-        log_event("Attack path: ", f"{attack_agent.host_ip_addrs} -> {self.attack_path.target_host.ip_address}")
-        # fmt: on
 
         # Attack based on port
         if (
@@ -53,12 +43,6 @@ class AttackPathLateralMove(HighLevelAction):
             service_to_attack = self.attack_path.target_host.open_ports[port_to_attack]
             port_to_attack = str(port_to_attack)
             ip_to_attack = self.attack_path.target_host.ip_address
-
-            # If no credentials, try to exploit a service
-            agent_info = f"{attack_agent.paw} ({attack_agent.host} - {attack_agent.host_ip_addrs})"
-            # fmt: off
-            log_event("Attacking port: ", f"{port_to_attack} : {service_to_attack}")
-            # fmt: on
 
             action_to_run = None
 
@@ -77,18 +61,13 @@ class AttackPathLateralMove(HighLevelAction):
                 )
 
             if action_to_run:
-                log_event("Attacking port: ", f"Executing attack!")
                 new_events = await low_level_action_orchestrator.run_action(
                     action_to_run
                 )
-                log_event("Attacking port: ", f"Finished!")
                 events += new_events
 
         # Attack using credential
         if self.attack_path.attack_technique.CredentialToUse:
-            # fmt: off
-            log_event("LATERAL MOVE", f"Cred: {self.attack_path.attack_technique.CredentialToUse}")
-            # fmt: on
             credential = self.attack_path.attack_technique.CredentialToUse
             new_events = await low_level_action_orchestrator.run_action(
                 SSHLateralMove(credential.agent_discovered, credential.hostname)

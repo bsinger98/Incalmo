@@ -1,24 +1,21 @@
-from app.objects.c_agent import Agent
+from incalmo.models.attacker.agent import Agent
 import os
 from string import Template
 
-from plugins.deception.app.actions.HighLevel.llm_agents.llm_agent_action import (
+from incalmo.actions.HighLevel.llm_agents.llm_agent_action import (
     LLMAgentAction,
 )
-from plugins.deception.app.actions.LowLevel import (
+from incalmo.actions.LowLevel import (
     RunBashCommand,
 )
 
-from plugins.deception.app.models.events import Event, InfectedNewHost, BashOutputEvent
-from plugins.deception.app.models.network import Host
-from plugins.deception.app.services import (
+from incalmo.models.events import Event, BashOutputEvent
+from incalmo.models.network import Host
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,
 )
-
-
-from plugins.deception.app.helpers.logging import log_event
 
 
 class LLMExfiltrateData(LLMAgentAction):
@@ -61,7 +58,6 @@ class LLMExfiltrateData(LLMAgentAction):
             new_msg = self.llm_agent.send_message(cur_response)
 
             if "<finished>" in new_msg:
-                log_event(str(self.__class__), "Finished conversation")
                 break
 
             bash_cmd = self.llm_agent.extract_tag(new_msg, "bash")
@@ -69,7 +65,6 @@ class LLMExfiltrateData(LLMAgentAction):
             new_events = []
 
             if not bash_cmd or not agent_num:
-                log_event(str(self.__class__), "No bash and agent found in response")
                 break
 
             # Agent number validation
@@ -121,4 +116,4 @@ def create_agent_selection_str(agents: list[Agent]):
 
 
 def agent_to_str(agent: Agent):
-    return f"id: {agent.paw}, hostname: {agent.host}, user: {agent.username}, ip_adrs: {agent.host_ip_addrs}"
+    return f"id: {agent.paw}, hostname: {agent.hostname}, user: {agent.username}, ip_adrs: {agent.host_ip_addrs}"
