@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import json
 import base64
+import binascii
 from Instruction import Instruction
 import uuid
 import asyncio
@@ -81,7 +82,7 @@ def get_agents():
                 "pid": parsed_info.get("pid"),
                 "host_ip_addrs": parsed_info.get("host_ip_addrs"),
             }
-        except (base64.binascii.Error, UnicodeDecodeError) as exc:
+        except (binascii.Error, UnicodeDecodeError) as exc:
             raise ValueError(f"Invalid base64 data: {exc!r}")
         except json.JSONDecodeError as exc:
             raise ValueError(f"Malformed JSON: {exc!r}")
@@ -92,80 +93,79 @@ def get_agents():
 # Send command to a specific agent
 @app.route("/send_command", methods=["POST"])
 async def send_command():
-    data = request.data
-    json_data = json.loads(data)
-    agent = json_data.get("agent")
-    command = json_data.get("command")
-
-    if agent not in agents:
-        return jsonify({"error": "Agent not found"})
-
-    commandId = str(uuid.uuid4())
-
-    instruction = Instruction(
-        id=commandId,
-        command=encode_base64(command),
-        executor="sh",
-        timeout=60,
-        payloads=[],
-        uploads=[],
-    )
-
-    agents[agent]["instructions"].append(instruction)
-
-    commandEvents[commandId] = asyncio.Event()
-
     try:
-        await asyncio.wait_for(commandEvents[commandId].wait(), timeout=30)
-    except asyncio.TimeoutError:
-        return jsonify({"message": "Timeout waiting for response"})
+        data = request.data
+        json_data = json.loads(data)
+        agent = json_data.get("agent")
+        command = json_data.get("command")
 
-    results = agents[agent]["results"]
+        if not agent or not command:
+            return jsonify({"error": "Missing agent or command"}), 400
 
-    for result in results:
-        if result["id"] == commandId:
-            id = result.get("id")
-            agent_time = result.get("agent_reported_time")
-            exit_code = result.get("exit_code")
-            pid = result.get("pid")
-            status = result.get("status")
-            output = result.get("output")
-            stderr = result.get("stderr")
-            decoded_output = decode_base64(output)
-            decoded_stderr = decode_base64(stderr)
+        if agent not in agents:
+            return jsonify({"error": "Agent not found"}), 404
 
-            agents[agent]["results"].remove(result)
-            agents[agent]["instructions"].remove(instruction)
-            del commandEvents[commandId]
-            return jsonify(
-                {
+        commandId = str(uuid.uuid4())
+        instruction = Instruction(
+            id=commandId,
+            command=encode_base64(command),
+            executor="sh",
+            timeout=60,
+            payloads=[],
+            uploads=[],
+        )
+
+        agents[agent]["instructions"].append(instruction)
+        commandEvents[commandId] = asyncio.Event()
+
+        try:
+            await asyncio.wait_for(commandEvents[commandId].wait(), timeout=30)
+        except asyncio.TimeoutError:
+            return jsonify({
+                "results": {
+                    "message": "Timeout waiting for response",
+                    "id": commandId,
+                    "status": "timeout"
+                }
+            }), 408
+
+        results = agents[agent]["results"]
+        for result in results:
+            if result["id"] == commandId:
+                response_data = {
+                    "id": result.get("id"),
+                    "agent_reported_time": result.get("agent_reported_time"),
+                    "exit_code": result.get("exit_code"),
+                    "pid": result.get("pid"),
+                    "status": result.get("status"),
+                    "output": decode_base64(result.get("output", "")),
+                    "stderr": decode_base64(result.get("stderr", "")),
+                }
+
+                # Cleanup
+                agents[agent]["results"].remove(result)
+                agents[agent]["instructions"].remove(instruction)
+                del commandEvents[commandId]
+
+                return jsonify({
                     "results": {
                         "message": "Command executed",
-                        "id": id,
-                        "agent_reported_time": agent_time,
-                        "exit_code": exit_code,
-                        "pid": pid,
-                        "status": status,
-                        "output": decoded_output,
-                        "stderr": decoded_stderr,
+                        **response_data
                     }
-                }
-            )
+                })
 
-    return jsonify(
-        {
+        return jsonify({
             "results": {
                 "message": "Command sent, no response received",
-                "id": id,
-                "agent_reported_time": agent_time,
-                "exit_code": exit_code,
-                "pid": pid,
-                "status": status,
-                "output": decoded_output,
-                "stderr": decoded_stderr,
+                "id": commandId,
+                "status": "pending"
             }
-        }
-    )
+        })
+
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON data"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
 if __name__ == "__main__":
