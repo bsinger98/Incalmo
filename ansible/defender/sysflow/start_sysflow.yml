@@ -1,7 +1,0 @@
----
-- hosts: "{{ host }}"
-  remote_user: root
-
-  tasks:
-  - name: Start sysflow
-    command: "sysflow start"
