@@ -1,8 +1,0 @@
----
-- hosts: "{{ host }}"
-  remote_user: root
-
-  tasks:
-  - name: Reboot machine 
-    ansible.builtin.reboot:
-      reboot_timeout: "{{ timeout }}"

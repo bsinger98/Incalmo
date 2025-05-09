@@ -1,7 +1,0 @@
-[
-  {
-    "name": "Baseline",
-    "trials": 5,
-    "scenario": "solarwinds/baseline.json"
-  }
-]
