@@ -21,12 +21,6 @@ COPY /attacker /attacker
 COPY uv.lock /attacker/uv.lock
 COPY pyproject.toml /attacker/pyproject.toml
 
-# Give permissions to the files
-RUN chmod +x /attacker/agents/sandcat.bin
-RUN chmod +x /attacker/c2_server/server.py
-RUN chmod +x /attacker/c2_server/Instruction.py
-RUN chmod +x /attacker/start.sh
-
 ENV SERVER_IP=localhost:8888
 ENV PYTHONUNBUFFERED=1
 WORKDIR /attacker
