@@ -124,15 +124,48 @@ async def send_command():
 
     for result in results:
         if result["id"] == commandId:
+            id = result.get("id")
+            agent_time = result.get("agent_reported_time")
+            exit_code = result.get("exit_code")
+            pid = result.get("pid")
+            status = result.get("status")
             output = result.get("output")
+            stderr = result.get("stderr")
             decoded_output = decode_base64(output)
+            decoded_stderr = decode_base64(stderr)
 
             agents[agent]["results"].remove(result)
             agents[agent]["instructions"].remove(instruction)
             del commandEvents[commandId]
-            return jsonify({"message": "Command executed", "output": decoded_output})
+            return jsonify(
+                {
+                    "results": {
+                        "message": "Command executed",
+                        "id": id,
+                        "agent_reported_time": agent_time,
+                        "exit_code": exit_code,
+                        "pid": pid,
+                        "status": status,
+                        "output": decoded_output,
+                        "stderr": decoded_stderr,
+                    }
+                }
+            )
 
-    return jsonify({"message": "Command sent, no response received"})
+    return jsonify(
+        {
+            "results": {
+                "message": "Command sent, no response received",
+                "id": id,
+                "agent_reported_time": agent_time,
+                "exit_code": exit_code,
+                "pid": pid,
+                "status": status,
+                "output": decoded_output,
+                "stderr": decoded_stderr,
+            }
+        }
+    )
 
 
 if __name__ == "__main__":
