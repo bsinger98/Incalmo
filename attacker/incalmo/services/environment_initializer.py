@@ -1,7 +1,5 @@
-from plugins.deception.app.data.attacker_config import AttackerConfig, Environment
-from plugins.deception.app.models.network import Network, Subnet
-import os
-import json
+from incalmo.data.attacker_config import AttackerConfig, Environment
+from incalmo.models.network import Network, Subnet
 
 
 class EnvironmentInitializer:

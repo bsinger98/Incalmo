@@ -1,10 +1,6 @@
-from app.objects.c_agent import Agent
-from app.objects.secondclass.c_fact import Fact
-from app.objects.secondclass.c_relationship import Relationship
-from app.service.knowledge_svc import KnowledgeService
-from app.objects.c_operation import Operation
+from incalmo.models.attacker.agent import Agent
 
-from plugins.deception.app.models.events import (
+from incalmo.models.events import (
     HostsDiscovered,
     ServicesDiscoveredOnHost,
     CredentialFound,
@@ -15,34 +11,28 @@ from plugins.deception.app.models.events import (
     VulnerableServiceFound,
     ScanReportEvent,
 )
-from plugins.deception.app.models.network import Host, Subnet
-
-from plugins.deception.app.helpers.agent_helpers import get_trusted_agents
-
-from plugins.deception.app.helpers.logging import log_event
+from incalmo.models.network import Host, Subnet
 
 import ipaddress
 import time
 
-from plugins.deception.app.services.environment_initializer import (
+from incalmo.services.environment_initializer import (
     EnvironmentInitializer,
 )
-from plugins.deception.app.data.attacker_config import AttackerConfig
-from plugins.deception.app.actions.HighLevel.llm_agents.scan.scan_report import (
+from incalmo.data.attacker_config import AttackerConfig
+from incalmo.actions.HighLevel.llm_agents.scan.scan_report import (
     ScanResults,
 )
-from plugins.deception.app.models.network.open_port import OpenPort
-
+from incalmo.models.network.open_port import OpenPort
+from api.server_api import C2ApiClient
 
 class EnvironmentStateService:
     def __init__(
         self,
-        calderaKnowledge_svc: KnowledgeService,
-        operation: Operation,
+        c2api_client: C2ApiClient,
         config: AttackerConfig,
     ):
-        self.calderaKnowledge_svc = calderaKnowledge_svc
-        self.operation = operation
+        self.c2api_client = c2api_client
         self.environment_type = config.environment
         self.c2c_server = config.c2c_server
 
@@ -64,7 +54,7 @@ class EnvironmentStateService:
         return
 
     def get_agents(self) -> list[Agent]:
-        return get_trusted_agents(self.operation)
+        return self.c2api_client.get_agents()
 
     def get_hosts_with_agents(self) -> list[Host]:
         hosts = []
@@ -168,7 +158,6 @@ class EnvironmentStateService:
     async def handle_InfectedNewHost(self, event: InfectedNewHost):
         # Add agent to network
         self.add_infected_host(event.new_agent)
-        await self.log_infected_host_to_caldera(event)
 
         if event.credential_used:
             event.credential_used.utilized = True
@@ -202,17 +191,12 @@ class EnvironmentStateService:
         host = self.network.find_host_by_ip(new_agent.host_ip_addrs[0])
 
         if host:
-            host.hostname = new_agent.host
+            host.hostname = new_agent.hostname
             host.add_agent(new_agent)
         else:
-            log_event(
-                "ADDING HOST",
-                f"Adding host {new_agent.host_ip_addrs[0]} to network",
-            )
-
             new_host = Host(
                 ip_address=new_agent.host_ip_addrs[0],
-                hostname=new_agent.host,
+                hostname=new_agent.hostname,
                 agents=[new_agent],
             )
 
@@ -229,17 +213,6 @@ class EnvironmentStateService:
                 self.network.add_subnet(subnet)
             else:
                 subnet.hosts.append(new_host)
-
-    async def log_infected_host_to_caldera(self, event: InfectedNewHost):
-        host_fact = Fact(trait="results.host.name", value=event.new_agent.host)
-        time_fact = Fact(trait="results.host.timestamp", value=time.time())
-        result_relationship = Relationship(
-            source=host_fact,
-            edge="has_timestamp",
-            target=time_fact,
-            origin=self.operation.id,
-        )
-        await self.calderaKnowledge_svc.add_relationship(result_relationship)
 
     def update_network_from_report(self, report: ScanResults):
         for ip_scan_result in report.results:
