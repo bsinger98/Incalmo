@@ -3,20 +3,19 @@ from incalmo.models.attacker.agent import Agent
 from api.server_api import C2ApiClient
 from incalmo.models.events.Event import Event
 
-from helpers.ability_helpers import run_ability
-from helpers.agent_helpers import get_trusted_agents
-from services.environment_state_service import (
-    EnvironmentStateService,
-)
-from models.events import InfectedNewHost, RootAccessOnHost
+# TODO Fix these imports
+# from incalmo.services.environment_state_service import (
+#     EnvironmentStateService,
+# )
+from incalmo.models.events import InfectedNewHost, RootAccessOnHost
 
 
 class LowLevelActionOrchestrator:
     def __init__(
         self,
-        environment_state_service: EnvironmentStateService,
+        # environment_state_service: EnvironmentStateService,
     ):
-        self.environment_state_service = environment_state_service
+        # self.environment_state_service = environment_state_service
         self.low_level_action_log: list[tuple[str, list[str]]] = []
 
     async def run_action(self, low_level_action: LowLevelAction) -> list[Event]:
@@ -46,10 +45,10 @@ class LowLevelActionOrchestrator:
 
         if new_agent:
             # If new agent on same host as ability agent, privledge escalation was successful
-            if new_agent.host == ability_agent.host:
+            if new_agent.hostname == ability_agent.hostname:
                 if new_agent.username == "root":
                     return [RootAccessOnHost(new_agent)]
-            if new_agent.host != ability_agent.host:
+            if new_agent.hostname != ability_agent.hostname:
                 return [InfectedNewHost(ability_agent, new_agent)]
 
         return []

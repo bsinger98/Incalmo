@@ -18,11 +18,11 @@ async def main():
     client = C2ApiClient()
     prior_agents = client.get_agents()
     print("Agents:")
-    for agent in prior_agents:
-        print(agent.paw)
-    action = WhoamiAction(agent=prior_agents[0], command="whoami")
-    orchestrator = LowLevelActionOrchestrator()
-    events = await orchestrator.run_action(action)
+    # for agent in prior_agents:
+    #     print(agent.paw)
+    # action = WhoamiAction(agent=prior_agents[0], command="whoami")
+    # orchestrator = LowLevelActionOrchestrator()
+    # events = await orchestrator.run_action(action)
 
 
 if __name__ == "__main__":

@@ -16,4 +16,4 @@ from .sudo_version import SudoVersion
 from .writeable_sudoers import WriteablePasswd
 
 from .vulnerable_service_found import VulnerableServiceFound
-from .scan_report import ScanReportEvent
+# from .scan_report import ScanReportEvent

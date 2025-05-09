@@ -18,12 +18,13 @@ RUN chmod 700 /root/.ssh
 
 # Copy attacker files
 COPY /attacker /attacker
-COPY uv.lock /attacker/uv.lock
-COPY pyproject.toml /attacker/pyproject.toml
+WORKDIR /attacker
+
+# Install dependencies
+RUN uv sync
 
 ENV SERVER_IP=localhost:8888
 ENV PYTHONUNBUFFERED=1
-WORKDIR /attacker
 
 # Run the startup script
 CMD ["./start.sh"]
