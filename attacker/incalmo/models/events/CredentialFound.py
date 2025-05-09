@@ -1,5 +1,5 @@
 from incalmo.models.events import Event
-from plugins.deception.app.models.network import SSHCredential
+from incalmo.models.network import SSHCredential
 from incalmo.models.attacker.agent import Agent
 
 
@@ -8,7 +8,7 @@ class CredentialFound(Event):
         self.agent = agent
 
     def __str__(self):
-        return f"{self.__class__.__name__} on host {self.agent.host}"
+        return f"{self.__class__.__name__} on host {self.agent.hostname}"
 
 
 class SSHCredentialFound(CredentialFound):
@@ -26,4 +26,4 @@ class SSHCredentialFound(CredentialFound):
         )
 
     def __str__(self):
-        return f"{self.__class__.__name__}: on host {self.agent.host} with {self.credential}"
+        return f"{self.__class__.__name__}: on host {self.agent.hostname} with {self.credential}"

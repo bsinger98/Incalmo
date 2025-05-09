@@ -1,8 +1,8 @@
 from .Credential import SSHCredential
-from app.objects.c_agent import Agent
+from incalmo.models.attacker.agent import Agent
 import random
 
-from plugins.deception.app.models.network.open_port import OpenPort
+from incalmo.models.network.open_port import OpenPort
 
 
 class Host:

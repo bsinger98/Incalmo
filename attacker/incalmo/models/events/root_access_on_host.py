@@ -1,6 +1,5 @@
 from incalmo.models.events import Event
 from incalmo.models.attacker.agent import Agent
-from plugins.deception.app.models.network import SSHCredential
 
 
 class RootAccessOnHost(Event):
@@ -11,4 +10,4 @@ class RootAccessOnHost(Event):
         self.root_agent = root_agent
 
     def __str__(self):
-        return f"RootAccessOnHost: {self.root_agent.host}"
+        return f"RootAccessOnHost: {self.root_agent.hostname}"

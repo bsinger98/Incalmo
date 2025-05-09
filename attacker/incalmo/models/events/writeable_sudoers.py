@@ -7,4 +7,4 @@ class WriteablePasswd(Event):
         self.agent = agent
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}: {self.agent.host}"
+        return f"{self.__class__.__name__}: {self.agent.hostname}"

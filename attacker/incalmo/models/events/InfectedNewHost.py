@@ -1,6 +1,6 @@
 from incalmo.models.events import Event
 from incalmo.models.attacker.agent import Agent
-from plugins.deception.app.models.network import SSHCredential
+from incalmo.models.network import SSHCredential
 
 
 class InfectedNewHost(Event):
@@ -17,4 +17,4 @@ class InfectedNewHost(Event):
             self.credential_used = credential_used
 
     def __str__(self):
-        return f"InfectedNewHost: {self.new_agent.host} - {self.new_agent.paw} - {self.new_agent.username}"
+        return f"InfectedNewHost: {self.new_agent.hostname} - {self.new_agent.paw} - {self.new_agent.username}"
