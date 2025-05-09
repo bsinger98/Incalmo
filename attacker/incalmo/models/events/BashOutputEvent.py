@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 from models.events import Event
 from models.attacker.agent import Agent
+=======
+from incalmo.models.events import Event
+from incalmo.models.attacker.agent import Agent
+>>>>>>> main
 
 
 class BashOutputEvent(Event):

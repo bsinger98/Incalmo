@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from models.events.Event import Event
-from models.attacker.agent import Agent
+from incalmo.models.events.Event import Event
+from incalmo.models.attacker.agent import Agent
 
 
 class LowLevelAction(ABC):

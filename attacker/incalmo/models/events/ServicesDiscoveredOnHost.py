@@ -1,4 +1,4 @@
-from plugins.deception.app.models.events import Event
+from incalmo.models.events import Event
 
 
 class ServicesDiscoveredOnHost(Event):
