@@ -1,5 +1,5 @@
 [project]
-name = "incalmo"
+name = "attacker"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -12,6 +12,3 @@ dependencies = [
     "pydantic-settings>=2.9.1",
     "requests>=2.32.3",
 ]
-
-[tool.uv.workspace]
-members = ["attacker"]
