@@ -22,7 +22,6 @@ class LowLevelAction(ABC):
         )
         return f"{self.__class__.__name__}: {params}"
 
-    @abstractmethod
     async def get_result(
         self,
         results: Results,
