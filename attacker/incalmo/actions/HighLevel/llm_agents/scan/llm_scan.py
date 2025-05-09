@@ -2,25 +2,25 @@ import os
 from string import Template
 import json
 
-from plugins.deception.app.actions.HighLevel.llm_agents.llm_agent_action import (
+from incalmo.actions.high_level_action import HighLevelAction
+from incalmo.actions.HighLevel.llm_agents.llm_agent_action import (
     LLMAgentAction,
 )
-from plugins.deception.app.actions.LowLevel import (
+from incalmo.actions.LowLevel import (
     RunBashCommand,
 )
 
-from plugins.deception.app.models.events import Event
-from plugins.deception.app.models.events.scan_report import ScanReportEvent
-from plugins.deception.app.models.network import Host, Subnet
-from plugins.deception.app.services import (
+from incalmo.models.events import Event
+from incalmo.models.events.scan_report import ScanReportEvent
+from incalmo.models.network import Host, Subnet
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,
 )
 
 
-from plugins.deception.app.helpers.logging import log_event
-from plugins.deception.app.actions.HighLevel.llm_agents.scan.scan_report import (
+from incalmo.actions.HighLevel.llm_agents.scan.scan_report import (
     ScanResults,
 )
 
@@ -44,7 +44,6 @@ class LLMAgentScan(LLMAgentAction):
         events = []
         scan_agent = self.scan_host.get_agent()
         if not scan_agent:
-            log_event("Scan", f"No agent found for host {self.scan_host}")
             return events
 
         cur_response = ""
@@ -54,7 +53,6 @@ class LLMAgentScan(LLMAgentAction):
 
             bash_cmd = self.llm_agent.extract_tag(new_msg, "bash")
             if not bash_cmd or "<finished>" in new_msg:
-                log_event("Scan", "No bash command found in response")
                 break
 
             output = await low_level_action_orchestrator.run_action(

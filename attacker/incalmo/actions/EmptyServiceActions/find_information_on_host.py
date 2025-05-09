@@ -1,8 +1,6 @@
-import re
-
-from plugins.deception.app.actions.HighLevelAction import HighLevelAction
-from plugins.deception.app.actions.HighLevel import FindInformationOnAHost
-from plugins.deception.app.services import EnvironmentStateService
+from incalmo.actions.high_level_action import HighLevelAction
+from incalmo.actions.HighLevel.find_information_on_host import FindInformationOnAHost
+from incalmo.services import EnvironmentStateService
 
 
 class FindInformationOnHostWrapper:

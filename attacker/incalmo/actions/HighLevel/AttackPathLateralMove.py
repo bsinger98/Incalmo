@@ -61,18 +61,13 @@ class AttackPathLateralMove(HighLevelAction):
                 )
 
             if action_to_run:
-                log_event("Attacking port: ", f"Executing attack!")
                 new_events = await low_level_action_orchestrator.run_action(
                     action_to_run
                 )
-                log_event("Attacking port: ", f"Finished!")
                 events += new_events
 
         # Attack using credential
         if self.attack_path.attack_technique.CredentialToUse:
-            # fmt: off
-            log_event("LATERAL MOVE", f"Cred: {self.attack_path.attack_technique.CredentialToUse}")
-            # fmt: on
             credential = self.attack_path.attack_technique.CredentialToUse
             new_events = await low_level_action_orchestrator.run_action(
                 SSHLateralMove(credential.agent_discovered, credential.hostname)

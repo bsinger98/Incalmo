@@ -1,9 +1,7 @@
-import re
-
-from plugins.deception.app.actions.HighLevelAction import HighLevelAction
-from plugins.deception.app.actions.HighLevel import Scan
-from plugins.deception.app.services import EnvironmentStateService
-from plugins.deception.app.models.network import Subnet
+from incalmo.actions.high_level_action import HighLevelAction
+from incalmo.actions.HighLevel.Scan import Scan
+from incalmo.services import EnvironmentStateService
+from incalmo.models.network import Subnet
 
 
 class ScanWrapper:

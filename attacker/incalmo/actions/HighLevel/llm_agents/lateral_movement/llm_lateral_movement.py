@@ -1,24 +1,20 @@
-import asyncio
 import os
 from string import Template
 
-from plugins.deception.app.actions.HighLevel.llm_agents.llm_agent_action import (
+from incalmo.actions.HighLevel.llm_agents.llm_agent_action import (
     LLMAgentAction,
 )
-from plugins.deception.app.actions.LowLevel import (
+from incalmo.actions.LowLevel import (
     RunBashCommand,
 )
 
-from plugins.deception.app.models.events import Event, InfectedNewHost, BashOutputEvent
-from plugins.deception.app.models.network import Host
-from plugins.deception.app.services import (
+from incalmo.models.events import Event, InfectedNewHost, BashOutputEvent
+from incalmo.models.network import Host
+from incalmo.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
     AttackGraphService,
 )
-
-
-from plugins.deception.app.helpers.logging import log_event
 
 
 class LLMLateralMove(LLMAgentAction):
@@ -41,7 +37,6 @@ class LLMLateralMove(LLMAgentAction):
         events = []
         agent = self.source_host.get_agent()
         if not agent:
-            log_event("LLMLateralMove", f"No agent found for host {self.source_host}")
             return events
 
         # Update preprompt with C2C server
@@ -60,9 +55,9 @@ class LLMLateralMove(LLMAgentAction):
             new_events = []
 
             if not exploit:
-                log_event(str(self.__class__), "No exploit or bash found in response")
                 break
 
+            # TODO Fix Dynamic payloads
             with open("plugins/deception/payloads/exploit.py", "w") as exploit_file:
                 exploit_file.write(exploit)
 
