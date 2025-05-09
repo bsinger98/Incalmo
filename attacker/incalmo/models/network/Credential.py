@@ -1,4 +1,4 @@
-from app.objects.c_agent import Agent
+from incalmo.models.attacker.agent import Agent
 
 
 class SSHCredential:

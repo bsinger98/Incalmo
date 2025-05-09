@@ -23,6 +23,7 @@ class C2ApiClient:
                     privilege=info.get("privilege", ""),
                     pid=str(info.get("pid", "")),
                     host_ip_addrs=info.get("host_ip_addrs", []),
+                    hostname=info.get("hostname", ""),
                 )
                 agent_list.append(agent)
             return agent_list

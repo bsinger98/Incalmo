@@ -1,5 +1,4 @@
 from incalmo.models.events import Event
-from incalmo.models.attacker.agent import Agent
 
 
 class FileContentsFound(Event):

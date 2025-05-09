@@ -1,8 +1,6 @@
 from .Host import Host
 from .Subnet import Subnet
-from app.objects.c_agent import Agent
-from .AttackPath import AttackPath, AttackTechnique
-from plugins.deception.app.helpers.logging import log_event
+from incalmo.models.attacker.agent import Agent
 
 
 class Network:

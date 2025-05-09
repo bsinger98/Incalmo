@@ -8,4 +8,4 @@ class SudoVersion(Event):
         self.version = version
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}: {self.agent.host} : {self.version}"
+        return f"{self.__class__.__name__}: {self.agent.hostname} : {self.version}"
