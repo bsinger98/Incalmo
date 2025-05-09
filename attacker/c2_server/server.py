@@ -1,6 +1,4 @@
 from flask import Flask, request, jsonify
-
-# from aiohttp import web
 import json
 import base64
 import binascii
@@ -100,6 +98,7 @@ async def send_command():
         json_data = json.loads(data)
         agent = json_data.get("agent")
         command = json_data.get("command")
+        payloads = json_data.get("payloads", [])
 
         if not agent or not command:
             return jsonify({"error": "Missing agent or command"}), 400
@@ -113,7 +112,7 @@ async def send_command():
             command=encode_base64(command),
             executor="sh",
             timeout=60,
-            payloads=[],
+            payloads=payloads,
             uploads=[],
             delete_payload=False,
         )

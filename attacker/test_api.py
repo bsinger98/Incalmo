@@ -20,7 +20,9 @@ async def main():
     print("Agents:")
     for agent in prior_agents:
         print(agent.paw)
-    action = WhoamiAction(agent=prior_agents[0], command="cat test_attack.txt")
+    action = WhoamiAction(
+        agent=prior_agents[0], command="./execute.sh", payloads=["execute.sh"]
+    )
     orchestrator = LowLevelActionOrchestrator()
     events = await orchestrator.run_action(action)
 
