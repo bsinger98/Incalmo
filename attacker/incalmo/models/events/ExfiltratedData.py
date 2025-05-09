@@ -1,13 +1,14 @@
-from plugins.deception.app.models.events import Event
-from plugins.deception.app.models.network import Host
+from models.events import Event
 
 
 class ExfiltratedData(Event):
     def __init__(
         self,
         file: str,
+        hash: str
     ):
         self.file = file
+        self.hash = hash
 
     def __str__(self):
-        return f"ExfiltratedData: {self.file}"
+        return f"ExfiltratedData: {self.file} with hash {self.hash}"

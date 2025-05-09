@@ -1,67 +1,49 @@
 from ..low_level_action import LowLevelAction
+from models.attacker.agent import Agent
+from models.events import Event, ServicesDiscoveredOnHost
 
-from app.objects.c_agent import Agent
-from app.objects.secondclass.c_fact import Fact
-from app.service.knowledge_svc import KnowledgeService
-from app.objects.c_operation import Operation
-from app.service.planning_svc import PlanningService
-
-from plugins.deception.app.models.events import Event, ServicesDiscoveredOnHost
-
+import xml.etree.ElementTree as ET
 
 class ScanHost(LowLevelAction):
     ability_name = "deception-nmap"
     host: str
 
     def __init__(self, agent: Agent, host_ip: str):
-        facts = {
-            "scan.remote.addr": host_ip,
-        }
+        self.host = host_ip
+        command = f"nmap -sV --version-light -oX - {host_ip}"
 
-        reset_facts = [
-            "host.remote.ip",
-            "host.remote.ports",
-            "host.remote.port_services",
-        ]
-        super().__init__(agent, facts, ScanHost.ability_name, reset_facts=reset_facts)
+        super().__init__(agent, command)
 
     async def get_result(
         self,
-        operation: Operation,
-        planner: PlanningService,
-        knowledge_svc_handle: KnowledgeService,
-        raw_result: dict | None = None,
+        stdout: str | None,
+        stderr: str | None,
     ) -> list[Event]:
-        # Get host.remote.ip facts for agent
-        scanned_host_facts = await knowledge_svc_handle.get_facts(
-            criteria=dict(
-                trait="host.remote.ip",
-                source=operation.id,
-                collected_by=[self.agent.paw],
-            )
-        )
+        if stdout is None:
+            return []
+        
+        tree = ET.parse(stdout)
+        root = tree.getroot()
+    
+        # Iterate over each <host> element
+        for host in root.findall('host'):
+            # Grab the first IPv4 or IPv6 address we find
+            addr_elem = host.find('address')
+            if addr_elem is None:
+                continue
+            ip = addr_elem.get('addr')
 
-        results = []
+            services: List[str] = []
+            ports = host.find('ports')
+            if ports is not None:
+                # For each <port>, check if state is "open" then record the service name
+                for port in ports.findall('port'):
+                    state = port.find('state')
+                    if state is not None and state.get('state') == 'open':
+                        svc = port.find('service')
+                        if svc is not None and svc.get('name'):
+                            services.append(svc.get('name'))
 
-        # For each remote fact, get all open ports and services
-        for fact in scanned_host_facts:
-            relationships = await knowledge_svc_handle.get_relationships(
-                criteria=dict(source=fact)
-            )
-            service_port_array = None
-            for relationship in relationships:
-                # if relationship.edge == "has_open_ports":
-                #     ports = relationship.target.value
-                if relationship.edge == "has_port_services":
-                    service_port_array = relationship.target.value
+            services_by_host[ip] = services
 
-            if service_port_array:
-                services = {}
-                for service_port in service_port_array:
-                    port_num = int(service_port[0])
-                    service = service_port[1]
-                    services[port_num] = service
-
-                results.append(ServicesDiscoveredOnHost(fact.value, services))
-
-        return results
+        return services_by_host

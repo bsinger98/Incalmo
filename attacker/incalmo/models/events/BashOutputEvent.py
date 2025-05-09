@@ -1,5 +1,5 @@
-from plugins.deception.app.models.events import Event
-from app.objects.c_agent import Agent
+from models.events import Event
+from models.attacker.agent import Agent
 
 
 class BashOutputEvent(Event):
