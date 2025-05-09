@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from incalmo.models.events.Event import Event
-from api.results import Results
+from models.command_result import CommandResult
 from incalmo.models.attacker.agent import Agent
 
 
@@ -24,6 +24,6 @@ class LowLevelAction(ABC):
 
     async def get_result(
         self,
-        results: Results,
+        results: CommandResult,
     ) -> list[Event]:
         return []

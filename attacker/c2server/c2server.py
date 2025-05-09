@@ -2,16 +2,18 @@ from flask import Flask, request, jsonify
 import json
 import base64
 import binascii
-from Instruction import Instruction
+from models.instruction import Instruction
 import uuid
-import asyncio
+from collections import defaultdict
+from models.command import Command, CommandStatus
+from models.command_result import CommandResult
 
 app = Flask(__name__)
 
-# Store agents
+# Store agents and their pending commands
 agents = {}
-
-commandEvents = {}
+command_queues = defaultdict(list)
+command_results: dict[str, Command] = {}
 
 
 def decode_base64(data):
@@ -35,34 +37,34 @@ def beacon():
     if not paw:
         return jsonify({"error": "Missing agent ID"}), 400
 
-    agent = agents.get(paw)
+    # Store agent info if new
+    if paw not in agents:
+        agents[paw] = {"paw": paw, "info": data}
 
-    if not agent:
-        agent = {"paw": paw, "info": data, "instructions": []}
-        agents[paw] = agent
-
+    # Process any results from previous commands
     for result in results:
-        commandId = result.get("id")
-        if commandId in commandEvents:
-            commandEvents[commandId].set()
+        command_id = result.get("id")
+        if command_id in command_results:
+            result = CommandResult(**result)
+            result.output = decode_base64(result.output)
+            result.stderr = decode_base64(result.stderr)
 
-    agent["results"] = results
-
-    commands = agent["instructions"]
-
-    instruction_str = json.dumps([json.dumps(i.display) for i in commands])
+            command_results[command_id].result = result
+            command_results[command_id].status = CommandStatus.COMPLETED
+    # Get next command from queue if available
+    instructions = []
+    if command_queues[paw]:
+        next_command = command_queues[paw].pop(0)
+        instructions.append(next_command)
 
     response = {
         "paw": paw,
-        "sleep": 10,
+        "sleep": 3,
         "watchdog": int(60),
-        "instructions": instruction_str,
+        "instructions": json.dumps([json.dumps(i.display) for i in instructions]),
     }
 
     encoded_response = encode_base64(response)
-
-    print("[+] Agent check-in:", paw)
-
     return encoded_response
 
 
@@ -92,7 +94,7 @@ def get_agents():
 
 # Send command to a specific agent
 @app.route("/send_command", methods=["POST"])
-async def send_command():
+def send_command():
     try:
         data = request.data
         json_data = json.loads(data)
@@ -105,62 +107,27 @@ async def send_command():
         if agent not in agents:
             return jsonify({"error": "Agent not found"}), 404
 
-        commandId = str(uuid.uuid4())
+        command_id = str(uuid.uuid4())
         instruction = Instruction(
-            id=commandId,
+            id=command_id,
             command=encode_base64(command),
             executor="sh",
             timeout=60,
             payloads=[],
             uploads=[],
         )
+        command = Command(
+            id=command_id,
+            instructions=instruction,
+            status=CommandStatus.PENDING,
+            result=None,
+        )
 
-        agents[agent]["instructions"].append(instruction)
-        commandEvents[commandId] = asyncio.Event()
+        # Add command to queue and create result tracking
+        command_queues[agent].append(instruction)
+        command_results[command_id] = command
 
-        try:
-            await asyncio.wait_for(commandEvents[commandId].wait(), timeout=30)
-        except asyncio.TimeoutError:
-            return jsonify({
-                "results": {
-                    "message": "Timeout waiting for response",
-                    "id": commandId,
-                    "status": "timeout"
-                }
-            }), 408
-
-        results = agents[agent]["results"]
-        for result in results:
-            if result["id"] == commandId:
-                response_data = {
-                    "id": result.get("id"),
-                    "agent_reported_time": result.get("agent_reported_time"),
-                    "exit_code": result.get("exit_code"),
-                    "pid": result.get("pid"),
-                    "status": result.get("status"),
-                    "output": decode_base64(result.get("output", "")),
-                    "stderr": decode_base64(result.get("stderr", "")),
-                }
-
-                # Cleanup
-                agents[agent]["results"].remove(result)
-                agents[agent]["instructions"].remove(instruction)
-                del commandEvents[commandId]
-
-                return jsonify({
-                    "results": {
-                        "message": "Command executed",
-                        **response_data
-                    }
-                })
-
-        return jsonify({
-            "results": {
-                "message": "Command sent, no response received",
-                "id": commandId,
-                "status": "pending"
-            }
-        })
+        return jsonify(command.model_dump())
 
     except json.JSONDecodeError:
         return jsonify({"error": "Invalid JSON data"}), 400
@@ -168,5 +135,13 @@ async def send_command():
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8888)
+# Check command status
+@app.route("/command_status/<command_id>", methods=["GET"])
+def check_command_status(command_id):
+    print(command_results)
+    print(command_id)
+    if command_id not in command_results:
+        return jsonify({"error": "Command not found"}), 404
+
+    command = command_results[command_id]
+    return jsonify(command.model_dump())
