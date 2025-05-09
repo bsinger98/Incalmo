@@ -1,7 +1,5 @@
-from plugins.deception.app.services import EnvironmentStateService
-from plugins.deception.app.models.network import AttackPath, AttackTechnique, Host
-
-from plugins.deception.app.helpers.logging import log_event
+from incalmo.services import EnvironmentStateService
+from incalmo.models.network import AttackPath, AttackTechnique, Host
 
 
 class AttackGraphService:
@@ -59,7 +57,6 @@ class AttackGraphService:
             executed_technique = executed_attack_path.attack_technique
 
             if attack_technique == executed_technique:
-                log_event("Skipping:", f"{attack_technique} == {executed_technique}")
                 return True
 
         return False
@@ -87,7 +84,7 @@ class AttackGraphService:
         internal_attack_paths = []
 
         if len(attacking_host.agents) == 0:
-            log_event("Attack Path", f"Error, no agents for host: {attacking_host}")
+            return []
 
         for subnet in self.environment_state_service.network.get_all_subnets():
             subnet_paths = []
@@ -221,12 +218,6 @@ class AttackGraphService:
         else:
             attack_paths.extend(external_attack_paths)
             attack_paths.extend(internal_attack_paths)
-
-        # fmt: off
-        log_event("Attack Path", f"Target host: {target_host} - {len(attack_paths)}")
-        log_event("Attack Path", f"Number of internal attack paths to target: {len(internal_attack_paths)}")
-        log_event("Attack Path", f"Number of external attack paths to target: {len(external_attack_paths)}")
-        # fmt: on
 
         return attack_paths
 

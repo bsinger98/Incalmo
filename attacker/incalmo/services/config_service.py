@@ -1,6 +1,6 @@
 import os
 import json
-from plugins.deception.app.data.attacker_config import AttackerConfig
+from incalmo.data.attacker_config import AttackerConfig
 
 CONFIG_PATH = "plugins/deception/app/data/config.json"
 
