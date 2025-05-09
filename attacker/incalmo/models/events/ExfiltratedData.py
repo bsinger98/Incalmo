@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-from models.events import Event
-=======
 from incalmo.models.events import Event
 from incalmo.models.network import Host
->>>>>>> main
-
 
 class ExfiltratedData(Event):
     def __init__(
