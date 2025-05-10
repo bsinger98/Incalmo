@@ -1,9 +1,11 @@
 from incalmo.actions.low_level_action import LowLevelAction
-from api.results import Results
 from incalmo.models.attacker.agent import Agent
 from config.settings import settings
 import requests
 import json
+import time
+from models.command_result import CommandResult
+from models.command import Command, CommandStatus
 
 
 class C2ApiClient:
@@ -32,8 +34,9 @@ class C2ApiClient:
                 f"Failed to get agents: {response.status_code} {response.text}"
             )
 
-    def send_command(self, low_level_action: LowLevelAction) -> Results:
-        """Send a command to an agent and return the result."""
+    def send_command(self, low_level_action: LowLevelAction) -> CommandResult:
+        """Send a command to an agent and poll for results."""
+        # Send the command
         payload = {
             "agent": low_level_action.agent.paw,
             "command": low_level_action.command,
@@ -43,22 +46,35 @@ class C2ApiClient:
         response = requests.post(
             f"{self.server_url}/send_command", data=json.dumps(payload), headers=headers
         )
-        if response.ok:
-            # Parse the response to get the results
-            result = response.json().get("results", [])
-            if result:
-                return Results(
-                    message=result.get("message"),
-                    agent_time=result.get("agent_reported_time"),
-                    exit_code=result.get("exit_code"),
-                    id=result.get("id"),
-                    pid=result.get("pid"),
-                    status=result.get("status"),
-                    stdout=result.get("output"),
-                    stderr=result.get("stderr"),
-                )
-            raise Exception("failed to get results for command")
-        else:
+
+        if not response.ok:
             raise Exception(
                 f"Failed to send command: {response.status_code} {response.text}"
             )
+
+        # Get command ID from initial response
+        command = Command(**response.json())
+        if not command:
+            raise Exception("No command ID received from server")
+
+        # Poll for results
+        max_attempts = 30  # 30 seconds timeout
+        poll_interval = 1  # 1 second between polls
+
+        for _ in range(max_attempts):
+            status_response = requests.get(
+                f"{self.server_url}/command_status/{command.id}"
+            )
+
+            if not status_response.ok:
+                raise Exception(
+                    f"Failed to check command status: {status_response.status_code} {status_response.text}"
+                )
+
+            command = Command(**status_response.json())
+            if command.status == CommandStatus.COMPLETED and command.result:
+                return command.result
+
+            time.sleep(poll_interval)
+
+        raise Exception("Command polling timed out")

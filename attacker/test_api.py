@@ -1,5 +1,5 @@
 from api.server_api import C2ApiClient
-from api.results import Results
+from models.command_result import CommandResult
 from incalmo.actions.low_level_action import LowLevelAction
 from incalmo.models.events import Event
 from incalmo.services.low_level_action_orchestrator import LowLevelActionOrchestrator
@@ -7,9 +7,8 @@ import asyncio
 
 
 class WhoamiAction(LowLevelAction):
-    async def get_result(self, results: Results) -> list[Event]:
-        print("STDOUT:", results.stdout)
-        print("STDERR:", results.stderr)
+    async def get_result(self, result: CommandResult) -> list[Event]:
+        print(result)
         return []
 
 
