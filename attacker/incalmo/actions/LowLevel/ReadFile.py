@@ -19,5 +19,5 @@ class ReadFile(LowLevelAction):
     ) -> list[Event]:
         if stdout is None:
             return []
-        
+
         return [FileContentsFound(self.file_path, stdout)]

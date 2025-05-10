@@ -7,7 +7,7 @@ from models.attacker.agent import Agent
 class ListFilesInDirectory(LowLevelAction):
     def __init__(self, agent: Agent, dir_path: str):
         self.dir_path = dir_path
-        
+
         command = f"ls -l {dir_path}"
 
         super().__init__(agent, command)
@@ -16,11 +16,10 @@ class ListFilesInDirectory(LowLevelAction):
         self,
         stdout: str | None,
         stderr: str | None,
-
     ) -> list[Event]:
         if stdout is None:
             return []
-        
+
         # Parse the output
         lines = stdout.splitlines()
         files = []

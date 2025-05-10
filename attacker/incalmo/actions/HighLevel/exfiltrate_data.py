@@ -2,7 +2,13 @@ import os
 from incalmo.models.attacker.agent import Agent
 
 from incalmo.actions.high_level_action import HighLevelAction
-from incalmo.actions.LowLevel import MD5SumAttackerData, ReadFile, AddSSHKey, SCPFile, wgetFile
+from incalmo.actions.LowLevel import (
+    MD5SumAttackerData,
+    ReadFile,
+    AddSSHKey,
+    SCPFile,
+    wgetFile,
+)
 from incalmo.models.network import Host
 from incalmo.models.events import Event, FileContentsFound
 from incalmo.services import (
@@ -216,7 +222,6 @@ class ExfiltrateData(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
     ):
         for src_agent in source_host.agents:
-
             # Get SSH key of attacker agent
             events = await low_level_action_orchestrator.run_action(
                 ReadFile(src_agent, "~/.ssh/id_rsa.pub")

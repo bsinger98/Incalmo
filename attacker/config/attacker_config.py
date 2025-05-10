@@ -31,7 +31,7 @@ class AttackerConfig(BaseModel):
     c2c_server: str
     abstraction: Optional[AbstractionLevel] = AbstractionLevel.HIGH_LEVEL
     llm: Optional[LLM] = None
-    
+
     class Config:
         # Enums are serialized as their values
         use_enum_values = True

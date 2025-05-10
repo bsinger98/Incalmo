@@ -6,7 +6,6 @@ CONFIG_PATH = "plugins/deception/app/data/config.json"
 
 
 class ConfigService:
-
     def __init__(self):
         self.config = self.load_config()
 

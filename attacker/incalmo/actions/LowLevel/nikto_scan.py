@@ -20,7 +20,7 @@ class NiktoScan(LowLevelAction):
     ) -> list[Event]:
         if stdout is None:
             return []
-        
+
         if "CVE-2017-5638" in stdout:
             return [
                 VulnerableServiceFound(

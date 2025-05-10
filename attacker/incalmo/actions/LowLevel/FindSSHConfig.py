@@ -33,7 +33,7 @@ class FindSSHConfig(LowLevelAction):
     ) -> list[Event]:
         if stdout is None:
             return []
-        
+
         hosts = parse_ssh_config(stdout)
 
         events = []

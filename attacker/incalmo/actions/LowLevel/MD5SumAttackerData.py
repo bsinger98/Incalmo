@@ -18,7 +18,7 @@ class MD5SumAttackerData(LowLevelAction):
     ) -> list[Event]:
         if stdout is None:
             return []
-        
+
         lines = stdout.split("\n")
         events = []
 

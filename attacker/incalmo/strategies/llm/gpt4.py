@@ -21,4 +21,6 @@ class EquifaxAttackerState(Enum):
 
 class LogicalPlanner(LLMStrategy):
     def create_llm_interface(self) -> LLMInterface:
-        return GPT4Interface(self.llm_logger, self.environment_state_service, self.config)
+        return GPT4Interface(
+            self.llm_logger, self.environment_state_service, self.config
+        )

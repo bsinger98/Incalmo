@@ -26,6 +26,7 @@ from incalmo.actions.HighLevel.llm_agents.scan.scan_report import (
 from incalmo.models.network.open_port import OpenPort
 from api.server_api import C2ApiClient
 
+
 class EnvironmentStateService:
     def __init__(
         self,

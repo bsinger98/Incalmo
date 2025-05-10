@@ -12,7 +12,6 @@ from attacker.exceptions import NoAttackerAgentsError, AttackerServerDownError
 
 
 class Attacker:
-
     def __init__(
         self,
         caldera_api_key: str,
@@ -193,7 +192,7 @@ class Attacker:
         for agent in agents:
             if agent["trusted"] is False:
                 resp = requests.delete(
-                    f'http://localhost:8888/api/v2/agents/{agent["paw"]}',
+                    f"http://localhost:8888/api/v2/agents/{agent['paw']}",
                     headers=self.api_headers,
                 )
         return
