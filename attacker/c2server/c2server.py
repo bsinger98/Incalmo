@@ -158,7 +158,7 @@ def download():
         if not file_name:
             return jsonify({"error": "Missing file name"}), 400
 
-        file_path = f"/attacker/c2_server/payloads/{file_name}"
+        file_path = f"/attacker/c2server/payloads/{file_name}"
         with open(file_path, "rb") as f:
             file_data = f.read()
 
