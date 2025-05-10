@@ -27,4 +27,4 @@ ENV SERVER_IP=localhost:8888
 ENV PYTHONUNBUFFERED=1
 
 # Run the startup script
-CMD ["./start.sh"]
+CMD ["bash", "./start.sh"]
