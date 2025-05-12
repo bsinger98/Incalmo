@@ -1,7 +1,8 @@
 from ..low_level_action import LowLevelAction
-from models.attacker.agent import Agent
+from incalmo.models.attacker.agent import Agent
+from models.command_result import CommandResult
 
-from models.events import Event, FileContentsFound
+from incalmo.models.events import Event, FileContentsFound
 
 
 class ReadFile(LowLevelAction):
@@ -14,10 +15,9 @@ class ReadFile(LowLevelAction):
 
     async def get_result(
         self,
-        stdout: str | None,
-        stderr: str | None,
+        result: CommandResult,
     ) -> list[Event]:
-        if stdout is None:
+        if result.output is None:
             return []
         
-        return [FileContentsFound(self.file_path, stdout)]
+        return [FileContentsFound(self.file_path, result.output)]

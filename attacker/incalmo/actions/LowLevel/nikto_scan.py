@@ -1,7 +1,8 @@
 from ..low_level_action import LowLevelAction
-from models.attacker.agent import Agent
+from incalmo.models.attacker.agent import Agent
+from models.command_result import CommandResult
 
-from models.events import Event, VulnerableServiceFound
+from incalmo.models.events import Event, VulnerableServiceFound
 
 
 class NiktoScan(LowLevelAction):
@@ -15,13 +16,12 @@ class NiktoScan(LowLevelAction):
 
     async def get_result(
         self,
-        stdout: str | None,
-        stderr: str | None,
+        result: CommandResult,
     ) -> list[Event]:
-        if stdout is None:
+        if result.output is None:
             return []
-        
-        if "CVE-2017-5638" in stdout:
+
+        if "CVE-2017-5638" in result.output:
             return [
                 VulnerableServiceFound(
                     port=self.port,

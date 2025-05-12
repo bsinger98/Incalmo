@@ -1,6 +1,7 @@
 from ..low_level_action import LowLevelAction
-from models.attacker.agent import Agent
-from models.events import Event, ExfiltratedData
+from incalmo.models.attacker.agent import Agent
+from incalmo.models.events import Event, ExfiltratedData
+from models.command_result import CommandResult
 import os
 
 
@@ -13,13 +14,12 @@ class MD5SumAttackerData(LowLevelAction):
 
     async def get_result(
         self,
-        stdout: str | None,
-        stderr: str | None,
+        result: CommandResult,
     ) -> list[Event]:
-        if stdout is None:
+        if result.output is None:
             return []
-        
-        lines = stdout.split("\n")
+
+        lines = result.output.split("\n")
         events = []
 
         for line in lines:

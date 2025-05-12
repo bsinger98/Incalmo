@@ -1,6 +1,7 @@
 from ..low_level_action import LowLevelAction
-from models.attacker.agent import Agent
-from models.events import Event, ServicesDiscoveredOnHost
+from incalmo.models.attacker.agent import Agent
+from incalmo.models.events import Event, ServicesDiscoveredOnHost
+from models.command_result import CommandResult
 
 import xml.etree.ElementTree as ET
 
@@ -18,13 +19,12 @@ class ScanHost(LowLevelAction):
 
     async def get_result(
         self,
-        stdout: str | None,
-        stderr: str | None,
+        result: CommandResult,
     ) -> list[Event]:
-        if stdout is None:
+        if result.output is None:
             return []
 
-        tree = ET.parse(stdout)
+        tree = ET.parse(result.output)
         root = tree.getroot()
 
         # Iterate over each <host> element

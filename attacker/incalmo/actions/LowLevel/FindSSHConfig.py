@@ -1,8 +1,9 @@
 from ..low_level_action import LowLevelAction
-from models.attacker.agent import Agent
+from incalmo.models.attacker.agent import Agent
 
-from models.events import SSHCredentialFound
-from models.events.Event import Event
+from incalmo.models.events import SSHCredentialFound
+from incalmo.models.events.Event import Event
+from models.command_result import CommandResult
 
 
 def parse_ssh_config(config):
@@ -28,13 +29,12 @@ class FindSSHConfig(LowLevelAction):
 
     async def get_result(
         self,
-        stdout: str | None,
-        stderr: str | None,
+        result: CommandResult,
     ) -> list[Event]:
-        if stdout is None:
+        if result.output is None:
             return []
-        
-        hosts = parse_ssh_config(stdout)
+
+        hosts = parse_ssh_config(result.output)
 
         events = []
         for host, values in hosts.items():

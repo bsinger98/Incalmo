@@ -1,28 +1,27 @@
 from ..low_level_action import LowLevelAction
-from models.events import Event, FilesFound
+from incalmo.models.events import Event, FilesFound
 
-from models.attacker.agent import Agent
+from incalmo.models.attacker.agent import Agent
+from models.command_result import CommandResult
 
 
 class ListFilesInDirectory(LowLevelAction):
     def __init__(self, agent: Agent, dir_path: str):
         self.dir_path = dir_path
-        
+
         command = f"ls -l {dir_path}"
 
         super().__init__(agent, command)
 
     async def get_result(
         self,
-        stdout: str | None,
-        stderr: str | None,
-
+        result: CommandResult,
     ) -> list[Event]:
-        if stdout is None:
+        if result.output is None:
             return []
-        
+
         # Parse the output
-        lines = stdout.splitlines()
+        lines = result.output.splitlines()
         files = []
         for line in lines:
             parts = line.split()
