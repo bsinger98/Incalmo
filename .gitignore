@@ -174,4 +174,4 @@ cython_debug/
 .pypirc
 
 .DS_Store
-attacker/c2server/payloads/exec_script.sh
+attacker/c2server/payloads/dynamic_payloads

