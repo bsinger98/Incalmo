@@ -1,3 +1,3 @@
 #!/bin/bash
 ./c2server/agents/sandcat.bin -server http://$SERVER_IP -group red -paw kali &
-uv run server.py
+uv run ./c2server/c2server.py

