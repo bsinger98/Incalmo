@@ -25,6 +25,7 @@ RUN uv sync
 
 ENV SERVER_IP=localhost:8888
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/attacker
 
 # Run the startup script
 CMD ["bash", "./start.sh"]
