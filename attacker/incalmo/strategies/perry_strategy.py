@@ -1,4 +1,4 @@
-from services import (
+from incalmo.services import (
     EnvironmentStateService,
     AttackGraphService,
     LowLevelActionOrchestrator,
@@ -19,7 +19,7 @@ class PerryStrategy(ABC):
 
         # Services
         self.environment_state_service: EnvironmentStateService = (
-            EnvironmentStateService(self.knowledge_svc_handle, operation, self.config)
+            EnvironmentStateService(self.c2_client, self.config)
         )
         self.attack_graph_service: AttackGraphService = AttackGraphService(
             self.environment_state_service

@@ -1,5 +1,13 @@
-# TODO
+import asyncio
+from incalmo.strategies.debug import DebugStrategy
 
-# 1. Start and manage C2C server
 
-# 2. Start incalmo attacker
+async def main():
+    strategy = DebugStrategy()
+    await strategy.initialize()
+    result = await strategy.main()
+    print(f"DebugStrategy returned: {result}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

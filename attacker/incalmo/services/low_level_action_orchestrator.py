@@ -24,6 +24,7 @@ class LowLevelActionOrchestrator:
         prior_agents = c2client.get_agents()
         # Run action with C2C server and get result
         command_result = c2client.send_command(low_level_action)
+        print("[DEBUG] Command result:", command_result)
         # Check for any new agents
         post_agents = c2client.get_agents()
         agent_check_result = self.check_new_agents(
