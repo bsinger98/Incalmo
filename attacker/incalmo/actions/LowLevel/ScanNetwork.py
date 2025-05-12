@@ -1,50 +1,33 @@
 from ..low_level_action import LowLevelAction
 
-from app.objects.c_agent import Agent
-from app.objects.secondclass.c_fact import Fact
-from app.service.knowledge_svc import KnowledgeService
-from app.objects.c_operation import Operation
-from app.service.planning_svc import PlanningService
+from models.attacker.agent import Agent
+from models.events import Event, HostsDiscovered
+from models.command_result import CommandResult
 
-from plugins.deception.app.models.events import Event, HostsDiscovered
+import xml.etree.ElementTree as ET
 
 
 class ScanNetwork(LowLevelAction):
-    ability_name = "deception-nmapsubnet"
-
     def __init__(self, agent: Agent, subnet_mask: str):
-        facts = {
-            "scan.subnet.addr": subnet_mask,
-        }
-        reset_facts = ["host.subnet.online_ipaddrs"]
-        super().__init__(
-            agent, facts, ScanNetwork.ability_name, reset_facts=reset_facts
-        )
+        self.subnet_mask = subnet_mask
+        command = f"nmap --max-rtt-timeout 100ms -sn -oX - {subnet_mask}"
 
-        self.subnet = subnet_mask
+        super().__init__(agent, command)
 
     async def get_result(
         self,
-        operation: Operation,
-        planner: PlanningService,
-        knowledge_svc_handle: KnowledgeService,
-        raw_result: dict | None = None,
+        result: CommandResult,
     ) -> list[Event]:
-        # Collect all hosts to scan from fact
-        collected_ips = []
-        online_ips = await knowledge_svc_handle.get_facts(
-            criteria=dict(
-                trait="host.subnet.online_ipaddrs",
-                source=operation.id,
-                collected_by=[self.agent.paw],
-            )
-        )
+        # Parse XML blob
+        root = ET.fromstring(result.output)
 
-        for fact in online_ips:
-            for ip in fact.value:
-                collected_ips.append(ip)
+        ips = self.parse_xml_report(root)
+        return [HostsDiscovered(self.subnet_mask, ips)]
 
-        if len(collected_ips) == 0:
-            return []
-        else:
-            return [HostsDiscovered(self.subnet, collected_ips)]
+    def parse_xml_report(self, root):
+        online_ips = []
+        # get all ips returned by nmap
+        for host in root.findall("host"):
+            host_ip = host.find("address").get("addr")
+            online_ips.append(host_ip)
+        return online_ips

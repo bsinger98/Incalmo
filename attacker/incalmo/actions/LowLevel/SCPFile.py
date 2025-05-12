@@ -1,11 +1,9 @@
 from ..low_level_action import LowLevelAction
 
-from app.objects.c_agent import Agent
+from models.attacker.agent import Agent
 
 
 class SCPFile(LowLevelAction):
-    ability_name = "deception-scp-copy"
-
     def __init__(
         self,
         agent: Agent,
@@ -15,11 +13,11 @@ class SCPFile(LowLevelAction):
         src_filepath: str,
         dst_filepath: str,
     ):
-        facts = {
-            "host.data.ip": ssh_ip,
-            "host.data.user": ssh_user,
-            "host.data.port": ssh_port,
-            "host.data.filepath": src_filepath,
-            "host.data.dst-filepath": dst_filepath,
-        }
-        super().__init__(agent, facts, SCPFile.ability_name)
+        self.ssh_ip = ssh_ip
+        self.ssh_user = ssh_user
+        self.ssh_port = ssh_port
+        self.src_filepath = src_filepath
+        self.dst_filepath = dst_filepath
+
+        command = f"scp -P {ssh_port} {src_filepath} {ssh_user}@{ssh_ip}:{dst_filepath}"
+        super().__init__(agent, command)

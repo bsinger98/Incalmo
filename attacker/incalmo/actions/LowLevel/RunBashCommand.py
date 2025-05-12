@@ -2,6 +2,7 @@ from ..low_level_action import LowLevelAction
 from models.attacker.agent import Agent
 from models.events import Event, BashOutputEvent
 
+
 class RunBashCommand(LowLevelAction):
     def __init__(self, agent: Agent, command: str):
         super().__init__(agent, command)
@@ -14,7 +15,7 @@ class RunBashCommand(LowLevelAction):
         if stdout is None or stderr is None:
             return []
 
-        if stderr is not None:
+        if stderr:
             return [BashOutputEvent(self.agent, stderr)]
-        
+
         return [BashOutputEvent(self.agent, stdout)]
