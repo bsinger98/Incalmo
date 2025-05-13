@@ -2,7 +2,7 @@ import os
 import json
 from incalmo.data.attacker_config import AttackerConfig
 
-CONFIG_PATH = "plugins/deception/app/data/config.json"
+CONFIG_PATH = "config/config.json"
 
 
 class ConfigService:

@@ -1,5 +1,5 @@
 from ..low_level_action import LowLevelAction
-from models.attacker.agent import Agent
+from incalmo.models.attacker.agent import Agent
 from config.settings import settings
 
 

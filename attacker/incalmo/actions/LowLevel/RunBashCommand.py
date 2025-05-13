@@ -1,6 +1,7 @@
 from ..low_level_action import LowLevelAction
-from models.attacker.agent import Agent
-from models.events import Event, BashOutputEvent
+from incalmo.models.attacker.agent import Agent
+from incalmo.models.events import Event, BashOutputEvent
+from models.command_result import CommandResult
 
 
 class RunBashCommand(LowLevelAction):
@@ -9,13 +10,12 @@ class RunBashCommand(LowLevelAction):
 
     async def get_result(
         self,
-        stdout: str | None,
-        stderr: str | None,
+        result: CommandResult,
     ) -> list[Event]:
-        if stdout is None or stderr is None:
+        if result.output is None or result.stderr is None:
             return []
 
-        if stderr:
-            return [BashOutputEvent(self.agent, stderr)]
+        if result.stderr:
+            return [BashOutputEvent(self.agent, result.stderr)]
 
-        return [BashOutputEvent(self.agent, stdout)]
+        return [BashOutputEvent(self.agent, result.output)]

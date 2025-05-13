@@ -1,7 +1,7 @@
 from ..low_level_action import LowLevelAction
 
-from models.attacker.agent import Agent
-from models.events import Event, HostsDiscovered
+from incalmo.models.attacker.agent import Agent
+from incalmo.models.events import Event, HostsDiscovered
 from models.command_result import CommandResult
 
 import xml.etree.ElementTree as ET
