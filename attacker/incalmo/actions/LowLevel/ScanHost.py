@@ -1,3 +1,4 @@
+from typing import List
 from ..low_level_action import LowLevelAction
 from incalmo.models.attacker.agent import Agent
 from incalmo.models.events import Event, ServicesDiscoveredOnHost
@@ -26,7 +27,7 @@ class ScanHost(LowLevelAction):
 
         tree = ET.parse(result.output)
         root = tree.getroot()
-
+        services_by_host = {}
         # Iterate over each <host> element
         for host in root.findall("host"):
             # Grab the first IPv4 or IPv6 address we find
