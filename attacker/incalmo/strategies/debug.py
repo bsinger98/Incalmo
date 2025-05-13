@@ -14,13 +14,11 @@ class DebugStrategy(PerryStrategy):
         #     ScanHost(agents[0], "localhost")
         # )
         host = Host(ip_address="localhost", agents=agents)
-        events = await Scan(
-            host,
-            [Subnet(ip_mask="127.0.0.1/32", hosts=[host])],
-        ).run(
-            self.low_level_action_orchestrator,
-            self.environment_state_service,
-            self.attack_graph_service,
+        events = await self.high_level_action_orchestrator.run_action(
+            Scan(
+                host,
+                [Subnet(ip_mask="127.0.0.1/32", hosts=[host])],
+            )
         )
 
         for event in events:
