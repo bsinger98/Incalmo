@@ -2,14 +2,14 @@ import os
 
 from abc import ABC, abstractmethod
 
-from plugins.deception.app.data.attacker_config import Abstraction
+from config.attacker_config import AbstractionLevel
 
-from plugins.deception.app.strategies.llm.llm_response import (
+from incalmo.strategies.llm.llm_response import (
     LLMResponse,
     LLMResponseType,
 )
 
-from plugins.deception.app.services.environment_state_service import (
+from incalmo.services import (
     EnvironmentStateService,
 )
 
@@ -74,12 +74,12 @@ class LLMInterface(ABC):
         self.max_message_len = 30000
 
         # Read pre-prompt file
-        if config.abstraction == Abstraction.NO_ABSTRACTION:
+        if config.abstraction == AbstractionLevel.NO_ABSTRACTION:
             with open(f"{pre_prompt_path}/bash/pre_prompt.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/bash/final_prompt.txt", "r") as file:
                 final_prompt = file.read()
-        elif config.abstraction == Abstraction.LOW_LEVEL:
+        elif config.abstraction == AbstractionLevel.LOW_LEVEL:
             with open(
                 f"{pre_prompt_path}/low-level-actions/pre_prompt.txt", "r"
             ) as file:
@@ -90,41 +90,41 @@ class LLMInterface(ABC):
                 f"{pre_prompt_path}/low-level-actions/final_prompt.txt", "r"
             ) as file:
                 final_prompt = file.read()
-        elif config.abstraction == Abstraction.HIGH_LEVEL:
+        elif config.abstraction == AbstractionLevel.HIGH_LEVEL:
             with open(f"{pre_prompt_path}/perry/pre_prompt.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/perry/codebase.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/perry/final_prompt.txt", "r") as file:
                 final_prompt = file.read()
-        elif config.abstraction == Abstraction.NO_SERVICES:
+        elif config.abstraction == AbstractionLevel.NO_SERVICES:
             with open(f"{pre_prompt_path}/no-services/pre_prompt.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/no-services/codebase.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/no-services/final_prompt.txt", "r") as file:
                 final_prompt = file.read()
-        elif config.abstraction == Abstraction.AGENT_SCAN:
+        elif config.abstraction == AbstractionLevel.AGENT_SCAN:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_scan"
             )
-        elif config.abstraction == Abstraction.AGENT_LATERAL_MOVE:
+        elif config.abstraction == AbstractionLevel.AGENT_LATERAL_MOVE:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_lateral_move"
             )
-        elif config.abstraction == Abstraction.AGENT_PRIVILEGE_ESCALATION:
+        elif config.abstraction == AbstractionLevel.AGENT_PRIVILEGE_ESCALATION:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_privilege_escalation"
             )
-        elif config.abstraction == Abstraction.AGENT_EXFILTRATE_DATA:
+        elif config.abstraction == AbstractionLevel.AGENT_EXFILTRATE_DATA:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_exfiltrate_data"
             )
-        elif config.abstraction == Abstraction.AGENT_FIND_INFORMATION:
+        elif config.abstraction == AbstractionLevel.AGENT_FIND_INFORMATION:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_find_information"
             )
-        elif config.abstraction == Abstraction.AGENT_ALL:
+        elif config.abstraction == AbstractionLevel.AGENT_ALL:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_all"
             )

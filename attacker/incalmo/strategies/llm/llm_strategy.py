@@ -1,30 +1,29 @@
 from app.objects.c_operation import Operation
 from app.service.planning_svc import PlanningService
-from app.objects.c_agent import Agent
+from incalmo.models.attacker.agent import Agent
 import traceback
 
-from plugins.deception.app.actions.HighLevel.llm_agents.llm_agent_action import (
+from incalmo.actions.HighLevel.llm_agents.llm_agent_action import (
     LLMAgentAction,
 )
-from plugins.deception.app.actions.HighLevelAction import HighLevelAction
-from plugins.deception.app.actions.LowLevelAction import LowLevelAction
-from plugins.deception.app.actions.HighLevel import *
-from plugins.deception.app.actions.LowLevel import *
-from plugins.deception.app.actions.EmptyServiceActions import *
-from plugins.deception.app.models.network import *
-from plugins.deception.app.models.events import *
-from plugins.deception.app.strategies.perry_strategy import PerryStrategy
-from plugins.deception.app.data.attacker_config import Abstraction
-from plugins.deception.app.services.environment_state_service import (
+from incalmo.actions.high_level_action import HighLevelAction
+from incalmo.actions.low_level_action import LowLevelAction
+
+from incalmo.strategies.perry_strategy import PerryStrategy
+from config.attacker_config import AbstractionLevel
+from incalmo.services.environment_state_service import (
     EnvironmentStateService,
 )
 
-from plugins.deception.app.strategies.llm.llm_response import (
+from incalmo.strategies.llm.llm_response import (
     LLMResponseType,
 )
-from plugins.deception.app.strategies.llm.interfaces.sonnet3_interface import (
+from incalmo.strategies.llm.interfaces.llm_interface import (
     LLMInterface,
 )
+
+from incalmo.actions.LowLevel import RunBashCommand, MD5SumAttackerData
+from incalmo.models.events import BashOutputEvent
 
 from abc import ABC, abstractmethod
 
@@ -61,7 +60,7 @@ class LLMStrategy(PerryStrategy, ABC):
 
     async def finished_cb(self):
         # Log exfiltrated data for non high level abstractions
-        if self.config.abstraction != Abstraction.HIGH_LEVEL:
+        if self.config.abstraction != AbstractionLevel.HIGH_LEVEL:
             for host in self.initial_hosts:
                 agent = host.get_agent()
                 if agent:
@@ -216,18 +215,18 @@ class LLMStrategy(PerryStrategy, ABC):
 
 
 def get_infection_summary_str(
-    env_service: EnvironmentStateService, abstraction: Abstraction
+    env_service: EnvironmentStateService, abstraction: AbstractionLevel
 ):
     infection_summary = "\n"
     abstractions_with_full_info = [
-        Abstraction.AGENT_ALL,
-        Abstraction.AGENT_SCAN,
-        Abstraction.AGENT_LATERAL_MOVE,
-        Abstraction.AGENT_PRIVILEGE_ESCALATION,
-        Abstraction.AGENT_EXFILTRATE_DATA,
-        Abstraction.AGENT_FIND_INFORMATION,
-        Abstraction.HIGH_LEVEL,
-        Abstraction.LOW_LEVEL,
+        AbstractionLevel.AGENT_ALL,
+        AbstractionLevel.AGENT_SCAN,
+        AbstractionLevel.AGENT_LATERAL_MOVE,
+        AbstractionLevel.AGENT_PRIVILEGE_ESCALATION,
+        AbstractionLevel.AGENT_EXFILTRATE_DATA,
+        AbstractionLevel.AGENT_FIND_INFORMATION,
+        AbstractionLevel.HIGH_LEVEL,
+        AbstractionLevel.LOW_LEVEL,
     ]
 
     if abstraction in abstractions_with_full_info:
@@ -239,7 +238,7 @@ def get_infection_summary_str(
                 host_str += f"Agent id: {agent.paw}, user: {agent.username}\n"
             infection_summary += host_str
 
-    elif abstraction == Abstraction.NO_SERVICES:
+    elif abstraction == AbstractionLevel.NO_SERVICES:
         agents = env_service.get_agents()
         infection_summary += "Your current agents are: \n"
         infection_summary += get_agent_string(agents)

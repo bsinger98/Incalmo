@@ -1,6 +1,6 @@
 import requests
 import json
-from plugins.deception.app.strategies.llm.interfaces.llm_interface import LLMInterface
+from incalmo.strategies.llm.interfaces.llm_interface import LLMInterface
 
 OLLAMA_URL = "http://tiger2.lan.local.cmu.edu:11434/api/generate"
 

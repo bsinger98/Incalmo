@@ -1,6 +1,6 @@
 import anthropic
 
-from plugins.deception.app.strategies.llm.interfaces.llm_interface import LLMInterface
+from incalmo.strategies.llm.interfaces.llm_interface import LLMInterface
 
 # Set up the Anthropic client
 client = anthropic.Anthropic()

@@ -1,4 +1,4 @@
-from plugins.deception.app.strategies.llm.interfaces.llm_interface import LLMInterface
+from incalmo.strategies.llm.interfaces.llm_interface import LLMInterface
 from openai import OpenAI
 
 
