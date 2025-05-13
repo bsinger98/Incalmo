@@ -47,4 +47,4 @@ RUN chown $TOMCAT_USER:$TOMCAT_GROUP $TOMCAT_HOME/.ssh/id_rsa && \
 
 # Set execution permissions and run Tomcat
 USER $TOMCAT_USER
-CMD ["/opt/tomcat/bin/catalina.sh", "run"]
+CMD ["/opt/tomcat/apache-tomcat-9.0.83/bin/catalina.sh", "run"]

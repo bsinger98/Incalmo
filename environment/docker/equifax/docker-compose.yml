@@ -20,34 +20,20 @@ networks:
         - subnet: 192.168.200.0/24
 
 services:
-  attacker_controller:
-    image: incalmo/attacker_controller:latest
-    container_name: attacker_controller_container
-    restart: always
-    ports:
-      - "0.0.0.0:8888:8888"  # Binds to all network interfaces on the host
+  attacker:
+    build:
+      context: ../../../
+      dockerfile: attacker/incalmo.Dockerfile
     volumes:
-      - ../../../attacker/DeceptionCalderaPlugin:/home/caldera/plugins/deception
-    environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - API_KEY=${GOOGLE_API_KEY}
-
-  attacker_host:
-    image: incalmo/attacker_host:latest
-    container_name: attacker_container
-    restart: always
+      - ../../../attacker:/attacker
     networks:
-      attacker_network:
-        ipv4_address: 192.168.199.9
-      web_network:
-        ipv4_address: 192.168.200.9
-    environment:
-      - SERVER_IP=host.docker.internal:8888
-    depends_on:
-      - attacker_controller
+      - attacker_network
+      - web_network  # Add this to communicate with the web server
+      - db_network   # Add this if you need direct DB access
+      
   db:
-    image: incalmo/equifax/database:latest
+    build:
+      context: ./database
     container_name: db_container
     restart: always
     networks:
@@ -55,7 +41,8 @@ services:
         ipv4_address: 192.168.201.100
 
   webserver:
-    image: incalmo/equifax/webserver:latest
+    build:
+      context: ./webserver
     container_name: webserver_container
     restart: always
     networks:
