@@ -25,8 +25,8 @@ class ScanHost(LowLevelAction):
         if result.output is None:
             return []
 
-        tree = ET.parse(result.output)
-        root = tree.getroot()
+        root = ET.fromstring(result.output)
+
         services_by_host = {}
         # Iterate over each <host> element
         for host in root.findall("host"):
@@ -49,4 +49,7 @@ class ScanHost(LowLevelAction):
 
             services_by_host[ip] = services
 
-        return services_by_host
+        return [
+            ServicesDiscoveredOnHost(ip, services)
+            for ip, services in services_by_host.items()
+        ]
