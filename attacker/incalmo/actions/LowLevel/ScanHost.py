@@ -36,7 +36,7 @@ class ScanHost(LowLevelAction):
                 continue
             ip = addr_elem.get("addr")
 
-            services: List[str] = []
+            services: dict[int, str] = {}
             ports = host.find("ports")
             if ports is not None:
                 # For each <port>, check if state is "open" then record the service name
@@ -45,7 +45,9 @@ class ScanHost(LowLevelAction):
                     if state is not None and state.get("state") == "open":
                         svc = port.find("service")
                         if svc is not None and svc.get("name"):
-                            services.append(svc.get("name"))
+                            port_num = int(port.get("portid"))
+                            service_name = svc.get("name")
+                            services[port_num] = service_name
 
             services_by_host[ip] = services
 
