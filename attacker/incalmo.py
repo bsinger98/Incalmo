@@ -1,11 +1,13 @@
 import asyncio
 from incalmo.strategies.debug import DebugStrategy
+from incalmo.strategies.struts_strategy import StrutsStrategy
 
 TIMEOUT_SECONDS = 75 * 60
 
 
 async def main():
-    strategy = DebugStrategy()
+    # strategy = DebugStrategy()
+    strategy = StrutsStrategy()
     await strategy.initialize()
     start_time = asyncio.get_event_loop().time()
     while True:
