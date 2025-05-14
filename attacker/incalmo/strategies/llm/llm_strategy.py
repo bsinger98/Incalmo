@@ -32,7 +32,7 @@ client = anthropic.Anthropic()
 
 class LLMStrategy(PerryStrategy, ABC):
     def __init__(self):
-        super().__init__(operation, planning_svc, stopping_conditions)
+        super().__init__()
 
         # Init claude logger
         self.llm_logger = self.log_creator.setup_logger("llm")
