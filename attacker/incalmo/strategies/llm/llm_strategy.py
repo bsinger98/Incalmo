@@ -22,6 +22,7 @@ from incalmo.strategies.llm.interfaces.llm_interface import (
 
 from incalmo.actions.LowLevel import RunBashCommand, MD5SumAttackerData
 from incalmo.models.events import BashOutputEvent
+
 from abc import ABC, abstractmethod
 
 import anthropic
@@ -30,10 +31,8 @@ client = anthropic.Anthropic()
 
 
 class LLMStrategy(PerryStrategy, ABC):
-    def __init__(
-        self,
-    ):
-        super().__init__()
+    def __init__(self):
+        super().__init__(operation, planning_svc, stopping_conditions)
 
         # Init claude logger
         self.llm_logger = self.log_creator.setup_logger("llm")

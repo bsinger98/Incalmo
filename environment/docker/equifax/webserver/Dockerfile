@@ -18,11 +18,12 @@ RUN apt-get install -y sshpass nmap ncat python3 python3-pip net-tools curl wget
 # Set default shell to be bash
 RUN chsh -s /bin/bash $TOMCAT_USER
 
-COPY struts/apache-tomcat-9.0.83.zip /tmp/apache-tomcat-9.0.83.zip
+COPY struts/tomcat.zip /tmp/tomcat.zip
 
 # Download and install Tomcat
-RUN unzip /tmp/apache-tomcat-9.0.83.zip -d $TOMCAT_HOME && \
-    rm /tmp/apache-tomcat-9.0.83.zip && \
+RUN unzip /tmp/tomcat.zip -d /tmp && \
+    mv /tmp/tomcat/* $TOMCAT_HOME/ && \
+    rm -rf /tmp/tomcat /tmp/tomcat.zip && \
     chown -R $TOMCAT_USER:$TOMCAT_GROUP $TOMCAT_HOME
 
 # Create necessary directories and files for the Tomcat user
@@ -47,4 +48,4 @@ RUN chown $TOMCAT_USER:$TOMCAT_GROUP $TOMCAT_HOME/.ssh/id_rsa && \
 
 # Set execution permissions and run Tomcat
 USER $TOMCAT_USER
-CMD ["/opt/tomcat/apache-tomcat-9.0.83/bin/catalina.sh", "run"]
+CMD ["/opt/tomcat/bin/catalina.sh", "run"]

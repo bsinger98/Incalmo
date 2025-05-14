@@ -1,10 +1,7 @@
-from plugins.deception.app.actions.HighLevel import *
-from plugins.deception.app.models.network import *
-from plugins.deception.app.models.events import *
-from plugins.deception.app.strategies.llm.llm_strategy import LLMStrategy
+from incalmo.strategies.llm.llm_strategy import LLMStrategy
 
-from plugins.deception.app.strategies.llm.interfaces.llm_interface import LLMInterface
-from plugins.deception.app.strategies.llm.interfaces.opus3_interface import (
+from incalmo.strategies.llm.interfaces.llm_interface import LLMInterface
+from incalmo.strategies.llm.interfaces.opus3_interface import (
     Opus3Interface,
 )
 
@@ -23,4 +20,6 @@ class EquifaxAttackerState(Enum):
 
 class LogicalPlanner(LLMStrategy):
     def create_llm_interface(self) -> LLMInterface:
-        return Opus3Interface(self.llm_logger, self.environment_state_service, self.config)
+        return Opus3Interface(
+            self.llm_logger, self.environment_state_service, self.config
+        )
