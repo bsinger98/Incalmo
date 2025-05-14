@@ -1,13 +1,15 @@
 import asyncio
 from incalmo.strategies.debug import DebugStrategy
 from incalmo.strategies.struts_strategy import StrutsStrategy
+from incalmo.strategies.llm.gemini_2_flash import Gemini2FlashStrategy
 
 TIMEOUT_SECONDS = 75 * 60
 
 
 async def main():
-    strategy = DebugStrategy()
+    # strategy = DebugStrategy()
     # strategy = StrutsStrategy()
+    strategy = Gemini2FlashStrategy()
     await strategy.initialize()
     start_time = asyncio.get_event_loop().time()
     while True:

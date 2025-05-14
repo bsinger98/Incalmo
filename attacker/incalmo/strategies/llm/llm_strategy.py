@@ -35,8 +35,8 @@ class LLMStrategy(PerryStrategy, ABC):
         super().__init__()
 
         # Init claude logger
-        self.llm_logger = self.log_creator.setup_logger("llm")
-        self.llm_logger.info("LLM logger initialized")
+        # self.llm_logger = self.log_creator.setup_logger("llm")
+        # self.llm_logger.info("LLM logger initialized")
 
         # Initial network assumptions
         self.llm_interface = self.create_llm_interface()
@@ -62,20 +62,20 @@ class LLMStrategy(PerryStrategy, ABC):
                     )
 
         # Output preprompt log
-        experiment_log_dir = self.log_creator.logger_dir_path
+        # experiment_log_dir = self.log_creator.logger_dir_path
         pre_prompt = self.llm_interface.pre_prompt
 
-        if len(self.bash_log) > 0:
-            with open(f"{experiment_log_dir}/bash_log.log", "w") as f:
-                f.write(self.bash_log)
+        # if len(self.bash_log) > 0:
+        #     with open(f"{experiment_log_dir}/bash_log.log", "w") as f:
+        #         f.write(self.bash_log)
 
-        with open(f"{experiment_log_dir}/pre_prompt.log", "w") as f:
-            f.write(pre_prompt)
+        # with open(f"{experiment_log_dir}/pre_prompt.log", "w") as f:
+        #     f.write(pre_prompt)
 
     async def step(self) -> bool:
         # Check if any new agents were created
-        self.update_trusted_agents()
-        self.environment_state_service.update_host_agents(self.trusted_agents)
+        agents = self.c2_client.get_agents()
+        self.environment_state_service.update_host_agents(agents)
 
         finished = await self.llm_request()
 
@@ -90,7 +90,7 @@ class LLMStrategy(PerryStrategy, ABC):
         try:
             llm_action = self.llm_interface.get_llm_action(self.last_response)
         except Exception as e:
-            self.llm_logger.error(f"Error getting LLM action: {e}")
+            # self.llm_logger.error(f"Error getting LLM action: {e}")
             return True
 
         new_perr_reponse = ""
@@ -106,7 +106,7 @@ class LLMStrategy(PerryStrategy, ABC):
             current_response = ""
             if llm_action.response_type == LLMResponseType.QUERY:
                 query = llm_action.response
-                self.perry_logger.info(f"LLM query: \n{query}")
+                # self.perry_logger.info(f"LLM query: \n{query}")
                 current_response += "\nThe query result is: \n"
                 objects = await dynamic_query_execution(
                     self.environment_state_service, self.attack_graph_service, query
@@ -115,7 +115,7 @@ class LLMStrategy(PerryStrategy, ABC):
                     # Check if the object is Host
                     current_response += str(obj) + "\n"
 
-                self.perry_logger.info(f"Query response: \n{current_response}")
+                # self.perry_logger.info(f"Query response: \n{current_response}")
                 self.last_response = current_response
                 return False
 
@@ -124,7 +124,7 @@ class LLMStrategy(PerryStrategy, ABC):
                 or llm_action.response_type == LLMResponseType.MEDIUM_ACTION
             ):
                 action = llm_action.response
-                self.perry_logger.info(f"LLM action: \n{action}")
+                # self.perry_logger.info(f"LLM action: \n{action}")
                 if llm_action.response_type == LLMResponseType.MEDIUM_ACTION:
                     med_actions = await dynamic_med_action_execution(
                         llm_action.response
@@ -167,13 +167,13 @@ class LLMStrategy(PerryStrategy, ABC):
                     if isinstance(action, LLMAgentAction):
                         self.llm_logger.info(action.get_llm_conversation())
 
-                self.perry_logger.info(f"Action response: \n{current_response}")
+                # self.perry_logger.info(f"Action response: \n{current_response}")
                 self.last_response = current_response
                 return False
 
             if llm_action.response_type == LLMResponseType.BASH:
                 command = llm_action.response
-                self.perry_logger.info(f"Bash command: \n{command}")
+                # self.perry_logger.info(f"Bash command: \n{command}")
                 self.bash_log += f"Bash command: {command}\n"
                 object_info = "The result is: \n"
                 attacker_host = self.initial_hosts[0]
@@ -191,7 +191,7 @@ class LLMStrategy(PerryStrategy, ABC):
                         self.bash_log += result.bash_output
                         break
 
-                self.perry_logger.info(f"Command response: \n{object_info}")
+                # self.perry_logger.info(f"Command response: \n{object_info}")
                 self.last_response = object_info
                 return False
 
@@ -199,9 +199,9 @@ class LLMStrategy(PerryStrategy, ABC):
             self.last_response = f"Error executing query or action: {e} \n"
             self.last_response += traceback.format_exc()
 
-            self.perry_logger.error(
-                f"Error executing query or action: \n{self.last_response}"
-            )
+            # self.perry_logger.error(
+            #     f"Error executing query or action: \n{self.last_response}"
+            # )
             return False
 
         return False

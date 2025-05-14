@@ -1,6 +1,6 @@
 import os
 import json
-from incalmo.data.attacker_config import AttackerConfig
+from config.attacker_config import AttackerConfig
 
 CONFIG_PATH = "config/config.json"
 
