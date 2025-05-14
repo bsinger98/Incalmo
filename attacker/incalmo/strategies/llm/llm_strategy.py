@@ -1,5 +1,3 @@
-from app.objects.c_operation import Operation
-from app.service.planning_svc import PlanningService
 from incalmo.models.attacker.agent import Agent
 import traceback
 
@@ -33,13 +31,8 @@ client = anthropic.Anthropic()
 
 
 class LLMStrategy(PerryStrategy, ABC):
-    def __init__(
-        self,
-        operation: Operation,
-        planning_svc: PlanningService,
-        stopping_conditions=(),
-    ):
-        super().__init__(operation, planning_svc, stopping_conditions)
+    def __init__(self):
+        super().__init__()
 
         # Init claude logger
         self.llm_logger = self.log_creator.setup_logger("llm")
