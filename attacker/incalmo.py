@@ -6,8 +6,8 @@ TIMEOUT_SECONDS = 75 * 60
 
 
 async def main():
-    # strategy = DebugStrategy()
-    strategy = StrutsStrategy()
+    strategy = DebugStrategy()
+    # strategy = StrutsStrategy()
     await strategy.initialize()
     start_time = asyncio.get_event_loop().time()
     while True:
