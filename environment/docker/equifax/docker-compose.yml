@@ -7,17 +7,17 @@ networks:
       config:
         - subnet: 192.168.199.0/24
 
-  db_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 192.168.201.0/24
-
   web_network:
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.200.0/24
+
+  db_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.201.0/24
 
 services:
   attacker:
@@ -27,18 +27,10 @@ services:
     volumes:
       - ../../../attacker:/attacker
     networks:
-      - attacker_network
-      - web_network  # Add this to communicate with the web server
-      - db_network   # Add this if you need direct DB access
-      
-  db:
-    build:
-      context: ./database
-    container_name: db_container
-    restart: always
-    networks:
-      db_network:
-        ipv4_address: 192.168.201.100
+      attacker_network:
+        ipv4_address: 192.168.199.10
+    ports:
+      - 8888:8888
 
   webserver:
     build:
@@ -47,8 +39,17 @@ services:
     restart: always
     networks:
       db_network:
-        ipv4_address: 192.168.201.10
+        ipv4_address: 192.168.201.20
       web_network:
-        ipv4_address: 192.168.200.10
-    depends_on:
-      - db
+        ipv4_address: 192.168.200.20
+    ports:
+      - 8080:8080
+
+  db:
+    build:
+      context: ./database
+    container_name: db_container
+    restart: always
+    networks:
+      db_network:
+        ipv4_address: 192.168.201.21
