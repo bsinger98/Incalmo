@@ -4,14 +4,17 @@ from incalmo.services import (
     LowLevelActionOrchestrator,
     HighLevelActionOrchestrator,
     ConfigService,
+    PerryLogger,
 )
 from api.server_api import C2ApiClient
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 
 class PerryStrategy(ABC):
     def __init__(
         self,
+        logger: str = "perry",
     ):
         # Load config
         self.config = ConfigService().get_config()
@@ -24,6 +27,9 @@ class PerryStrategy(ABC):
         self.attack_graph_service: AttackGraphService = AttackGraphService(
             self.environment_state_service
         )
+        self.logging_service: PerryLogger = PerryLogger(
+            datetime.now().strftime("%Y%m%d_%H%M%S")
+        ).setup_logger(logger)
         # Orchestrators
         self.low_level_action_orchestrator = LowLevelActionOrchestrator()
 
