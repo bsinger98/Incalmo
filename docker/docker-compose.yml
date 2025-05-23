@@ -24,6 +24,7 @@ services:
       dockerfile: docker/attacker/incalmo.Dockerfile
     volumes:
       - ../:/incalmo
+      - venv-volume:/incalmo/.venv
     networks:
       attacker_network:
         ipv4_address: 192.168.199.10
@@ -51,3 +52,6 @@ services:
     networks:
       db_network:
         ipv4_address: 192.168.201.21
+
+volumes:
+  venv-volume:
