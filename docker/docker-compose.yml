@@ -1,0 +1,57 @@
+networks:
+  attacker_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.199.0/24
+
+  web_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.200.0/24
+
+  db_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.201.0/24
+
+services:
+  attacker:
+    build:
+      context: ../
+      dockerfile: docker/attacker/incalmo.Dockerfile
+    volumes:
+      - ../:/incalmo
+      - venv-volume:/incalmo/.venv
+    networks:
+      attacker_network:
+        ipv4_address: 192.168.199.10
+    ports:
+      - 8888:8888
+
+  webserver:
+    build:
+      context: ./equifax/webserver
+    container_name: webserver_container
+    restart: always
+    networks:
+      db_network:
+        ipv4_address: 192.168.201.20
+      web_network:
+        ipv4_address: 192.168.200.20
+    ports:
+      - 8080:8080
+
+  db:
+    build:
+      context: ./equifax/database
+    container_name: db_container
+    restart: always
+    networks:
+      db_network:
+        ipv4_address: 192.168.201.21
+
+volumes:
+  venv-volume:

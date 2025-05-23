@@ -1,0 +1,7 @@
+// In settings.json
+{
+    "python.analysis.autoSearchPaths": false,
+    "python.analysis.extraPaths": [],
+    "python.analysis.typeCheckingMode": "basic",
+    "python.languageServer": "Pylance"
+}
