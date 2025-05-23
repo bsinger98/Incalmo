@@ -1,8 +1,7 @@
-
 from ..low_level_action import LowLevelAction
 from incalmo.core.models.attacker.agent import Agent
 from incalmo.core.models.events import Event, ExfiltratedData
-from models.command_result import CommandResult
+from incalmo.models.command_result import CommandResult
 import os
 
 

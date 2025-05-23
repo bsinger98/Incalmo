@@ -1,4 +1,4 @@
-from config.attacker_config import AttackerConfig, Environment
+from incalmo.config.attacker_config import AttackerConfig, Environment
 from incalmo.core.models.network import Network, Subnet
 
 

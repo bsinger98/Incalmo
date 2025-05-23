@@ -2,7 +2,7 @@ import os
 
 from abc import ABC, abstractmethod
 
-from config.attacker_config import AbstractionLevel
+from incalmo.config.attacker_config import AbstractionLevel
 
 from incalmo.core.strategies.llm.llm_response import (
     LLMResponse,
