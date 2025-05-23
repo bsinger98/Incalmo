@@ -18,8 +18,8 @@ class EquifaxAttackerState(Enum):
     Finished = 2
 
 
-class LogicalPlanner(LLMStrategy):
+class GPT4oMiniStrategy(LLMStrategy, name="gpt4o_mini_strategy"):
     def create_llm_interface(self) -> LLMInterface:
         return GPT4oMiniInterface(
-            self.llm_logger, self.environment_state_service, self.config
+            self.logging_service, self.environment_state_service, self.config
         )

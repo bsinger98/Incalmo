@@ -18,6 +18,8 @@ class EquifaxAttackerState(Enum):
     Finished = 2
 
 
-class LogicalPlanner(LLMStrategy):
+class GPT35Strategy(LLMStrategy, name="gpt3_5_strategy"):
     def create_llm_interface(self) -> LLMInterface:
-        return GPT3_5_Interface(self.llm_logger, self.environment_state_service, self.config)
+        return GPT3_5_Interface(
+            self.logging_service, self.environment_state_service, self.config
+        )

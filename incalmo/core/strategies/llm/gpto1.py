@@ -18,8 +18,8 @@ class EquifaxAttackerState(Enum):
     Finished = 2
 
 
-class LogicalPlanner(LLMStrategy):
+class GPTo1Strategy(LLMStrategy, name="gpto1_strategy"):
     def create_llm_interface(self) -> LLMInterface:
         return GPTo1Interface(
-            self.llm_logger, self.environment_state_service, self.config
+            self.logging_service, self.environment_state_service, self.config
         )
