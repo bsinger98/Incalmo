@@ -1,4 +1,4 @@
-name: CI
+name: Format Check
 
 on:
   push:
@@ -7,34 +7,23 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  format-check:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.13"]
-
-    steps:
-    - uses: actions/checkout@v4
     
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install the latest version of uv
+      uses: astral-sh/setup-uv@v6
       with:
-        python-version: ${{ matrix.python-version }}
-        
-    - name: Install uv
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-        
+        version: "latest"
+          
+    - name: Set up Python
+      run: uv python install
+      
     - name: Install dependencies
-      run: |
-        uv pip install --upgrade pip
-        uv pip install -e ".[dev]"
-        
-    - name: Run Ruff format check
-      run: |
-        ruff format --check .
-        
-    - name: Run Ruff lint
-      run: |
-        ruff check . 
+      run: uv sync
+      
+    - name: Run ruff format check
+      run: uv run ruff format --check
