@@ -1,11 +1,8 @@
 from incalmo.core.models.events import Event
 
+
 class ExfiltratedData(Event):
-    def __init__(
-        self,
-        file: str,
-        hash: str
-    ):
+    def __init__(self, file: str, hash: str):
         self.file = file
         self.hash = hash
 

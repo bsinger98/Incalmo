@@ -1,5 +1,13 @@
-class Agent():
-    def __init__(self, paw: str, username: str, privilege: str, pid: str, host_ip_addrs: list[str], hostname: str):
+class Agent:
+    def __init__(
+        self,
+        paw: str,
+        username: str,
+        privilege: str,
+        pid: str,
+        host_ip_addrs: list[str],
+        hostname: str,
+    ):
         self.paw = paw
         self.username = username
         self.privilege = privilege
