@@ -24,7 +24,7 @@ async def main():
     action = WhoamiAction(
         agent=prior_agents[0],
         command="ls -l",
-        payloads=["dynamic_payloads/test_attack.txt"],
+        payloads=[""],
     )
     orchestrator = LowLevelActionOrchestrator()
     events = await orchestrator.run_action(action)
