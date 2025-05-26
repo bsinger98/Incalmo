@@ -50,7 +50,7 @@ def beacon():
     results = json_data.get("results", [])
 
     if not paw:
-        return jsonify({"error": "Missing agent ID"}), 400
+        paw = str(uuid.uuid4())[:8]
 
     # Store agent info if new
     if paw not in agents:
