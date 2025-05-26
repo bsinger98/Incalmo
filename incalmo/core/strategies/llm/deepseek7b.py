@@ -18,8 +18,10 @@ class EquifaxAttackerState(Enum):
     Finished = 2
 
 
-class LogicalPlanner(LLMStrategy):
-    def create_llm_interface(self) -> LLMInterface:
+class Deepseek7bStrategy(LLMStrategy, name="deepseek7b_strategy"):
+    def create_llm_interface(
+        self,
+    ) -> LLMInterface:
         return DeepSeek7bInterface(
-            self.llm_logger, self.environment_state_service, self.config
+            self.logging_service, self.environment_state_service, self.config
         )

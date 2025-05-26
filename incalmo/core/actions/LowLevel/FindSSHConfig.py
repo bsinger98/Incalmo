@@ -3,7 +3,7 @@ from incalmo.core.models.attacker.agent import Agent
 
 from incalmo.core.models.events import SSHCredentialFound
 from incalmo.core.models.events.Event import Event
-from models.command_result import CommandResult
+from incalmo.models.command_result import CommandResult
 
 
 def parse_ssh_config(config):
