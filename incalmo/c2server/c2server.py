@@ -10,11 +10,18 @@ from incalmo.models.command import Command, CommandStatus
 from incalmo.models.command_result import CommandResult
 from string import Template
 import logging
+from pathlib import Path
 
 app = Flask(__name__)
 # Disable Flask's default request logging
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
+
+# Define base directories
+BASE_DIR = Path(__file__).parent
+PAYLOADS_DIR = BASE_DIR / "payloads"
+TEMPLATE_PAYLOADS_DIR = PAYLOADS_DIR / "template_payloads"
+AGENTS_DIR = BASE_DIR / "agents"
 
 # Store agents and their pending commands
 agents = {}
@@ -31,12 +38,10 @@ def encode_base64(data):
 
 
 def read_template_file(filename):
-    template_dir = "./c2server/payloads/template_payloads"
-    template_path = f"{template_dir}/{filename}"
-    with open(template_path, "r") as file:
-        template_content = file.read()
-    template = Template(template_content)
-    return template
+    template_path = TEMPLATE_PAYLOADS_DIR / filename
+    if not template_path.exists():
+        raise FileNotFoundError(f"Template file not found: {filename}")
+    return Template(template_path.read_text())
 
 
 # Agent check-in
@@ -126,17 +131,14 @@ def send_command():
 
         exec_template = read_template_file("Exec_Bash_Template.sh")
         executor_script_content = exec_template.safe_substitute(command=command)
-        executor_script_path = f"./c2server/payloads/dynamic_payloads/exec_script.sh"
-
-        with open(executor_script_path, "w") as temp_script:
-            temp_script.write(executor_script_content)
-
-        payloads.append("exec_script.sh")
+        executor_script_path = PAYLOADS_DIR / "dynamic_payload.sh"
+        executor_script_path.write_text(executor_script_content)
+        payloads.append("dynamic_payload.sh")
 
         command_id = str(uuid.uuid4())
         instruction = Instruction(
             id=command_id,
-            command=encode_base64("./exec_script.sh"),
+            command=encode_base64("./dynamic_payload.sh"),
             executor="sh",
             timeout=60,
             payloads=payloads,
@@ -165,8 +167,6 @@ def send_command():
 # Check command status
 @app.route("/command_status/<command_id>", methods=["GET"])
 def check_command_status(command_id):
-    print(command_results)
-    print(command_id)
     if command_id not in command_results:
         return jsonify({"error": "Command not found"}), 404
 
@@ -177,20 +177,18 @@ def check_command_status(command_id):
 # Download file
 @app.route("/file/download", methods=["POST"])
 def download():
-    print("download")
     try:
         file_name = request.headers.get("File")
-        print(file_name)
 
         if not file_name:
             return jsonify({"error": "Missing file name"}), 400
 
-        file_path = f"./c2server/payloads/{file_name}"
-        # TODO fix this
-        if not os.path.exists(file_path):
-            file_path = f"./c2server/payloads/dynamic_payloads/{file_name}"
-        with open(file_path, "rb") as f:
-            file_data = f.read()
+        # Try both payload directories
+        file_path = BASE_DIR / "payloads" / file_name
+        if not file_path.exists():
+            return jsonify({"error": "File not found"}), 404
+
+        file_data = file_path.read_bytes()
 
         headers = {
             "Content-Disposition": f'attachment; filename="{file_name}"',
@@ -199,8 +197,6 @@ def download():
 
         return file_data, 200, headers
 
-    except FileNotFoundError:
-        return jsonify({"error": "File not found"}), 404
     except Exception as e:
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
@@ -208,20 +204,17 @@ def download():
 # Download file
 @app.route("/agent/download", methods=["POST"])
 def agent_download():
-    print("agent download")
     try:
         file_name = request.headers.get("File")
-        print(file_name)
 
         if not file_name:
             return jsonify({"error": "Missing file name"}), 400
 
-        file_path = f"./c2server/agents/{file_name}"
-        if not os.path.exists(file_path):
+        file_path = AGENTS_DIR / file_name
+        if not file_path.exists():
             return jsonify({"error": "File not found"}), 404
 
-        with open(file_path, "rb") as f:
-            file_data = f.read()
+        file_data = file_path.read_bytes()
 
         headers = {
             "Content-Disposition": f'attachment; filename="{file_name}"',
@@ -230,8 +223,6 @@ def agent_download():
 
         return file_data, 200, headers
 
-    except FileNotFoundError:
-        return jsonify({"error": "File not found"}), 404
     except Exception as e:
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
