@@ -1,7 +1,7 @@
 FROM kalilinux/kali-last-release
 
 RUN apt-get update && apt-get install -y python3 python3-pip
-RUN apt-get install -y nmap net-tools golang-go curl wget sshpass procps
+RUN apt-get install -y nmap net-tools golang-go curl wget sshpass procps nikto
 
 RUN pip install --break-system-packages uv
 
