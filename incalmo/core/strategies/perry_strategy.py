@@ -6,7 +6,7 @@ from incalmo.core.services import (
     ConfigService,
     PerryLogger,
 )
-from api.server_api import C2ApiClient
+from incalmo.api.server_api import C2ApiClient
 from abc import ABC, abstractmethod
 from datetime import datetime
 

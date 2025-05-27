@@ -1,6 +1,7 @@
 from ..low_level_action import LowLevelAction
 from incalmo.core.models.attacker.agent import Agent
-from config.settings import settings
+from incalmo.config.settings import settings
+
 
 
 class NCLateralMove(LowLevelAction):

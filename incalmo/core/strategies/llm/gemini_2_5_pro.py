@@ -14,8 +14,8 @@ class EquifaxAttackerState(Enum):
     Finished = 2
 
 
-class LogicalPlanner(LLMStrategy):
+class Gemini25ProStrategy(LLMStrategy, name="gemini_2_5_pro_strategy"):
     def create_llm_interface(self) -> LLMInterface:
         return Gemini25ProInterface(
-            self.llm_logger, self.environment_state_service, self.config
+            self.logging_service, self.environment_state_service, self.config
         )

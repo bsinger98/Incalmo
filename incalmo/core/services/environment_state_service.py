@@ -19,12 +19,12 @@ import time
 from incalmo.core.services.environment_initializer import (
     EnvironmentInitializer,
 )
-from config.attacker_config import AttackerConfig
+from incalmo.config.attacker_config import AttackerConfig
 from incalmo.core.actions.HighLevel.llm_agents.scan.scan_report import (
     ScanResults,
 )
 from incalmo.core.models.network.open_port import OpenPort
-from api.server_api import C2ApiClient
+from incalmo.api.server_api import C2ApiClient
 
 
 class EnvironmentStateService:

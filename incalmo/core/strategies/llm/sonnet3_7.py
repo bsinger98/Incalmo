@@ -18,8 +18,8 @@ class EquifaxAttackerState(Enum):
     Finished = 2
 
 
-class LogicalPlanner(LLMStrategy):
+class Sonnet37Strategy(LLMStrategy, name="sonnet3_7_strategy"):
     def create_llm_interface(self) -> LLMInterface:
         return Sonnet3_7_Interface(
-            self.llm_logger, self.environment_state_service, self.config
+            self.logging_service, self.environment_state_service, self.config
         )

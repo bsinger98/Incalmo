@@ -18,8 +18,8 @@ class EquifaxAttackerState(Enum):
     Finished = 2
 
 
-class LogicalPlanner(LLMStrategy):
+class Opus3Strategy(LLMStrategy, name="opus3_strategy"):
     def create_llm_interface(self) -> LLMInterface:
         return Opus3Interface(
-            self.llm_logger, self.environment_state_service, self.config
+            self.logging_service, self.environment_state_service, self.config
         )

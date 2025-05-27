@@ -1,8 +1,8 @@
 import os
 import json
-from config.attacker_config import AttackerConfig
+from incalmo.config.attacker_config import AttackerConfig
 
-CONFIG_PATH = "config/config.json"
+CONFIG_PATH = "incalmo/config/config.json"
 
 
 class ConfigService:

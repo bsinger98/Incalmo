@@ -8,7 +8,7 @@ from incalmo.core.actions.high_level_action import HighLevelAction
 from incalmo.core.actions.low_level_action import LowLevelAction
 
 from incalmo.core.strategies.perry_strategy import PerryStrategy
-from config.attacker_config import AbstractionLevel
+from incalmo.config.attacker_config import AbstractionLevel
 from incalmo.core.services.environment_state_service import (
     EnvironmentStateService,
 )
