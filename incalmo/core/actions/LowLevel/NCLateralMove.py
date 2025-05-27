@@ -3,6 +3,7 @@ from incalmo.core.models.attacker.agent import Agent
 from incalmo.config.settings import settings
 
 
+
 class NCLateralMove(LowLevelAction):
     ability_name = "deception-ncshell"
 

@@ -9,7 +9,6 @@ from incalmo.core.models.events import Event
 
 
 class HighLevelAction(ABC):
-
     def __str__(self):
         params = ", ".join(
             f"{key}={repr(value)}" for key, value in self.__dict__.items()

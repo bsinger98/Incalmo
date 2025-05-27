@@ -6,7 +6,6 @@ CONFIG_PATH = "incalmo/config/config.json"
 
 
 class ConfigService:
-
     def __init__(self):
         self.config = self.load_config()
 

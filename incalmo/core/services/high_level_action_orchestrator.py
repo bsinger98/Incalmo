@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from incalmo.core.actions.high_level_action import HighLevelAction
 
