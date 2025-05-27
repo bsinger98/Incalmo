@@ -1,8 +1,5 @@
 import asyncio
-
-# from core.strategies.debug import DebugStrategy
-# from core.strategies.struts_strategy import StrutsStrategy
-from incalmo.core.strategies.llm.gemini_2_flash import Gemini2FlashStrategy
+from incalmo.core.strategies.llm.haiku3_5 import Haiku3_5Strategy
 from incalmo.core.strategies.llm.llm_strategy import LLMStrategy
 from incalmo.core.services import ConfigService
 

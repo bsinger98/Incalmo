@@ -21,6 +21,12 @@ from incalmo.core.strategies.llm.interfaces.llm_interface import (
 )
 
 from incalmo.core.actions.LowLevel import RunBashCommand, MD5SumAttackerData
+from incalmo.core.actions.HighLevel import (
+    Scan,
+    FindInformationOnAHost,
+    LateralMoveToHost,
+    ExfiltrateData,
+)
 from incalmo.core.models.events import BashOutputEvent
 
 from abc import ABC, abstractmethod
@@ -39,18 +45,12 @@ class LLMStrategy(PerryStrategy, ABC):
             name = cls.__name__.lower()
         cls._registry[name] = cls
 
-    @classmethod
-    def get(cls, name: str) -> type["LLMStrategy"]:
-        try:
-            return cls._registry[name.lower()]
-        except KeyError as e:
-            raise ValueError(f"Unknown LLM strategy '{name}'") from e
-
     def __init__(self):
-        super().__init__(logger="llm")
+        super().__init__()
+        self.logger = self.logging_service.setup_logger(logger_name="llm")
 
         # Logging Start
-        self.logging_service.info(
+        self.logger.info(
             f"[LLMStrategy] Starting LLM strategy with config: {self.config}"
         )
 
@@ -62,6 +62,13 @@ class LLMStrategy(PerryStrategy, ABC):
         self.cur_step = 0
         self.total_steps = 100
         self.last_response = None
+
+    @classmethod
+    def get(cls, name: str) -> type["LLMStrategy"]:
+        try:
+            return cls._registry[name.lower()]
+        except KeyError as e:
+            raise ValueError(f"Unknown LLM strategy '{name}'") from e
 
     @abstractmethod
     def create_llm_interface(self) -> LLMInterface:
@@ -110,7 +117,7 @@ class LLMStrategy(PerryStrategy, ABC):
         try:
             llm_action = self.llm_interface.get_llm_action(self.last_response)
         except Exception as e:
-            self.logging_service.error(f"Error getting LLM action: {e}")
+            self.logger.error(f"Error getting LLM action: {e}")
             return True
 
         new_perr_reponse = ""
@@ -126,7 +133,7 @@ class LLMStrategy(PerryStrategy, ABC):
             current_response = ""
             if llm_action.response_type == LLMResponseType.QUERY:
                 query = llm_action.response
-                self.logging_service.info(f"LLM query: \n{query}")
+                self.logger.info(f"LLM query: \n{query}")
                 current_response += "\nThe query result is: \n"
                 objects = await dynamic_query_execution(
                     self.environment_state_service, self.attack_graph_service, query
@@ -135,7 +142,7 @@ class LLMStrategy(PerryStrategy, ABC):
                     # Check if the object is Host
                     current_response += str(obj) + "\n"
 
-                self.logging_service.info(f"Query response: \n{current_response}")
+                self.logger.info(f"Query response: \n{current_response}")
                 self.last_response = current_response
                 return False
 
@@ -144,7 +151,7 @@ class LLMStrategy(PerryStrategy, ABC):
                 or llm_action.response_type == LLMResponseType.MEDIUM_ACTION
             ):
                 action = llm_action.response
-                self.logging_service.info(f"LLM action: \n{action}")
+                self.logger.info(f"LLM action: \n{action}")
                 if llm_action.response_type == LLMResponseType.MEDIUM_ACTION:
                     med_actions = await dynamic_med_action_execution(
                         llm_action.response
@@ -185,15 +192,15 @@ class LLMStrategy(PerryStrategy, ABC):
 
                     # If action is subclass of LLMAction, log the entire conversation
                     if isinstance(action, LLMAgentAction):
-                        self.llm_logger.info(action.get_llm_conversation())
+                        self.logger.info(action.get_llm_conversation())
 
-                self.logging_service.info(f"Action response: \n{current_response}")
+                self.logger.info(f"Action response: \n{current_response}")
                 self.last_response = current_response
                 return False
 
             if llm_action.response_type == LLMResponseType.BASH:
                 command = llm_action.response
-                self.logging_service.info(f"Bash command: \n{command}")
+                self.logger.info(f"Bash command: \n{command}")
                 self.bash_log += f"Bash command: {command}\n"
                 object_info = "The result is: \n"
                 attacker_host = self.initial_hosts[0]
@@ -211,7 +218,7 @@ class LLMStrategy(PerryStrategy, ABC):
                         self.bash_log += result.bash_output
                         break
 
-                self.logging_service.info(f"Command response: \n{object_info}")
+                self.logger.info(f"Command response: \n{object_info}")
                 self.last_response = object_info
                 return False
 
@@ -219,7 +226,7 @@ class LLMStrategy(PerryStrategy, ABC):
             self.last_response = f"Error executing query or action: {e} \n"
             self.last_response += traceback.format_exc()
 
-            self.logging_service.error(
+            self.logger.error(
                 f"Error executing query or action: \n{self.last_response}"
             )
             return False
@@ -269,7 +276,13 @@ def get_agent_string(agents: list[Agent]) -> str:
 async def dynamic_query_execution(
     environment_state_service, attack_graph_service, code
 ):
-    exec_globals = {}
+    # TODO: Make more robust
+    exec_globals = {
+        "Scan": Scan,
+        "FindInformationOnAHost": FindInformationOnAHost,
+        "LateralMoveToHost": LateralMoveToHost,
+        "ExfiltrateData": ExfiltrateData,
+    }
     exec_locals = {}
     exec(code, exec_globals, exec_locals)
 

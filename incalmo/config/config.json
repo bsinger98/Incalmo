@@ -1,6 +1,6 @@
 {
     "name": "test",
-    "strategy": "gemini_2_flash_strategy",
+    "strategy": "haiku3_5_strategy",
     "environment": "EquifaxLarge",
     "c2c_server": "http://host.docker.internal:8888",
     "abstraction": "high",

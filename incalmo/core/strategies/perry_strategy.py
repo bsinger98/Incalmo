@@ -28,15 +28,18 @@ class PerryStrategy(ABC):
             self.environment_state_service
         )
         self.logging_service: PerryLogger = PerryLogger(
-            datetime.now().strftime("%Y%m%d_%H%M%S")
-        ).setup_logger(logger)
+            datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        )
         # Orchestrators
-        self.low_level_action_orchestrator = LowLevelActionOrchestrator()
+        self.low_level_action_orchestrator = LowLevelActionOrchestrator(
+            self.logging_service,
+        )
 
         self.high_level_action_orchestrator = HighLevelActionOrchestrator(
             self.environment_state_service,
             self.attack_graph_service,
             self.low_level_action_orchestrator,
+            self.logging_service,
         )
 
     async def initialize(self):
