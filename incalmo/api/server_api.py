@@ -1,7 +1,7 @@
 from incalmo.core.actions.low_level_action import LowLevelAction
 from incalmo.core.models.attacker.agent import Agent
 from incalmo.config.settings import settings
-import requests 
+import requests
 import json
 import time
 from incalmo.models.command_result import CommandResult
