@@ -20,6 +20,4 @@ class EquifaxAttackerState(Enum):
 
 class Haiku3Strategy(LLMStrategy, name="haiku3_strategy"):
     def create_llm_interface(self) -> LLMInterface:
-        return Haiku3Interface(
-            self.logger, self.environment_state_service, self.config
-        )
+        return Haiku3Interface(self.logger, self.environment_state_service, self.config)

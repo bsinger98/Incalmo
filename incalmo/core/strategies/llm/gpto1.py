@@ -20,6 +20,4 @@ class EquifaxAttackerState(Enum):
 
 class GPTo1Strategy(LLMStrategy, name="gpto1_strategy"):
     def create_llm_interface(self) -> LLMInterface:
-        return GPTo1Interface(
-            self.logger, self.environment_state_service, self.config
-        )
+        return GPTo1Interface(self.logger, self.environment_state_service, self.config)
