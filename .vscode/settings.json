@@ -3,5 +3,9 @@
     "python.analysis.autoSearchPaths": false,
     "python.analysis.extraPaths": [],
     "python.analysis.typeCheckingMode": "basic",
-    "python.languageServer": "Pylance"
+    "python.languageServer": "Pylance",
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    }
 }
