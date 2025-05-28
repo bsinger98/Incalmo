@@ -23,5 +23,5 @@ class Deepseek7bStrategy(LLMStrategy, name="deepseek7b_strategy"):
         self,
     ) -> LLMInterface:
         return DeepSeek7bInterface(
-            self.logging_service, self.environment_state_service, self.config
+            self.logger, self.environment_state_service, self.config
         )

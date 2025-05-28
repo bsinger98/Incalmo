@@ -9,6 +9,8 @@ from incalmo.core.services import (
     LowLevelActionOrchestrator,
 )
 
+from incalmo.core.services.logging_service import PerryLogger
+
 
 class HighLevelActionOrchestrator:
     def __init__(
@@ -16,25 +18,23 @@ class HighLevelActionOrchestrator:
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
-        high_level_action_log: list[tuple[str, list[str]]] | None = None,
+        logging_service: PerryLogger,
     ):
         self.environment_state_service = environment_state_service
         self.attack_graph_service = attack_graph_service
         self.low_level_action_orchestrator = low_level_action_orchestrator
-        if high_level_action_log is None:
-            self.high_level_action_log = []
-        else:
-            self.high_level_action_log = high_level_action_log
+        self.logger = logging_service.setup_logger(logger_name="high_level_action")
 
     async def run_action(self, action: "HighLevelAction"):
+        self.logger.info(f"High_level_action: \n{str(action)}")
         events = await action.run(
             self.low_level_action_orchestrator,
             self.environment_state_service,
             self.attack_graph_service,
         )
-        await self.environment_state_service.parse_events(events)
-        self.high_level_action_log.append(
-            (str(action), [str(event) for event in events])
+        self.logger.info(
+            "Events generated:\n" + "\n".join(str(event) for event in events)
         )
+        await self.environment_state_service.parse_events(events)
 
         return events

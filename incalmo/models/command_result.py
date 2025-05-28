@@ -8,3 +8,10 @@ class CommandResult(BaseModel):
     pid: int
     status: str
     stderr: str
+
+    def __str__(self):
+        return (
+            f"CommandResult: id={self.id}, exit_code={self.exit_code}, "
+            f"pid={self.pid}, status={self.status}, output={self.output}, "
+            f"stderr={self.stderr}"
+        )

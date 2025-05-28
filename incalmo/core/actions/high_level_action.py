@@ -10,8 +10,13 @@ from incalmo.core.models.events import Event
 
 class HighLevelAction(ABC):
     def __str__(self):
+        def format_value(value):
+            if isinstance(value, list):
+                return "[" + ", ".join(str(v) for v in value) + "]"
+            return str(value)
+
         params = ", ".join(
-            f"{key}={repr(value)}" for key, value in self.__dict__.items()
+            f"{key}={repr(format_value(value))}" for key, value in self.__dict__.items()
         )
         return f"{self.__class__.__name__}: {params}"
 

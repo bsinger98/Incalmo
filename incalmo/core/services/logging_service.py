@@ -10,13 +10,13 @@ import json
 class PerryLogger:
     def __init__(self, operation_id: str):
         # Create timestamp log directory
-        self.logger_dir_path = f"logs/{operation_id}"
+        self.logger_dir_path = f"output/{operation_id}"
 
-        if not os.path.exists("logs"):
-            os.mkdir("logs")
+        if not os.path.exists("output"):
+            os.mkdir("output")
 
-        if not os.path.exists(f"logs/{operation_id}"):
-            os.mkdir(f"logs/{operation_id}")
+        if not os.path.exists(f"output/{operation_id}"):
+            os.mkdir(f"output/{operation_id}")
 
     def setup_logger(self, logger_name: str):
         logger = logging.getLogger(logger_name)
