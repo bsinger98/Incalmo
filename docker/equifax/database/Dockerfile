@@ -26,7 +26,9 @@ EXPOSE 22
 # Create .ssh directory and authorized_keys file
 COPY authorized_keys /home/$DB_USER/.ssh/authorized_keys
 RUN chown $DB_USER:$DB_USER /home/$DB_USER/.ssh/authorized_keys && \
-    chmod 600 /home/$DB_USER/.ssh/authorized_keys
+    chown $DB_USER:$DB_USER /home/$DB_USER/.ssh/ && \
+    chmod 600 /home/$DB_USER/.ssh/authorized_keys && \
+    chmod 700 /home/$DB_USER/.ssh
 
 # Set execution permissions and run SSH server
 CMD ["/usr/sbin/sshd", "-D"]

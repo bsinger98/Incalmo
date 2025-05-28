@@ -53,7 +53,7 @@ services:
     restart: always
     networks:
       db_network:
-        ipv4_address: 192.168.201.21
+        ipv4_address: 192.168.201.100
 
 volumes:
   venv-volume:

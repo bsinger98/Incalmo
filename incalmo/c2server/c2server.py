@@ -58,9 +58,18 @@ def beacon():
         paw = str(uuid.uuid4())[:8]
 
     # Store agent info if new
+    required_fields = ["host_ip_addrs"]
     if paw not in agents:
-        print(f"New agent: {paw}")
-        agents[paw] = {"paw": paw, "info": data}
+        # Validate all required fields are present and not None
+        if all(json_data.get(field) not in (None, "", []) for field in required_fields):
+            print(f"New agent: {paw}")
+            agents[paw] = {"paw": paw, "info": data}
+        else:
+            print(
+                f"[ERROR] Agent {paw} missing required fields, not adding: "
+                f"{ {field: json_data.get(field) for field in required_fields} }"
+            )
+            return jsonify({"error": "Agent missing required fields"}), 400
 
     # Process any results from previous commands
     for result in results:
