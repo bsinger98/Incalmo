@@ -37,14 +37,6 @@ client = anthropic.Anthropic()
 
 
 class LLMStrategy(PerryStrategy, ABC):
-    _registry: dict[str, type["LLMStrategy"]] = {}
-
-    def __init_subclass__(cls, *, name: str | None = None, **kwargs):
-        super().__init_subclass__(**kwargs)
-        if name is None:
-            name = cls.__name__.lower()
-        cls._registry[name] = cls
-
     def __init__(self):
         super().__init__()
         self.logger = self.logging_service.setup_logger(logger_name="llm")
@@ -63,20 +55,9 @@ class LLMStrategy(PerryStrategy, ABC):
         self.total_steps = 100
         self.last_response = None
 
-    @classmethod
-    def get(cls, name: str) -> type["LLMStrategy"]:
-        try:
-            return cls._registry[name.lower()]
-        except KeyError as e:
-            raise ValueError(f"Unknown LLM strategy '{name}'") from e
-
     @abstractmethod
     def create_llm_interface(self) -> LLMInterface:
         pass
-
-    def build_llm_strategy(name: str, **kwargs) -> "LLMStrategy":
-        strategy_cls = LLMStrategy.get(name)
-        return strategy_cls(**kwargs)
 
     async def finished_cb(self):
         # Log exfiltrated data for non high level abstractions

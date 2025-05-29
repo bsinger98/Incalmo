@@ -12,6 +12,27 @@ from datetime import datetime
 
 
 class PerryStrategy(ABC):
+    _registry: dict[str, type["PerryStrategy"]] = {}
+
+    def __init_subclass__(cls, *, name: str | None = None, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if name is None:
+            name = cls.__name__.lower()
+        cls._registry[name] = cls
+
+    @classmethod
+    def get(cls, name: str) -> type["PerryStrategy"]:
+        print("Registered strategies:", PerryStrategy._registry.keys())
+        try:
+            return cls._registry[name.lower()]
+        except KeyError as e:
+            raise ValueError(f"Unknown strategy '{name}'") from e
+
+    @classmethod
+    def build_strategy(cls, name: str, **kwargs) -> "PerryStrategy":
+        strategy_cls = cls.get(name)
+        return strategy_cls(**kwargs)
+
     def __init__(
         self,
         logger: str = "perry",

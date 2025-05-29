@@ -9,6 +9,8 @@ from incalmo.core.models.events.Event import Event
 # )
 from incalmo.core.models.events import InfectedNewHost, RootAccessOnHost
 from incalmo.core.services.logging_service import PerryLogger
+from incalmo.models.logging_schema import serialize
+from datetime import datetime
 
 
 class LowLevelActionOrchestrator:
@@ -18,10 +20,9 @@ class LowLevelActionOrchestrator:
         # environment_state_service: EnvironmentStateService,
     ):
         # self.environment_state_service = environment_state_service
-        self.logger = logging_service.setup_logger(logger_name="low_level_action")
+        self.logger = logging_service.action_logger()
 
     async def run_action(self, low_level_action: LowLevelAction) -> list[Event]:
-        self.logger.info(f"Low_level_action: \n{str(low_level_action)}")
         c2client = C2ApiClient()
         # Get prior agents
         prior_agents = c2client.get_agents()
@@ -34,7 +35,18 @@ class LowLevelActionOrchestrator:
         )
         events = await low_level_action.get_result(command_result)
         self.logger.info(
-            "Events generated:\n" + "\n".join(str(event) for event in events)
+            "LowLevelAction executed",
+            type="LowLevelAction",
+            timestamp=datetime.now().isoformat(),
+            action_name=low_level_action.__class__.__name__,
+            action_params=serialize(low_level_action),
+            action_results={
+                "stderr": command_result.stderr,
+                "stdout": command_result.output,
+                "results": {
+                    event.__class__.__name__: serialize(event) for event in events
+                },
+            },
         )
         return events + agent_check_result
 
