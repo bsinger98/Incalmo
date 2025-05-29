@@ -6,12 +6,11 @@ import os
 import logging
 from enum import Enum
 
-# from app.objects.secondclass.c_link import Link
 from datetime import datetime
 
 
 def serialize(self):
-    IGNORE_OBJECTS = [logging.Logger]  # , Link]
+    IGNORE_OBJECTS = [logging.Logger]
 
     dict_format = dict()
     if hasattr(self, "__dict__"):
