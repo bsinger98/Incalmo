@@ -1,4 +1,5 @@
 import os
+from random import choice
 from incalmo.core.models.attacker.agent import Agent
 
 from incalmo.core.actions.high_level_action import HighLevelAction
@@ -118,7 +119,11 @@ class ExfiltrateData(HighLevelAction):
             for critical_filepath in file_paths:
                 # Exfiltrate data
                 ssh_port = self.target_host.get_port_for_service("ssh")
-                ssh_ip = self.target_host.ip_address
+                ssh_ip = choice(
+                    self.target_host.ip_addresses
+                    if self.target_host.ip_addresses
+                    else [None]
+                )
                 if ssh_ip is None:
                     # Error, unable to exfitlrate data
                     continue
@@ -175,7 +180,11 @@ class ExfiltrateData(HighLevelAction):
             for critical_filepath in critical_filepaths:
                 # SCP data to ssh host
                 ssh_port = self.target_host.get_port_for_service("ssh")
-                ssh_ip = self.target_host.ip_address
+                ssh_ip = choice(
+                    self.target_host.ip_addresses
+                    if self.target_host.ip_addresses
+                    else [None]
+                )
                 if ssh_ip is None:
                     # Error, unable to exfitlrate data
                     raise Exception("Unknown SSH ip")
@@ -198,7 +207,9 @@ class ExfiltrateData(HighLevelAction):
                     )
 
         # Wget files from webservers
-        ssh_host_ip = webserver_host.ip_address
+        ssh_host_ip = choice(
+            webserver_host.ip_addresses if webserver_host.ip_addresses else [None]
+        )
         webserver_port = webserver_host.get_port_for_service("http")
 
         if ssh_host_ip is None or webserver_port is None:

@@ -99,6 +99,7 @@ class EnvironmentStateService:
 
             if type(event) is ScanReportEvent:
                 self.update_network_from_report(event.scan_results)
+            self.network.deduplicate_hosts()
         return
 
     def handle_HostsDiscovered(self, event: HostsDiscovered):
@@ -111,23 +112,34 @@ class EnvironmentStateService:
 
         if subnet_to_add:
             for host_ip in event.host_ips:
-                # Add host to subnet if not already there
-                cur_host_ips = [host.ip_address for host in subnet_to_add.hosts]
-                if host_ip not in cur_host_ips:
-                    subnet_to_add.hosts.append(Host(ip_address=host_ip))
+                # Check if a Host with this IP exists anywhere in the network
+                existing_host = self.network.find_host_by_ip(host_ip)
+                if existing_host:
+                    # Add the IP to the host's ip_addresses if not already present
+                    if (
+                        existing_host.ip_addresses
+                        and host_ip not in existing_host.ip_addresses
+                    ):
+                        existing_host.ip_addresses.append(host_ip)
+                    # Add the host to the subnet if not already present
+                    if existing_host not in subnet_to_add.hosts:
+                        subnet_to_add.hosts.append(existing_host)
+                else:
+                    new_host = Host(ip_addresses=[host_ip])
+                    subnet_to_add.hosts.append(new_host)
 
     def handle_ServicesDiscoveredOnHost(self, event: ServicesDiscoveredOnHost):
         # Find host
         host = None
         for subnet in self.network.subnets:
             for _host in subnet.hosts:
-                if _host.ip_address == event.host_ip:
+                if _host.ip_addresses and event.host_ip in _host.ip_addresses:
                     host = _host
                     break
 
         if host is None:
-            host = Host(ip_address=event.host_ip)
-            self.network.add_host(host)
+            host = Host(ip_addresses=[event.host_ip])
+            host = self.network.add_host(host) or host
 
         for port, service in event.services.items():
             host.open_ports[port] = OpenPort(port, service, [])
@@ -135,8 +147,8 @@ class EnvironmentStateService:
     def handle_VulnerableServiceFound(self, event: VulnerableServiceFound):
         host = self.network.find_host_by_ip(event.host)
         if host is None:
-            host = Host(ip_address=event.host)
-            self.network.add_host(host)
+            host = Host(ip_addresses=[event.host])
+            host = self.network.add_host(host) or host
 
         if event.port not in host.open_ports:
             host.open_ports[event.port] = OpenPort(
@@ -154,7 +166,9 @@ class EnvironmentStateService:
 
             # If target host does not exist, add it
             if self.network.find_host_by_ip(event.credential.host_ip) is None:
-                self.network.add_host(Host(ip_address=event.credential.host_ip))
+                host = Host(ip_addresses=[event.credential.host_ip])
+                host = self.network.add_host(host) or host
+                self.network.add_host(host)
 
     async def handle_InfectedNewHost(self, event: InfectedNewHost):
         # Add agent to network
@@ -196,24 +210,31 @@ class EnvironmentStateService:
             host.add_agent(new_agent)
         else:
             new_host = Host(
-                ip_address=new_agent.host_ip_addrs[0],
+                ip_addresses=new_agent.host_ip_addrs,
                 hostname=new_agent.hostname,
                 agents=[new_agent],
             )
 
             # Does subnet exist?
-            ip_address = new_agent.host_ip_addrs[0]
-            address = ipaddress.ip_address(ip_address)
-            subnet_mask = ipaddress.ip_network(f"{address}/24", strict=False)
+            ip_addresses = new_agent.host_ip_addrs
+            addresses = [
+                ipaddress.ip_address(ip_address) for ip_address in ip_addresses
+            ]
+            subnet_masks = [
+                ipaddress.ip_network(f"{addr}/24", strict=False) for addr in addresses
+            ]
 
-            subnet = self.network.find_subnet_by_ip_mask(str(subnet_mask))
-            if subnet is None:
-                subnet = Subnet(
-                    ip_mask=str(subnet_mask), attacker_subnet=False, hosts=[new_host]
-                )
-                self.network.add_subnet(subnet)
-            else:
-                subnet.hosts.append(new_host)
+            for subnet_mask in subnet_masks:
+                subnet = self.network.find_subnet_by_ip_mask(str(subnet_mask))
+                if subnet is None:
+                    subnet = Subnet(
+                        ip_mask=str(subnet_mask),
+                        attacker_subnet=False,
+                        hosts=[new_host],
+                    )
+                    self.network.add_subnet(subnet)
+                else:
+                    subnet.hosts.append(new_host)
 
     def update_network_from_report(self, report: ScanResults):
         for ip_scan_result in report.results:
@@ -221,7 +242,8 @@ class EnvironmentStateService:
 
             if not host:
                 # Add host to network
-                host = Host(ip_address=ip_scan_result.ip)
+                host = Host(ip_addresses=[ip_scan_result.ip])
+                host = self.network.add_host(host) or host
                 self.network.add_host(host)
 
             # Set hosts open ports

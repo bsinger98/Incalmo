@@ -9,6 +9,8 @@ from incalmo.core.services import (
 from ..high_level_action import HighLevelAction
 from ..LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
 
+from random import choice
+
 
 class LateralMoveToHost(HighLevelAction):
     def __init__(
@@ -37,7 +39,10 @@ class LateralMoveToHost(HighLevelAction):
         # Check if attacking host has credentials
         if len(self.attacking_host.ssh_config) > 0:
             for cred in self.attacking_host.ssh_config:
-                if cred.host_ip == self.host_to_attack.ip_address:
+                if (
+                    self.host_to_attack.ip_addresses
+                    and cred.host_ip in self.host_to_attack.ip_addresses
+                ):
                     agent = cred.agent_discovered
                     new_events = await low_level_action_orchestrator.run_action(
                         SSHLateralMove(agent, cred.hostname)
@@ -65,17 +70,17 @@ class LateralMoveToHost(HighLevelAction):
 
                 if (
                     "CVE-2017-5638" in service_to_attack.CVE
-                    and self.host_to_attack.ip_address
+                    and self.host_to_attack.ip_addresses
                 ):
                     action_to_run = ExploitStruts(
                         agent,
-                        self.host_to_attack.ip_address,
+                        choice(self.host_to_attack.ip_addresses),
                         str(port_to_attack),
                     )
-                elif port_to_attack == 4444 and self.host_to_attack.ip_address:
+                elif port_to_attack == 4444 and self.host_to_attack.ip_addresses:
                     action_to_run = NCLateralMove(
                         agent,
-                        self.host_to_attack.ip_address,
+                        choice(self.host_to_attack.ip_addresses),
                         str(port_to_attack),
                     )
 

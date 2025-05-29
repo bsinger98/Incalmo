@@ -8,19 +8,19 @@ from incalmo.core.actions.HighLevel import (
 from incalmo.core.models.network import Host, Subnet
 
 
-class EquifaxStrategy(PerryStrategy):
+class EquifaxStrategy(PerryStrategy, name="equifax_strategy"):
     async def step(self) -> bool:
         agents = self.environment_state_service.get_agents()
         for agent in agents:
-            print(f"[DEBUG] Agent: {str(agent)}")
+            print(f"[DEBUG] Agents at start of exploit: {str(agent)}")
         # Initial Scan Action
         print(
             f"[DEBUG] Environment Service Before Test: {self.environment_state_service}"
         )
         hosts = self.environment_state_service.network.get_all_hosts()
-        for host in hosts:
-            print(f"[DEBUG] Initial host: {str(host)}")
-        host = Host(ip_address="192.168.199.10", agents=agents)
+        for _host in hosts:
+            print(f"[DEBUG] Initial host: {str(_host)}")
+            host = _host
         events = await self.high_level_action_orchestrator.run_action(
             Scan(
                 host,
@@ -35,17 +35,22 @@ class EquifaxStrategy(PerryStrategy):
             print(event)
         agents = self.environment_state_service.get_agents()
         self.environment_state_service.update_host_agents(agents)
-        # Lateral Move Action
         print(
             f"[DEBUG] Environment Service After Scan: {self.environment_state_service}"
         )
-        print(f"[DEBUG] Lateral Move:")
+
+        # Lateral Move Action to Webserver
+        print(f"[DEBUG] Lateral Move to Webserver:")
         agents = self.environment_state_service.get_agents()
         for agent in agents:
-            print(f"[DEBUG] Agent: {str(agent)}")
-        current_host = self.environment_state_service.network.find_host_by_ip(
-            "192.168.200.10"
-        )
+            print(f"[DEBUG] Agents before Lateral Move to Webserver: {str(agent)}")
+        host_candidates = ["192.168.200.10", "192.168.199.10"]
+        current_host = None
+        for ip in host_candidates:
+            host = self.environment_state_service.network.find_host_by_ip(ip)
+            if host and getattr(host, "agents", []):
+                current_host = host
+                break
         print(f"[DEBUG] Current host: {str(current_host)}")
         target_host = self.environment_state_service.network.find_host_by_ip(
             "192.168.200.20"
@@ -62,27 +67,39 @@ class EquifaxStrategy(PerryStrategy):
             print(event)
         agents = self.environment_state_service.get_agents()
         self.environment_state_service.update_host_agents(agents)
-        # Find Information On Host Action
 
+        # Find Information On Host Action
         print(f"[DEBUG] Finding information on host:")
+        agents = self.environment_state_service.get_agents()
+        for agent in agents:
+            print(f"[DEBUG] Agents before Finding Information: {str(agent)}")
         # Target hosts
-        target_ips = ["192.168.200.20"]
+        target_ips = ["192.168.200.20", "192.168.201.20"]
 
         for ip in target_ips:
             target_host = self.environment_state_service.network.find_host_by_ip(ip)
-            print(f"[DEBUG] Target host: {str(target_host)}")
-            events = await self.high_level_action_orchestrator.run_action(
-                FindInformationOnAHost(target_host)
-            )
+            if target_host is not None:
+                print(f"[DEBUG] Target host: {str(target_host)} of ip {ip}")
+                events = await self.high_level_action_orchestrator.run_action(
+                    FindInformationOnAHost(target_host)
+                )
         for event in events:
             print(event)
-        # lateral Move to database
+
+        # Lateral Move to database
         agents = self.environment_state_service.get_agents()
         self.environment_state_service.update_host_agents(agents)
-        print(f"[DEBUG] Lateral Move to database:")
-        current_host = self.environment_state_service.network.find_host_by_ip(
-            "192.168.200.20"
-        )
+        print(f"[DEBUG] Lateral Move to Database:")
+        agents = self.environment_state_service.get_agents()
+        for agent in agents:
+            print(f"[DEBUG] Agents before Lateral Move to Database: {str(agent)}")
+        host_candidates = ["192.168.200.20", "192.168.201.20"]
+        current_host = None
+        for ip in host_candidates:
+            host = self.environment_state_service.network.find_host_by_ip(ip)
+            if host and getattr(host, "agents", []):
+                current_host = host
+                break
         print(f"[DEBUG] Current host: {str(current_host)}")
         target_host = self.environment_state_service.network.find_host_by_ip(
             "192.168.201.100"
@@ -96,11 +113,16 @@ class EquifaxStrategy(PerryStrategy):
         )
         for event in events:
             print(event)
+        agents = self.environment_state_service.get_agents()
+        for agent in agents:
+            print(f"[DEBUG] Agents after Lateral Move to Database: {str(agent)}")
+
         print(
             f"[DEBUG] Environment Service After Test: {self.environment_state_service}"
         )
-        agents = self.environment_state_service.get_agents()
-        self.environment_state_service.update_host_agents(agents)
+        for i in range(10):
+            agents = self.environment_state_service.get_agents()
+            self.environment_state_service.update_host_agents(agents)
         for agent in agents:
-            print(f"[DEBUG] Agent: {str(agent)}")
+            print(f"[DEBUG] Agents at end: {str(agent)}")
         return True

@@ -11,7 +11,7 @@ class Subnet:
 
     def find_host_by_ip(self, host_ip: str) -> Host | None:
         for host in self.hosts:
-            if host.ip_address == host_ip:
+            if host.ip_addresses and host_ip in host.ip_addresses:
                 return host
 
         return None

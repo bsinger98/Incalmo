@@ -1,3 +1,4 @@
+from random import choice
 from incalmo.core.models.network import AttackPath
 from incalmo.core.actions.high_level_action import HighLevelAction
 from incalmo.core.actions.LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
@@ -37,12 +38,12 @@ class AttackPathLateralMove(HighLevelAction):
         # Attack based on port
         if (
             self.attack_path.attack_technique.PortToAttack
-            and self.attack_path.target_host.ip_address
+            and self.attack_path.target_host.ip_addresses
         ):
             port_to_attack = self.attack_path.attack_technique.PortToAttack
             service_to_attack = self.attack_path.target_host.open_ports[port_to_attack]
             port_to_attack = str(port_to_attack)
-            ip_to_attack = self.attack_path.target_host.ip_address
+            ip_to_attack = choice(self.attack_path.target_host.ip_addresses)
 
             action_to_run = None
 
