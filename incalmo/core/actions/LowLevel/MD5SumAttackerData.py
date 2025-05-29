@@ -25,7 +25,7 @@ class MD5SumAttackerData(LowLevelAction):
         for line in lines:
             if line == "":
                 continue
-            elif "data" in line:
+            elif "json" in line:
                 file_hash = line.split()[0]
                 filename = line.split()[1]
                 filename = os.path.basename(filename)
