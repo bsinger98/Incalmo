@@ -43,7 +43,8 @@ class Host:
         if not isinstance(__value, Host):
             return False
         return (
-            self.ip_addresses == __value.ip_addresses or self.hostname == __value.hostname
+            self.ip_addresses == __value.ip_addresses
+            or self.hostname == __value.hostname
         )
 
     def get_port_for_service(self, service: str):
