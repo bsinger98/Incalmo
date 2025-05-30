@@ -11,13 +11,19 @@ class Subnet:
 
     def find_host_by_ip(self, host_ip: str) -> Host | None:
         for host in self.hosts:
-            if host.ip_addresses and host_ip in host.ip_addresses:
+            if len(host.ip_addresses) > 0 and host_ip in host.ip_addresses:
                 return host
 
         return None
 
     def is_ip_in_ipmask(self, ip_address: str):
         return ipaddress.ip_address(ip_address) in ipaddress.ip_network(self.ip_mask)
+
+    def find_ip_in_subnet(self, ip_addresses: list[str]):
+        for ip_address in ip_addresses:
+            if self.is_ip_in_ipmask(ip_address):
+                return ip_address
+        return None
 
     def add_host(self, host: Host):
         self.hosts.append(host)

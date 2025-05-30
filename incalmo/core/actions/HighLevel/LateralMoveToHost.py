@@ -40,7 +40,7 @@ class LateralMoveToHost(HighLevelAction):
         if len(self.attacking_host.ssh_config) > 0:
             for cred in self.attacking_host.ssh_config:
                 if (
-                    self.host_to_attack.ip_addresses
+                    len(self.host_to_attack.ip_addresses) > 0
                     and cred.host_ip in self.host_to_attack.ip_addresses
                 ):
                     agent = cred.agent_discovered
@@ -67,20 +67,27 @@ class LateralMoveToHost(HighLevelAction):
                 service_to_attack,
             ) in self.host_to_attack.open_ports.items():
                 action_to_run = None
-
+                ip_to_attack = environment_state_service.network.find_ip_in_common_subnet(
+                        self.attacking_host, self.host_to_attack
+                    )
+                
+                if ip_to_attack is None:
+                    ip_to_attack = choice(self.host_to_attack.ip_addresses)
                 if (
                     "CVE-2017-5638" in service_to_attack.CVE
-                    and self.host_to_attack.ip_addresses
+                    and len(self.host_to_attack.ip_addresses) > 0
                 ):
                     action_to_run = ExploitStruts(
                         agent,
-                        choice(self.host_to_attack.ip_addresses),
+                        ip_to_attack,
                         str(port_to_attack),
                     )
-                elif port_to_attack == 4444 and self.host_to_attack.ip_addresses:
+                elif (
+                    port_to_attack == 4444 and len(self.host_to_attack.ip_addresses) > 0
+                ):
                     action_to_run = NCLateralMove(
                         agent,
-                        choice(self.host_to_attack.ip_addresses),
+                        ip_to_attack,
                         str(port_to_attack),
                     )
 

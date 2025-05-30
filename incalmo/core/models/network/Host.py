@@ -14,9 +14,9 @@ class Host:
         open_ports: dict[int, OpenPort] | None = None,
         agents: list[Agent] | None = None,
     ):
-        self.ip_addresses = ip_addresses
+        self.ip_addresses = ip_addresses or []
         self.hostname = hostname
-        self.users = users
+        self.users = users or {}
 
         self.users = users if users is not None else {}
         self.open_ports: dict[int, OpenPort] = (
@@ -42,10 +42,7 @@ class Host:
     def __eq__(self, __value: object) -> bool:
         if not isinstance(__value, Host):
             return False
-        return (
-            self.ip_addresses == __value.ip_addresses
-            or self.hostname == __value.hostname
-        )
+        return set(self.ip_addresses) == set(__value.ip_addresses)
 
     def get_port_for_service(self, service: str):
         for port, cur_service in self.open_ports.items():
@@ -78,3 +75,35 @@ class Host:
     def is_infected(self):
         if len(self.agents) > 0:
             return True
+
+    def merge_from_host(self, host_to_be_merged: "Host"):
+        if self == host_to_be_merged:
+            return None
+
+        # Merge IP addresses
+        for ip in host_to_be_merged.ip_addresses:
+            if ip not in self.ip_addresses:
+                self.ip_addresses.append(ip)
+
+        # Merge hostname
+        if host_to_be_merged.hostname and not self.hostname:
+            self.hostname = host_to_be_merged.hostname
+
+        # Merge users
+        self.users.update(host_to_be_merged.users)
+
+        # Merge open ports
+        self.open_ports.update(host_to_be_merged.open_ports)
+
+        # Merge agents
+        for agent in host_to_be_merged.agents:
+            if agent not in self.agents:
+                self.agents.append(agent)
+
+        # Merge SSH config
+        for ssh_cred in host_to_be_merged.ssh_config:
+            if ssh_cred not in self.ssh_config:
+                self.ssh_config.append(ssh_cred)
+
+        # Merge critical data files
+        self.critical_data_files.update(host_to_be_merged.critical_data_files)

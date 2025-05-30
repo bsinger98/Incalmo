@@ -76,6 +76,7 @@ class ExfiltrateData(HighLevelAction):
             await self.direct_ssh_exfiltrate(
                 attacker_agent,
                 low_level_action_orchestrator,
+                environment_state_service,
             )
         # Record results of any exfiltrated data
         return await self.record_exfil_results(
@@ -92,6 +93,7 @@ class ExfiltrateData(HighLevelAction):
         self,
         attacker_agent: Agent,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
+        environment_state_service: EnvironmentStateService,
     ):
         # Get SSH key of attacker agent
         events = await low_level_action_orchestrator.run_action(
@@ -121,7 +123,7 @@ class ExfiltrateData(HighLevelAction):
                 ssh_port = self.target_host.get_port_for_service("ssh")
                 ssh_ip = choice(
                     self.target_host.ip_addresses
-                    if self.target_host.ip_addresses
+                    if len(self.target_host.ip_addresses) > 0
                     else [None]
                 )
                 if ssh_ip is None:
@@ -182,7 +184,7 @@ class ExfiltrateData(HighLevelAction):
                 ssh_port = self.target_host.get_port_for_service("ssh")
                 ssh_ip = choice(
                     self.target_host.ip_addresses
-                    if self.target_host.ip_addresses
+                    if len(self.target_host.ip_addresses) > 0
                     else [None]
                 )
                 if ssh_ip is None:
@@ -208,7 +210,9 @@ class ExfiltrateData(HighLevelAction):
 
         # Wget files from webservers
         ssh_host_ip = choice(
-            webserver_host.ip_addresses if webserver_host.ip_addresses else [None]
+            webserver_host.ip_addresses
+            if len(webserver_host.ip_addresses) > 0
+            else [None]
         )
         webserver_port = webserver_host.get_port_for_service("http")
 
