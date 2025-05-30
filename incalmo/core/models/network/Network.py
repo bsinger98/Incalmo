@@ -166,6 +166,5 @@ class Network:
 
         return subnets
 
-
     def __str__(self) -> str:
         return f"{self.__class__.__name__}: {self.subnets}"

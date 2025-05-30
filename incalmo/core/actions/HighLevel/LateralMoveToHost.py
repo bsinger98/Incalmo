@@ -67,10 +67,14 @@ class LateralMoveToHost(HighLevelAction):
                 service_to_attack,
             ) in self.host_to_attack.open_ports.items():
                 action_to_run = None
-                ip_to_attack = environment_state_service.network.find_ip_in_common_subnet(
+                ip_to_attack = (
+                    environment_state_service.network.find_ip_in_common_subnet(
                         self.attacking_host, self.host_to_attack
                     )
-                
+                )
+
+                ip_to_attack = ip_to_attack[0] if ip_to_attack is not None else None
+
                 if ip_to_attack is None:
                     ip_to_attack = choice(self.host_to_attack.ip_addresses)
                 if (
