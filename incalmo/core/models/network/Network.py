@@ -6,15 +6,13 @@ from incalmo.core.models.attacker.agent import Agent
 class Network:
     def __init__(self, subnets: list[Subnet]):
         self.subnets = subnets
-        # List of hosts that have unknown subnet
-        self.unknown_hosts: list[Host] = []
 
     def get_all_hosts(self) -> list[Host]:
         all_hosts = []
         for subnet in self.subnets:
-            all_hosts.extend(subnet.hosts)
-
-        all_hosts.extend(self.unknown_hosts)
+            for host in subnet.hosts:
+                if host not in all_hosts:
+                    all_hosts.append(host)
 
         return all_hosts
 
@@ -23,45 +21,37 @@ class Network:
             for host in subnet.hosts:
                 if host.hostname == hostname:
                     return host
-
-        for host in self.unknown_hosts:
-            if host.hostname == hostname:
-                return host
-
         return None
 
     def find_host_by_ip(self, host_ip: str):
-        for subnet in self.subnets:
-            for host in subnet.hosts:
-                if host.ip_address == host_ip:
-                    return host
-
-        for host in self.unknown_hosts:
-            if host.ip_address == host_ip:
+        for host in self.get_all_hosts():
+            if host_ip in host.ip_addresses:
                 return host
 
         return None
 
+    def find_hosts_with_ips(self, ips: list[str]) -> list[Host]:
+        hosts: list[Host] = []
+        for host in self.get_all_hosts():
+            if any(ip in host.ip_addresses for ip in ips):
+                hosts.append(host)
+
+        return hosts
+
     def find_agent_for_host(self, host: Host, username: str | None = None):
         for agent in host.agents:
-            if host.ip_address in agent.host_ip_addrs:
-                if username is not None and agent.username == username:
-                    return agent
-                elif username is None:
-                    return agent
+            if username is not None and agent.username == username:
+                return agent
+            elif username is None:
+                return agent
 
         return None
 
     def find_host_by_agent(self, agent: Agent):
-        for subnet in self.subnets:
-            for host in subnet.hosts:
-                if host.ip_address in agent.host_ip_addrs:
+        for host in self.get_all_hosts():
+            for agent in host.agents:
+                if agent == agent:
                     return host
-
-        for host in self.unknown_hosts:
-            if host.ip_address in agent.host_ip_addrs:
-                return host
-
         return None
 
     def get_uninfected_hosts(self):
@@ -70,10 +60,6 @@ class Network:
             for host in subnet.hosts:
                 if not host.infected:
                     uninfected_hosts.append(host)
-
-        for host in self.unknown_hosts:
-            if not host.infected:
-                uninfected_hosts.append(host)
 
         return uninfected_hosts
 
@@ -96,15 +82,14 @@ class Network:
         return None
 
     def add_host(self, host: Host):
-        if host.ip_address is None:
-            return
+        # Make new subnets if needed
+        for ip_address in host.ip_addresses:
+            if not self.find_subnet_by_ip_mask(ip_address):
+                self.add_subnet(Subnet(ip_mask=ip_address))
 
         for subnet in self.subnets:
-            if subnet.is_ip_in_ipmask(host.ip_address):
+            if subnet.any_ips_in_subnet(host.ip_addresses):
                 subnet.add_host(host)
-                return
-
-        self.unknown_hosts.append(host)
 
     def add_subnet(self, subnet: Subnet):
         self.subnets.append(subnet)
@@ -133,6 +118,10 @@ class Network:
                 subnets.append(subnet)
 
         return subnets
+
+    def remove_hosts(self, hosts: list[Host]):
+        for subnet in self.subnets:
+            subnet.remove_hosts(hosts)
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}: {self.subnets}"
