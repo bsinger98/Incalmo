@@ -1,19 +1,19 @@
 cff-version: 1.2.0
 message: "If you use this work, please cite it as below."
 authors:
-  - family-names: Singer
-    given-names: Brian
-  - family-names: Lucas
-    given-names: Keane
-  - family-names: Adiga
-    given-names: Lakshmi
-  - family-names: Jain
-    given-names: Meghna
-  - family-names: Bauer
-    given-names: Lujo
-  - family-names: Sekar
-    given-names: Vyas
+- family-names: Singer
+  given-names: Brian
+- family-names: Lucas
+  given-names: Keane
+- family-names: Adiga
+  given-names: Lakshmi
+- family-names: Jain
+  given-names: Meghna
+- family-names: Bauer
+  given-names: Lujo
+- family-names: Sekar
+  given-names: Vyas
 title: "On the Feasibility of Using LLMs to Execute Multistage Network Attacks"
-version: "arXiv:2501.16466"
 type: article
+date-released: 2025-01-30
 url: https://arxiv.org/abs/2501.16466
