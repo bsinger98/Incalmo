@@ -1,6 +1,6 @@
 from ..high_level_action import HighLevelAction
-from ..LowLevel.ScanHost import ScanHost
-from ..LowLevel.ScanNetwork import ScanNetwork
+from ..LowLevel.scan_host import ScanHost
+from ..LowLevel.scan_network import ScanNetwork
 from ..LowLevel.nikto_scan import NiktoScan
 
 from incalmo.core.models.events import (

@@ -11,7 +11,7 @@ from incalmo.core.actions.LowLevel import (
 )
 
 from incalmo.core.models.events import Event
-from incalmo.core.models.events.scan_report import ScanReportEvent
+from incalmo.core.models.events.scan_report_event import ScanReportEvent
 from incalmo.core.models.network import Host, Subnet
 from incalmo.core.services import (
     LowLevelActionOrchestrator,
