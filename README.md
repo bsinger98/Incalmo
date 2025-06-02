@@ -1,25 +1,28 @@
 # Incalmo: An autonomous LLM-based multi-stage attacker
 
-🚧🚧🚧 Warning: Documentation is under construction 🚧🚧🚧
+Paper: [On the Feasibility of Using LLMs to Execute Multistage Network Attacks](https://arxiv.org/abs/2501.16466)
 
 ## Quick Start Guide
 
 ### Prerequisites
 
-- Install Docker
-- Install uv
+- [Docker Desktop](https://www.docker.com/)
 
-### Installation Steps
+### Run
 
-1. Install dependencies:
+1. Setup configs
+- Create `config/config.json` example in `config/config_example.json`
+- Add LLM API keys to `.env`, example in `.env.example`
 
-   ```bash
-   uv install
-   ```
-
-2. Build Docker containers:
+1. Start development environment
 
    ```bash
    cd docker
-   docker compose up --build 
+   docker compose up
+   ```
+
+2. In attacker container, run:
+
+   ```bash
+   uv run incalmo.py
    ```
