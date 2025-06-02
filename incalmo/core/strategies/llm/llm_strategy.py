@@ -4,8 +4,6 @@ import traceback
 from incalmo.core.actions.HighLevel.llm_agents.llm_agent_action import (
     LLMAgentAction,
 )
-from incalmo.core.actions.high_level_action import HighLevelAction
-from incalmo.core.actions.low_level_action import LowLevelAction
 
 from incalmo.core.strategies.perry_strategy import PerryStrategy
 from incalmo.config.attacker_config import AbstractionLevel
@@ -21,17 +19,15 @@ from incalmo.core.strategies.llm.interfaces.llm_interface import (
 )
 
 from incalmo.core.actions.LowLevel import RunBashCommand, MD5SumAttackerData
-from incalmo.core.actions.HighLevel import (
-    Scan,
-    FindInformationOnAHost,
-    LateralMoveToHost,
-    ExfiltrateData,
-)
+from incalmo.core.actions import HighLevel, LowLevel
+from incalmo.core.actions.high_level_action import HighLevelAction
+from incalmo.core.actions.low_level_action import LowLevelAction
 from incalmo.core.models.events import BashOutputEvent
 
 from abc import ABC, abstractmethod
 
 import anthropic
+import inspect
 
 client = anthropic.Anthropic()
 
@@ -233,7 +229,7 @@ def get_infection_summary_str(
     if abstraction in abstractions_with_full_info:
         infection_summary += "Your current infected hosts are:\n"
         for host in env_service.get_hosts_with_agents():
-            host_str = f"Host {host.hostname} with IP {host.ip_address} has agents:\n"
+            host_str = f"Host {host.hostname} with IPs {host.ip_addresses} has agents:\n"
             for agent in host.agents:
                 host_str += "    "
                 host_str += f"Agent id: {agent.paw}, user: {agent.username}\n"
@@ -250,20 +246,43 @@ def get_infection_summary_str(
 def get_agent_string(agents: list[Agent]) -> str:
     agent_str = ""
     for agent in agents:
-        agent_str += f"host: {agent.host}, user: {agent.username}, ip: {agent.host_ip_addrs}, paw: {agent.paw}\n"
+        agent_str += f"host: {agent.paw}, user: {agent.username}, ip: {agent.host_ip_addrs}, paw: {agent.paw}\n"
     return agent_str
+
+
+def get_all_action_classes():
+    """Dynamically discover and return all High and Low level action classes"""
+    action_globals = {}
+
+    # Get all classes from HighLevel module
+    for name in dir(HighLevel):
+        obj = getattr(HighLevel, name)
+        if (
+            inspect.isclass(obj)
+            and issubclass(obj, HighLevelAction)
+            and obj != HighLevelAction
+        ):
+            action_globals[name] = obj
+
+    # Get all classes from LowLevel module
+    for name in dir(LowLevel):
+        obj = getattr(LowLevel, name)
+        if (
+            inspect.isclass(obj)
+            and issubclass(obj, LowLevelAction)
+            and obj != LowLevelAction
+        ):
+            action_globals[name] = obj
+
+    return action_globals
 
 
 async def dynamic_query_execution(
     environment_state_service, attack_graph_service, code
 ):
     # TODO: Make more robust
-    exec_globals = {
-        "Scan": Scan,
-        "FindInformationOnAHost": FindInformationOnAHost,
-        "LateralMoveToHost": LateralMoveToHost,
-        "ExfiltrateData": ExfiltrateData,
-    }
+    exec_globals = get_all_action_classes()
+    print(f"[DEBUG] exec_globals: {exec_globals}")
     exec_locals = {}
     exec(code, exec_globals, exec_locals)
 
@@ -279,7 +298,7 @@ async def dynamic_query_execution(
 async def dynamic_action_execution(
     environment_state_service, attack_graph_service, code
 ):
-    exec_globals = globals()
+    exec_globals = get_all_action_classes()
     exec_locals = {}
     exec(code, exec_globals, exec_locals)
 
@@ -293,7 +312,7 @@ async def dynamic_action_execution(
 
 
 async def dynamic_med_action_execution(code):
-    exec_globals = globals()
+    exec_globals = get_all_action_classes()
     exec_locals = {}
     exec(code, exec_globals, exec_locals)
 
