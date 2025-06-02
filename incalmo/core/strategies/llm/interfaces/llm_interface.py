@@ -91,11 +91,11 @@ class LLMInterface(ABC):
             ) as file:
                 final_prompt = file.read()
         elif config.abstraction == AbstractionLevel.HIGH_LEVEL:
-            with open(f"{pre_prompt_path}/perry/pre_prompt.txt", "r") as file:
+            with open(f"{pre_prompt_path}/incalmo/pre_prompt.txt", "r") as file:
                 pre_prompt += file.read()
-            with open(f"{pre_prompt_path}/perry/codebase.txt", "r") as file:
+            with open(f"{pre_prompt_path}/incalmo/codebase.txt", "r") as file:
                 pre_prompt += file.read()
-            with open(f"{pre_prompt_path}/perry/final_prompt.txt", "r") as file:
+            with open(f"{pre_prompt_path}/incalmo/final_prompt.txt", "r") as file:
                 final_prompt = file.read()
         elif config.abstraction == AbstractionLevel.NO_SERVICES:
             with open(f"{pre_prompt_path}/no-services/pre_prompt.txt", "r") as file:
@@ -140,12 +140,12 @@ class LLMInterface(ABC):
         # Merge the pre-prompt, code base, and final prompt
         self.pre_prompt = pre_prompt + initial_env_state + final_prompt
 
-    def get_llm_action(self, perry_response: str | None = None):
-        if perry_response and len(perry_response) > self.max_message_len:
-            perry_response = perry_response[: self.max_message_len]
-            perry_response += "\n[Message truncated to fit within the max length]"
+    def get_llm_action(self, incalmo_response: str | None = None):
+        if incalmo_response and len(incalmo_response) > self.max_message_len:
+            incalmo_response = incalmo_response[: self.max_message_len]
+            incalmo_response += "\n[Message truncated to fit within the max length]"
 
-        llm_response = self.get_response(perry_response)
+        llm_response = self.get_response(incalmo_response)
 
         if "<finished>" in llm_response:
             return LLMResponse(LLMResponseType.FINISHED, llm_response)
@@ -170,7 +170,7 @@ class LLMInterface(ABC):
         return None
 
     @abstractmethod
-    def get_response(self, perry_response: str | None = None) -> str:
+    def get_response(self, incalmo_response: str | None = None) -> str:
         pass
 
 

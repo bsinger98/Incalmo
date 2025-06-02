@@ -7,7 +7,7 @@ import structlog
 import json
 
 
-class PerryLogger:
+class IncalmoLogger:
     def __init__(self, operation_id: str):
         # Create timestamp log directory
         self.logger_dir_path = f"output/{operation_id}"

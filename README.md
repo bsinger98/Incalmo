@@ -1,4 +1,4 @@
-# Perry a high-level framework for accelerating security experimentation
+# Incalmo: An autonomous LLM-based multi-stage attacker
 
 🚧🚧🚧 Warning: Documentation is under construction 🚧🚧🚧
 

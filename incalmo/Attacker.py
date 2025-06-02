@@ -125,7 +125,7 @@ class Attacker:
     def save_logs(self, output_dir):
         logs = self.get_llm_logs()
         llm_log = logs["llm"]
-        perry_log = logs["perry"]
+        incalmo_log = logs["incalmo"]
         low_level_action_log = logs["low_level_action"]
         high_level_action_log = logs["high_level_action"]
         pre_prompt = logs["preprompt"]
@@ -135,9 +135,9 @@ class Attacker:
             with open(os.path.join(output_dir, "llm_log.log"), "w") as f:
                 f.write(llm_log)
 
-        if perry_log is not None:
-            with open(os.path.join(output_dir, "perry_attacker.log"), "w") as f:
-                f.write(perry_log)
+        if incalmo_log is not None:
+            with open(os.path.join(output_dir, "incalmo_attacker.log"), "w") as f:
+                f.write(incalmo_log)
 
         if low_level_action_log is not None:
             with open(os.path.join(output_dir, "low_level_action.json"), "w") as f:

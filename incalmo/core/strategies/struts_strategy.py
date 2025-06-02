@@ -1,10 +1,10 @@
-from incalmo.core.strategies.perry_strategy import PerryStrategy
+from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
 from incalmo.core.actions.LowLevel import RunBashCommand, ScanHost, ExploitStruts
-from incalmo.core.actions.HighLevel.Scan import Scan
+from incalmo.core.actions.HighLevel.scan import Scan
 from incalmo.core.models.network import Host, Subnet
 
 
-class StrutsStrategy(PerryStrategy):
+class StrutsStrategy(IncalmoStrategy):
     async def step(self) -> bool:
         agents = self.environment_state_service.get_agents()
         events = await self.low_level_action_orchestrator.run_action(

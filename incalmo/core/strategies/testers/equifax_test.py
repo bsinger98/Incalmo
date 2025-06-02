@@ -1,4 +1,4 @@
-from incalmo.core.strategies.perry_strategy import PerryStrategy
+from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
 from incalmo.core.actions.LowLevel import RunBashCommand, ScanHost
 from incalmo.core.actions.HighLevel import (
     Scan,
@@ -9,7 +9,7 @@ from incalmo.core.actions.HighLevel import (
 from incalmo.core.models.network import Host, Subnet
 
 
-class EquifaxStrategy(PerryStrategy, name="equifax_strategy"):
+class EquifaxStrategy(IncalmoStrategy, name="equifax_strategy"):
     async def step(self) -> bool:
         agents = self.environment_state_service.get_agents()
         hosts = self.environment_state_service.network.get_all_hosts()

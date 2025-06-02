@@ -5,7 +5,7 @@ from incalmo.core.actions.HighLevel.llm_agents.llm_agent_action import (
     LLMAgentAction,
 )
 
-from incalmo.core.strategies.perry_strategy import PerryStrategy
+from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
 from incalmo.config.attacker_config import AbstractionLevel
 from incalmo.core.services.environment_state_service import (
     EnvironmentStateService,
@@ -32,7 +32,7 @@ import inspect
 client = anthropic.Anthropic()
 
 
-class LLMStrategy(PerryStrategy, ABC):
+class LLMStrategy(IncalmoStrategy, ABC):
     def __init__(self):
         super().__init__()
         self.logger = self.logging_service.setup_logger(logger_name="llm")
