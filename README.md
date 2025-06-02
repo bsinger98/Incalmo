@@ -10,18 +10,18 @@ Paper: [On the Feasibility of Using LLMs to Execute Multistage Network Attacks](
 
 ### Run
 
-1. Setup configs
-- Create `config/config.json` example in `config/config_example.json`
-- Add LLM API keys to `.env`, example in `.env.example`
+1. Create `config/config.json` example in `config/config_example.json`
 
-1. Start development environment
+2. Add LLM API keys to `.env`, example in `.env.example`
+
+3. Start development environment
 
    ```bash
    cd docker
    docker compose up
    ```
 
-2. In attacker container, run:
+4. In attacker container, run:
 
    ```bash
    uv run incalmo.py
