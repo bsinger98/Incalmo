@@ -24,6 +24,8 @@ services:
       dockerfile: docker/attacker/incalmo.Dockerfile
     volumes:
       - ../:/incalmo
+      # TODO: Check if user config can be mounted to config directory directly
+      - ../config/:/incalmo/user-config
       - venv-volume:/incalmo/.venv
     networks:
       attacker_network:

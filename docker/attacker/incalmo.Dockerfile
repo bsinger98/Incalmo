@@ -18,7 +18,6 @@ RUN chmod 700 /root/.ssh
 
 # Copy attacker files
 COPY ./ /incalmo
-COPY ./config /config
 WORKDIR /incalmo
 
 # Install dependencies

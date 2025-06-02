@@ -2,7 +2,7 @@ import os
 import json
 from incalmo.config.attacker_config import AttackerConfig
 
-CONFIG_PATH = "../config/config.json"
+CONFIG_PATH = "./user-config/config.json"
 
 
 class ConfigService:
