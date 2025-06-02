@@ -6,7 +6,7 @@ from incalmo.core.actions.HighLevel.llm_agents.llm_agent_action import (
 )
 
 from incalmo.core.strategies.perry_strategy import PerryStrategy
-from incalmo.config.attacker_config import AbstractionLevel
+from config.attacker_config import AbstractionLevel
 from incalmo.core.services.environment_state_service import (
     EnvironmentStateService,
 )
@@ -57,7 +57,7 @@ class LLMStrategy(PerryStrategy, ABC):
 
     async def finished_cb(self):
         # Log exfiltrated data for non high level abstractions
-        if self.config.abstraction != AbstractionLevel.HIGH_LEVEL:
+        if self.config.abstraction != AbstractionLevel.INCALMO:
             for host in self.initial_hosts:
                 agent = host.get_agent()
                 if agent:
@@ -99,7 +99,13 @@ class LLMStrategy(PerryStrategy, ABC):
 
         new_perr_reponse = ""
         if llm_action is None:
-            new_perr_reponse = "Perry did not find a <finished> <query> or <action> tag. Please try again and include a tag."
+            if self.config.abstraction == AbstractionLevel.SHELL:
+                new_perr_reponse = (
+                    "No <shell> tag found. Please try again and include a tag."
+                )
+            else:
+                new_perr_reponse = "No <finished> <query> or <action> tag found. Please try again and include a tag."
+
             self.last_response = new_perr_reponse
             return False
 
@@ -222,7 +228,7 @@ def get_infection_summary_str(
         AbstractionLevel.AGENT_PRIVILEGE_ESCALATION,
         AbstractionLevel.AGENT_EXFILTRATE_DATA,
         AbstractionLevel.AGENT_FIND_INFORMATION,
-        AbstractionLevel.HIGH_LEVEL,
+        AbstractionLevel.INCALMO,
         AbstractionLevel.LOW_LEVEL,
     ]
 

@@ -2,7 +2,7 @@ import os
 
 from abc import ABC, abstractmethod
 
-from incalmo.config.attacker_config import AbstractionLevel
+from config.attacker_config import AbstractionLevel
 
 from incalmo.core.strategies.llm.llm_response import (
     LLMResponse,
@@ -74,7 +74,7 @@ class LLMInterface(ABC):
         self.max_message_len = 30000
 
         # Read pre-prompt file
-        if config.abstraction == AbstractionLevel.NO_ABSTRACTION:
+        if config.abstraction == AbstractionLevel.SHELL:
             with open(f"{pre_prompt_path}/bash/pre_prompt.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/bash/final_prompt.txt", "r") as file:
@@ -90,7 +90,7 @@ class LLMInterface(ABC):
                 f"{pre_prompt_path}/low-level-actions/final_prompt.txt", "r"
             ) as file:
                 final_prompt = file.read()
-        elif config.abstraction == AbstractionLevel.HIGH_LEVEL:
+        elif config.abstraction == AbstractionLevel.INCALMO:
             with open(f"{pre_prompt_path}/perry/pre_prompt.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/perry/codebase.txt", "r") as file:

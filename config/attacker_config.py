@@ -15,9 +15,9 @@ class Environment(Enum):
 
 
 class AbstractionLevel(str, Enum):
-    HIGH_LEVEL = "high"
+    INCALMO = "incalmo"
+    SHELL = "shell"
     LOW_LEVEL = "low"
-    NO_ABSTRACTION = "none"
     NO_SERVICES = "no_services"
     AGENT_SCAN = "agent_scan"
     AGENT_LATERAL_MOVE = "agent_lateral_move"
@@ -54,7 +54,7 @@ class AttackerConfig(BaseModel):
     strategy: str
     environment: str
     c2c_server: str
-    abstraction: Optional[AbstractionLevel] = AbstractionLevel.HIGH_LEVEL
+    abstraction: Optional[AbstractionLevel] = AbstractionLevel.INCALMO
     llm: Optional[LLM] = None
 
     class Config:
