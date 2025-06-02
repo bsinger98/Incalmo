@@ -8,7 +8,7 @@ class Network:
         self.subnets = subnets
 
     def get_all_hosts(self) -> list[Host]:
-        all_hosts = []
+        all_hosts: list[Host] = []
         for subnet in self.subnets:
             for host in subnet.hosts:
                 if host not in all_hosts:
@@ -81,11 +81,21 @@ class Network:
 
         return None
 
+    def is_ip_in_subnet_range(self, ip_address: str):
+        for subnet in self.subnets:
+            if subnet.is_ip_in_ipmask(ip_address):
+                return True
+
+        return False
+
     def add_host(self, host: Host):
         # Make new subnets if needed
         for ip_address in host.ip_addresses:
-            if not self.find_subnet_by_ip_mask(ip_address):
-                self.add_subnet(Subnet(ip_mask=ip_address))
+            if not self.is_ip_in_subnet_range(ip_address):
+                # create mask from ip address, assume /24
+                ip_parts = ip_address.split(".")
+                mask = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.0/24"
+                self.add_subnet(Subnet(ip_mask=mask))
 
         for subnet in self.subnets:
             if subnet.any_ips_in_subnet(host.ip_addresses):

@@ -98,6 +98,7 @@ class EnvironmentStateService:
                 self.update_network_from_report(event.scan_results)
         return
 
+    # TODO Change HostsDiscovered to ips discovered
     def handle_HostsDiscovered(self, event: HostsDiscovered):
         # Find correct subnet
         subnet_to_add = None
@@ -109,14 +110,12 @@ class EnvironmentStateService:
         if subnet_to_add:
             for host_ip in event.host_ips:
                 # Add host to subnet if not already there
-                cur_host_ips = [host.ip_addresses for host in subnet_to_add.hosts]
-                if host_ip not in cur_host_ips:
+                if host_ip not in subnet_to_add.get_all_host_ips():
                     subnet_to_add.hosts.append(Host(ip_addresses=[host_ip]))
 
     def handle_ServicesDiscoveredOnHost(self, event: ServicesDiscoveredOnHost):
         # Find host
         host = self.network.find_host_by_ip(event.host_ip)
-
         if host is None:
             host = Host(ip_addresses=[event.host_ip])
             self.network.add_host(host)

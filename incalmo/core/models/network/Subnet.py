@@ -16,6 +16,12 @@ class Subnet:
 
         return None
 
+    def get_all_host_ips(self) -> list[str]:
+        ips = []
+        for host in self.hosts:
+            ips.extend(host.ip_addresses)
+        return ips
+
     def is_ip_in_ipmask(self, ip_address: str):
         return ipaddress.ip_address(ip_address) in ipaddress.ip_network(self.ip_mask)
 

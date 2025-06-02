@@ -43,14 +43,6 @@ class Host:
             f"critical_data_files: {self.critical_data_files}"
         )
 
-    def __eq__(self, __value: object) -> bool:
-        if not isinstance(__value, Host):
-            return False
-        return (
-            self.ip_addresses == __value.ip_addresses
-            or self.hostname == __value.hostname
-        )
-
     def get_port_for_service(self, service: str):
         for port, cur_service in self.open_ports.items():
             if cur_service.service == service:
@@ -81,6 +73,12 @@ class Host:
 
     def is_infected(self):
         return self.infected
+
+    def get_ip_address(self):
+        return random.choice(self.ip_addresses)
+
+    def has_an_ip_address(self):
+        return len(self.ip_addresses) > 0
 
     @classmethod
     def merge(cls, host1: "Host", host2: "Host") -> "Host":
