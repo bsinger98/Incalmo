@@ -1,5 +1,5 @@
 from incalmo.core.actions.high_level_action import HighLevelAction
-from incalmo.core.actions.HighLevel.LateralMoveToHost import LateralMoveToHost
+from incalmo.core.actions.HighLevel.lateral_move_to_host import LateralMoveToHost
 from incalmo.core.services import EnvironmentStateService
 
 

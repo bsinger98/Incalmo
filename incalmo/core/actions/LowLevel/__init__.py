@@ -1,18 +1,18 @@
-from .ExploitStruts import ExploitStruts
-from .NCLateralMove import NCLateralMove
-from .SSHLateralMove import SSHLateralMove
-from .ListFilesInDirectory import ListFilesInDirectory
+from .exploit_struts import ExploitStruts
+from .nc_lateral_move import NCLateralMove
+from .ssh_lateral_move import SSHLateralMove
+from .list_files_in_directory import ListFilesInDirectory
 
-from .ReadFile import ReadFile
-from .SCPFile import SCPFile
+from .read_file import ReadFile
+from .scp_file import SCPFile
 from .wgetFile import wgetFile
-from .ScanHost import ScanHost
-from .ScanNetwork import ScanNetwork
-from .FindSSHConfig import FindSSHConfig
-from .MD5SumAttackerData import MD5SumAttackerData
-from .CopyFile import CopyFile
-from .AddSSHKey import AddSSHKey
-from .RunBashCommand import RunBashCommand
+from .scan_host import ScanHost
+from .scan_network import ScanNetwork
+from .find_ssh_config import FindSSHConfig
+from .md5sum_attacker_data import MD5SumAttackerData
+from .copy_file import CopyFile
+from .add_ssh_key import AddSSHKey
+from .run_bash_command import RunBashCommand
 from .write_file import WriteFile
 
 # from .privledge_escalation.get_sudo_version import GetSudoVersion
