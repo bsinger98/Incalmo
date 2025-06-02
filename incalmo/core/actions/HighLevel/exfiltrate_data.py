@@ -16,7 +16,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
-from incalmo.config.attacker_config import Environment
+from config.attacker_config import Environment
 
 
 class ExfiltrateData(HighLevelAction):
