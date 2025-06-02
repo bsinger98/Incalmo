@@ -43,8 +43,11 @@ RUN chown $TOMCAT_USER:$TOMCAT_GROUP $TOMCAT_HOME/.ssh/config && \
 
 # Add id_rsa file
 COPY ssh/id_rsa $TOMCAT_HOME/.ssh/id_rsa
+COPY ssh/id_rsa.pub $TOMCAT_HOME/.ssh/id_rsa.pub
 RUN chown $TOMCAT_USER:$TOMCAT_GROUP $TOMCAT_HOME/.ssh/id_rsa && \
-    chmod 600 $TOMCAT_HOME/.ssh/id_rsa
+    chmod 600 $TOMCAT_HOME/.ssh/id_rsa && \
+    chown $TOMCAT_USER:$TOMCAT_GROUP $TOMCAT_HOME/.ssh/id_rsa.pub && \
+    chmod 644 $TOMCAT_HOME/.ssh/id_rsa.pub
 
 # Set execution permissions and run Tomcat
 USER $TOMCAT_USER

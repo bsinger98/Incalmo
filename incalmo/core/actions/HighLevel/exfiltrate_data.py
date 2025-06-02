@@ -30,25 +30,19 @@ class ExfiltrateData(HighLevelAction):
         attack_graph_service: AttackGraphService,
     ) -> list[Event]:
         target_agent = self.target_host.get_agent()
-        attacker_host = environment_state_service.network.find_host_by_hostname(
-            "attacker"
-        )
-        if attacker_host is None:
-            attacker_host = environment_state_service.network.find_host_by_hostname(
-                "kali"
-            )
+
+        if len(environment_state_service.initial_hosts) == 0:
+            raise Exception("No attacker host found")
+
+        attacker_host = environment_state_service.initial_hosts[0]
+        attacker_agent = attacker_host.get_agent()
+        if attacker_agent is None:
+            raise Exception("No attacker agent found")
 
         # Skip if ICS environment
         # TODO bigger patch for when to skip data
         if environment_state_service.environment_type == Environment.ICS.value:
             return []
-
-        if attacker_host is None:
-            raise Exception("No attacker host found")
-
-        attacker_agent = attacker_host.get_agent()
-        if attacker_agent is None:
-            raise Exception("No attacker agent found")
 
         if len(self.target_host.critical_data_files) == 0:
             return []

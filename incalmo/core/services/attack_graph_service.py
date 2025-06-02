@@ -103,15 +103,6 @@ class AttackGraphService:
             else:
                 internal_attack_paths.extend(subnet_paths)
 
-        for host in self.environment_state_service.network.unknown_hosts:
-            if host == attacking_host:
-                continue
-
-            host_paths = self.get_possible_attack_paths(
-                attacking_host, host, filter_paths=filter_paths
-            )
-            internal_attack_paths.extend(host_paths)
-
         if prioritize_internal_hosts:
             attack_paths.extend(internal_attack_paths)
             attack_paths.extend(external_attack_paths)
@@ -144,7 +135,7 @@ class AttackGraphService:
 
         # Check if attack host has any credentials to target host
         for credential in attack_host.ssh_config:
-            if credential.host_ip == target_host.ip_address:
+            if credential.host_ip in target_host.ip_addresses:
                 attack_paths.append(
                     AttackPath(
                         attack_host=attack_host,
@@ -203,15 +194,6 @@ class AttackGraphService:
             else:
                 internal_attack_paths.extend(subnet_paths)
 
-        for host in self.environment_state_service.network.unknown_hosts:
-            if host == target_host:
-                continue
-
-            host_paths = self.get_possible_attack_paths(
-                host, target_host, filter_paths=filter_paths
-            )
-            internal_attack_paths.extend(host_paths)
-
         if prioritize_internal_hosts:
             attack_paths.extend(internal_attack_paths)
             attack_paths.extend(external_attack_paths)
@@ -236,7 +218,10 @@ class AttackGraphService:
         all_hosts = self.environment_state_service.network.get_all_hosts()
         for host in all_hosts:
             for credential in host.ssh_config:
-                if credential.host_ip == target_host.ip_address and credential.utilized:
+                if (
+                    credential.host_ip in target_host.ip_addresses
+                    and credential.utilized
+                ):
                     hosts.append(host)
 
         return hosts
