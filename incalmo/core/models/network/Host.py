@@ -81,3 +81,60 @@ class Host:
 
     def is_infected(self):
         return self.infected
+
+    @classmethod
+    def merge(cls, host1: "Host", host2: "Host") -> "Host":
+        """
+        Create a new Host by merging two existing hosts.
+
+        Args:
+            host1: First host to merge
+            host2: Second host to merge
+
+        Returns:
+            New Host instance with merged data from both input hosts
+        """
+        # Handle hostname - prefer the first one if both exist, otherwise use whichever exists
+        merged_hostname = host1.hostname if host1.hostname else host2.hostname
+
+        # Merge IP addresses and remove duplicates
+        merged_ip_addresses = list(set(host1.ip_addresses + host2.ip_addresses))
+
+        # Merge users dictionaries (host2 values will override host1 if same key)
+        merged_users = {**host1.users, **host2.users}
+
+        # Merge open_ports dictionaries (host2 values will override host1 if same port)
+        merged_open_ports = {**host1.open_ports, **host2.open_ports}
+
+        # Merge agents lists
+        merged_agents = host1.agents + host2.agents
+
+        # Create new host with merged data
+        merged_host = cls(
+            ip_addresses=merged_ip_addresses,
+            hostname=merged_hostname,
+            users=merged_users,
+            open_ports=merged_open_ports,
+            agents=merged_agents,
+        )
+
+        # Merge ssh_config lists
+        merged_host.ssh_config = host1.ssh_config + host2.ssh_config
+
+        # Merge critical_data_files dictionaries
+        merged_critical_data_files = {}
+        for user, files in host1.critical_data_files.items():
+            merged_critical_data_files[user] = files.copy()
+
+        for user, files in host2.critical_data_files.items():
+            if user in merged_critical_data_files:
+                # Combine file lists and remove duplicates
+                merged_critical_data_files[user] = list(
+                    set(merged_critical_data_files[user] + files)
+                )
+            else:
+                merged_critical_data_files[user] = files.copy()
+
+        merged_host.critical_data_files = merged_critical_data_files
+
+        return merged_host

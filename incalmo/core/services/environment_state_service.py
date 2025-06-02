@@ -209,8 +209,7 @@ class EnvironmentStateService:
         self.network.remove_hosts(hosts)
 
         # Merge data
-        # TODO: Implement this
-        # new_host = hosts[0].merge_with(hosts[1])
+        new_host = Host.merge(hosts[0], hosts[1])
 
         # Add new host to network
         self.network.add_host(new_host)
