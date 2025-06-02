@@ -1,4 +1,4 @@
-from .Credential import SSHCredential
+from .credential import SSHCredential
 from incalmo.core.models.attacker.agent import Agent
 import random
 

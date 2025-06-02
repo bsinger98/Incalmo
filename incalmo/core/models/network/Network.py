@@ -1,5 +1,5 @@
-from .Host import Host
-from .Subnet import Subnet
+from .host import Host
+from .subnet import Subnet
 from incalmo.core.models.attacker.agent import Agent
 
 

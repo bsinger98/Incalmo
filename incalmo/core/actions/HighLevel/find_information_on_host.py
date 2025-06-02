@@ -1,6 +1,6 @@
 from ..high_level_action import HighLevelAction
-from ..LowLevel.ListFilesInDirectory import ListFilesInDirectory
-from ..LowLevel.FindSSHConfig import FindSSHConfig
+from ..LowLevel.list_files_in_directory import ListFilesInDirectory
+from ..LowLevel.find_ssh_config import FindSSHConfig
 
 from incalmo.core.models.network import Host
 from incalmo.core.models.events import Event, CriticalDataFound, FilesFound

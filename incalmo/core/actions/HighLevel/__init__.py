@@ -1,12 +1,12 @@
 from .find_information_on_host import FindInformationOnAHost
-from .LateralMoveToHost import LateralMoveToHost
-from .AttackPathLateralMove import AttackPathLateralMove
+from .lateral_move_to_host import LateralMoveToHost
+from .attack_path_lateral_move import AttackPathLateralMove
 
 from .exfiltrate_data import ExfiltrateData
 
 # from .escelate_privledge import EscelatePrivledge
 
-from .Scan import Scan
+from .scan import Scan
 
 from .llm_agents.scan.llm_scan import LLMAgentScan
 from .llm_agents.lateral_movement.llm_lateral_movement import LLMLateralMove
