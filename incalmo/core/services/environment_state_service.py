@@ -11,10 +11,7 @@ from incalmo.core.models.events import (
     VulnerableServiceFound,
     ScanReportEvent,
 )
-from incalmo.core.models.network import Host, Subnet
-
-import ipaddress
-import time
+from incalmo.core.models.network import Host
 
 from incalmo.core.services.environment_initializer import (
     EnvironmentInitializer,
@@ -101,6 +98,7 @@ class EnvironmentStateService:
                 self.update_network_from_report(event.scan_results)
         return
 
+    # TODO Change HostsDiscovered to ips discovered
     def handle_HostsDiscovered(self, event: HostsDiscovered):
         # Find correct subnet
         subnet_to_add = None
@@ -112,21 +110,14 @@ class EnvironmentStateService:
         if subnet_to_add:
             for host_ip in event.host_ips:
                 # Add host to subnet if not already there
-                cur_host_ips = [host.ip_address for host in subnet_to_add.hosts]
-                if host_ip not in cur_host_ips:
-                    subnet_to_add.hosts.append(Host(ip_address=host_ip))
+                if host_ip not in subnet_to_add.get_all_host_ips():
+                    subnet_to_add.hosts.append(Host(ip_addresses=[host_ip]))
 
     def handle_ServicesDiscoveredOnHost(self, event: ServicesDiscoveredOnHost):
         # Find host
-        host = None
-        for subnet in self.network.subnets:
-            for _host in subnet.hosts:
-                if _host.ip_address == event.host_ip:
-                    host = _host
-                    break
-
+        host = self.network.find_host_by_ip(event.host_ip)
         if host is None:
-            host = Host(ip_address=event.host_ip)
+            host = Host(ip_addresses=[event.host_ip])
             self.network.add_host(host)
 
         for port, service in event.services.items():
@@ -135,7 +126,7 @@ class EnvironmentStateService:
     def handle_VulnerableServiceFound(self, event: VulnerableServiceFound):
         host = self.network.find_host_by_ip(event.host)
         if host is None:
-            host = Host(ip_address=event.host)
+            host = Host(ip_addresses=[event.host])
             self.network.add_host(host)
 
         if event.port not in host.open_ports:
@@ -154,7 +145,7 @@ class EnvironmentStateService:
 
             # If target host does not exist, add it
             if self.network.find_host_by_ip(event.credential.host_ip) is None:
-                self.network.add_host(Host(ip_address=event.credential.host_ip))
+                self.network.add_host(Host(ip_addresses=[event.credential.host_ip]))
 
     async def handle_InfectedNewHost(self, event: InfectedNewHost):
         # Add agent to network
@@ -189,31 +180,53 @@ class EnvironmentStateService:
 
     def add_infected_host(self, new_agent: Agent):
         # Add agent to network
-        host = self.network.find_host_by_ip(new_agent.host_ip_addrs[0])
+        hosts = self.network.find_hosts_with_ips(new_agent.host_ip_addrs)
 
-        if host:
-            host.hostname = new_agent.hostname
-            host.add_agent(new_agent)
-        else:
+        # If no hosts, we need to create a new one
+        if len(hosts) == 0:
             new_host = Host(
-                ip_address=new_agent.host_ip_addrs[0],
+                ip_addresses=new_agent.host_ip_addrs,
                 hostname=new_agent.hostname,
                 agents=[new_agent],
             )
+            self.network.add_host(new_host)
+        # If one host, we can use it
+        elif len(hosts) == 1:
+            host = hosts[0]
+            host.hostname = new_agent.hostname
+            host.add_agent(new_agent)
+        # If multiple hosts, we need to merge them
+        elif len(hosts) > 1:
+            self._merge_multiple_hosts(hosts, new_agent)
 
-            # Does subnet exist?
-            ip_address = new_agent.host_ip_addrs[0]
-            address = ipaddress.ip_address(ip_address)
-            subnet_mask = ipaddress.ip_network(f"{address}/24", strict=False)
+    def _merge_multiple_hosts(self, hosts: list[Host], new_agent: Agent):
+        """
+        Merge multiple hosts that share IP addresses with the new agent.
+        This handles the complex case where hosts might be in different subnets.
+        """
+        # Remove the merged hosts from their respective subnets
+        self.network.remove_hosts(hosts)
 
-            subnet = self.network.find_subnet_by_ip_mask(str(subnet_mask))
-            if subnet is None:
-                subnet = Subnet(
-                    ip_mask=str(subnet_mask), attacker_subnet=False, hosts=[new_host]
-                )
-                self.network.add_subnet(subnet)
-            else:
-                subnet.hosts.append(new_host)
+        # Merge data
+        new_host = Host.merge(hosts[0], hosts[1])
+
+        # Add new host to network
+        self.network.add_host(new_host)
+
+    def _ensure_host_in_correct_subnets(self, host: Host):
+        """
+        Ensure a host is present in all subnets that contain its IP addresses.
+        """
+        # Find all subnets that should contain this host
+        relevant_subnets = []
+        for subnet in self.network.subnets:
+            if subnet.any_ips_in_subnet(host.ip_addresses):
+                relevant_subnets.append(subnet)
+
+        # Add host to relevant subnets if not already present
+        for subnet in relevant_subnets:
+            if host not in subnet.hosts:
+                subnet.add_host(host)
 
     def update_network_from_report(self, report: ScanResults):
         for ip_scan_result in report.results:
@@ -221,7 +234,7 @@ class EnvironmentStateService:
 
             if not host:
                 # Add host to network
-                host = Host(ip_address=ip_scan_result.ip)
+                host = Host(ip_addresses=[ip_scan_result.ip])
                 self.network.add_host(host)
 
             # Set hosts open ports

@@ -17,3 +17,8 @@ class Agent:
 
     def __str__(self):
         return f"{self.__class__.__name__}: paw={self.paw},  username={self.username}, priv={self.privilege}, pid={self.pid}, ip_addr={self.host_ip_addrs}, hostname={self.hostname}"
+
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Agent):
+            return False
+        return self.paw == __value.paw
