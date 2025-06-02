@@ -145,11 +145,11 @@ class ScanHost(LowLevelAction)
 **Constructor**: 
 
 ```python
-def __init__(self, agent: Agent, host: str)
+def __init__(self, agent: Agent, host_ip: str)
 ```
 
 - **`agent`**: The agent performing the scan.
-- **`host`**: The target host to be scanned.
+- **`host_ip`**: The target host ip to be scanned.
 
 ---
 
@@ -164,11 +164,11 @@ class ScanNetwork(LowLevelAction)
 **Constructor**: 
 
 ```python
-def __init__(self, agent: Agent, network_range: str)
+def __init__(self, agent: Agent, subnet_mask: str):
 ```
 
 - **`agent`**: The agent performing the network scan.
-- **`network_range`**: The IP range to scan.
+- **`subnet_mask`**: The subnet mask to scan.
 
 ---
 

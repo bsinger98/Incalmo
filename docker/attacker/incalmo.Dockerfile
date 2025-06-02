@@ -18,6 +18,7 @@ RUN chmod 700 /root/.ssh
 
 # Copy attacker files
 COPY ./ /incalmo
+COPY ./incalmo/c2server/agents /agents
 WORKDIR /incalmo
 
 # Install dependencies
