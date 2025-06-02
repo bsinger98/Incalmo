@@ -16,3 +16,21 @@ authors:
 title: "On the Feasibility of Using LLMs to Execute Multistage Network Attacks"
 date-released: 2025-01-30
 url: https://arxiv.org/abs/2501.16466
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Singer"
+      given-names: "Brian"
+    - family-names: "Lucas"
+      given-names: "Keane"
+    - family-names: "Adiga"
+      given-names: "Lakshmi"
+    - family-names: "Jain"
+      given-names: "Meghna"
+    - family-names: "Bauer"
+      given-names: "Lujo"
+    - family-names: "Sekar"
+      given-names: "Vyas"
+  title: "On the Feasibility of Using LLMs to Execute Multistage Network Attacks"
+  year: 2025
+  journal: "arXiv preprint arXiv:2501.16466"
