@@ -56,6 +56,12 @@ class Host:
 
         return False
 
+    def has_agent(self, agent: Agent):
+        for host_agent in self.agents:
+            if host_agent.paw == agent.paw:
+                return True
+        return False
+
     def add_agent(self, agent: Agent):
         self.infected = True
         self.agents.append(agent)

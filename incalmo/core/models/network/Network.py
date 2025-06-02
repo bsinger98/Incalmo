@@ -49,9 +49,8 @@ class Network:
 
     def find_host_by_agent(self, agent: Agent):
         for host in self.get_all_hosts():
-            for agent in host.agents:
-                if agent == agent:
-                    return host
+            if host.has_agent(agent):
+                return host
         return None
 
     def get_uninfected_hosts(self):
