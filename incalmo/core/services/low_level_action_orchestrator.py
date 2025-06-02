@@ -11,6 +11,7 @@ from incalmo.core.models.events import InfectedNewHost, RootAccessOnHost
 from incalmo.core.services.logging_service import PerryLogger
 from incalmo.models.logging_schema import serialize
 from datetime import datetime
+import time
 
 
 class LowLevelActionOrchestrator:
@@ -26,13 +27,20 @@ class LowLevelActionOrchestrator:
         c2client = C2ApiClient()
         # Get prior agents
         prior_agents = c2client.get_agents()
+
         # Run action with C2C server and get result
         command_result = c2client.send_command(low_level_action)
+
+        # Some command delay for agents to contact the server
+        time.sleep(low_level_action.command_delay)
+
         # Check for any new agents
         post_agents = c2client.get_agents()
+
         agent_check_result = self.check_new_agents(
             low_level_action.agent, prior_agents, post_agents
         )
+
         events = await low_level_action.get_result(command_result)
         self.logger.info(
             "LowLevelAction executed",
@@ -63,10 +71,16 @@ class LowLevelActionOrchestrator:
 
         if new_agent:
             # If new agent on same host as ability agent, privledge escalation was successful
-            if new_agent.hostname == ability_agent.hostname:
+            # Check to see if any ips are shared between the ability agent and the new agent
+            shared_ips = []
+            for ip in ability_agent.host_ip_addrs:
+                if ip in new_agent.host_ip_addrs:
+                    shared_ips.append(ip)
+
+            if len(shared_ips) > 0:
                 if new_agent.username == "root":
                     return [RootAccessOnHost(new_agent)]
-            if new_agent.hostname != ability_agent.hostname:
+            else:
                 return [InfectedNewHost(ability_agent, new_agent)]
 
         return []

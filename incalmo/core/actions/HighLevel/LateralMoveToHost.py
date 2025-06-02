@@ -37,7 +37,7 @@ class LateralMoveToHost(HighLevelAction):
         # Check if attacking host has credentials
         if len(self.attacking_host.ssh_config) > 0:
             for cred in self.attacking_host.ssh_config:
-                if cred.host_ip in self.host_to_attack.get_ip_address():
+                if cred.host_ip in self.host_to_attack.ip_addresses:
                     agent = cred.agent_discovered
                     new_events = await low_level_action_orchestrator.run_action(
                         SSHLateralMove(agent, cred.hostname)
@@ -51,45 +51,43 @@ class LateralMoveToHost(HighLevelAction):
                             return new_events
                         else:
                             events += new_events
-        else:
-            agent = self.attacking_host.get_agent()
-            if not agent:
-                return events
 
-            # If no credentials, try to exploit a service
-            for (
-                port_to_attack,
-                service_to_attack,
-            ) in self.host_to_attack.open_ports.items():
-                action_to_run = None
+        # Try to exploit a service
+        agent = self.attacking_host.get_agent()
+        if not agent:
+            return events
 
-                if (
-                    "CVE-2017-5638" in service_to_attack.CVE
-                    and self.host_to_attack.has_an_ip_address()
-                ):
-                    action_to_run = ExploitStruts(
-                        agent,
-                        self.host_to_attack.get_ip_address(),
-                        str(port_to_attack),
-                    )
-                elif port_to_attack == 4444 and self.host_to_attack.has_an_ip_address():
-                    action_to_run = NCLateralMove(
-                        agent,
-                        self.host_to_attack.get_ip_address(),
-                        str(port_to_attack),
-                    )
+        for (
+            port_to_attack,
+            service_to_attack,
+        ) in self.host_to_attack.open_ports.items():
+            action_to_run = None
 
-                if action_to_run is None:
-                    continue
-
-                new_events = await low_level_action_orchestrator.run_action(
-                    action_to_run
+            if (
+                "CVE-2017-5638" in service_to_attack.CVE
+                and self.host_to_attack.has_an_ip_address()
+            ):
+                action_to_run = ExploitStruts(
+                    agent,
+                    self.host_to_attack.get_ip_address(),
+                    str(port_to_attack),
+                )
+            elif port_to_attack == 4444 and self.host_to_attack.has_an_ip_address():
+                action_to_run = NCLateralMove(
+                    agent,
+                    self.host_to_attack.get_ip_address(),
+                    str(port_to_attack),
                 )
 
-                if len(new_events) > 0:
-                    if self.stop_after_success:
-                        return new_events
-                    else:
-                        events += new_events
+            if action_to_run is None:
+                continue
+
+            new_events = await low_level_action_orchestrator.run_action(action_to_run)
+
+            if len(new_events) > 0:
+                if self.stop_after_success:
+                    return new_events
+                else:
+                    events += new_events
 
         return events

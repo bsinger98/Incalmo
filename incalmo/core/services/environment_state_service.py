@@ -209,6 +209,8 @@ class EnvironmentStateService:
 
         # Merge data
         new_host = Host.merge(hosts[0], hosts[1])
+        new_host.agents.append(new_agent)
+        new_host.hostname = new_agent.hostname
 
         # Add new host to network
         self.network.add_host(new_host)

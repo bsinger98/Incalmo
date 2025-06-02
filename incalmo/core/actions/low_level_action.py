@@ -11,10 +11,12 @@ class LowLevelAction(ABC):
         agent: Agent,
         command: str,
         payloads: list[str] | None = None,
+        command_delay: int = 0,
     ):
         self.agent = agent
         self.command = command
         self.payloads = payloads if payloads is not None else []
+        self.command_delay = command_delay
 
     def __str__(self):
         def format_value(value):
