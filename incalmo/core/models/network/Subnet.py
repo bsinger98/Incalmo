@@ -1,4 +1,4 @@
-from .Host import Host
+from .host import Host
 
 import ipaddress
 

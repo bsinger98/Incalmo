@@ -1,5 +1,5 @@
-from .Host import Host
-from .Credential import SSHCredential
+from .host import Host
+from .credential import SSHCredential
 
 
 class AttackTechnique:

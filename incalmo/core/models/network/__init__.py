@@ -1,6 +1,6 @@
 from .attack_path import AttackPath, AttackTechnique
-from .Host import Host
+from .host import Host
 from .network import Network
-from .Subnet import Subnet
-from .Credential import SSHCredential
+from .subnet import Subnet
+from .credential import SSHCredential
 from .open_port import OpenPort
