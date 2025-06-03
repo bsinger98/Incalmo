@@ -27,12 +27,9 @@ class AbstractionLevel(str, Enum):
     AGENT_ALL = "agent_all"
 
 
-class LLM(str, Enum):
-    GEMINI1_5 = "gemini1_5"
-    GPT4oMINI = "gpt4omini"
-    GPT4o = "gpt4o"
-    HAIKU3_5 = "haiku3_5"
-    SONNET3_5 = "sonnet3_5"
+class LLMStrategy(BaseModel):
+    llm: str
+    abstraction: AbstractionLevel
 
 
 def convert_to_environment(env: str) -> Environment:
@@ -51,11 +48,9 @@ def convert_to_abstraction_level(level: str) -> AbstractionLevel:
 
 class AttackerConfig(BaseModel):
     name: str
-    strategy: str
+    strategy: LLMStrategy
     environment: str
     c2c_server: str
-    abstraction: Optional[AbstractionLevel] = AbstractionLevel.INCALMO
-    llm: Optional[LLM] = None
 
     class Config:
         # Enums are serialized as their values
