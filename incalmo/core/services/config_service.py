@@ -2,7 +2,7 @@ import os
 import json
 from config.attacker_config import AttackerConfig
 
-CONFIG_PATH = "./user-config/config.json"
+CONFIG_PATH = "./config/config.json"
 
 
 class ConfigService:
