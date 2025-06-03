@@ -9,8 +9,8 @@ TIMEOUT_SECONDS = 75 * 60
 
 async def main():
     config = ConfigService().get_config()
-    strategy_name = config.strategy
-    strategy = IncalmoStrategy.build_strategy(strategy_name)
+    llm_strategy = config.strategy
+    strategy = IncalmoStrategy.build_strategy(llm_strategy.llm)
     await strategy.initialize()
     start_time = asyncio.get_event_loop().time()
     while True:

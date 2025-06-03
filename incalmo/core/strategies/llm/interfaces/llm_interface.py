@@ -2,7 +2,7 @@ import os
 
 from abc import ABC, abstractmethod
 
-from config.attacker_config import AbstractionLevel
+from config.attacker_config import AbstractionLevel, AttackerConfig
 
 from incalmo.core.strategies.llm.llm_response import (
     LLMResponse,
@@ -62,7 +62,10 @@ def extract_command(text):
 
 class LLMInterface(ABC):
     def __init__(
-        self, logger, environment_state_service: EnvironmentStateService, config
+        self,
+        logger,
+        environment_state_service: EnvironmentStateService,
+        config: AttackerConfig,
     ):
         self.logger = logger
 
@@ -74,12 +77,12 @@ class LLMInterface(ABC):
         self.max_message_len = 30000
 
         # Read pre-prompt file
-        if config.abstraction == AbstractionLevel.SHELL:
+        if config.strategy.abstraction == AbstractionLevel.SHELL:
             with open(f"{pre_prompt_path}/bash/pre_prompt.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/bash/final_prompt.txt", "r") as file:
                 final_prompt = file.read()
-        elif config.abstraction == AbstractionLevel.LOW_LEVEL_ACTIONS:
+        elif config.strategy.abstraction == AbstractionLevel.LOW_LEVEL_ACTIONS:
             with open(
                 f"{pre_prompt_path}/low-level-actions/pre_prompt.txt", "r"
             ) as file:
@@ -90,41 +93,41 @@ class LLMInterface(ABC):
                 f"{pre_prompt_path}/low-level-actions/final_prompt.txt", "r"
             ) as file:
                 final_prompt = file.read()
-        elif config.abstraction == AbstractionLevel.INCALMO:
+        elif config.strategy.abstraction == AbstractionLevel.INCALMO:
             with open(f"{pre_prompt_path}/incalmo/pre_prompt.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/incalmo/codebase.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/incalmo/final_prompt.txt", "r") as file:
                 final_prompt = file.read()
-        elif config.abstraction == AbstractionLevel.NO_SERVICES:
+        elif config.strategy.abstraction == AbstractionLevel.NO_SERVICES:
             with open(f"{pre_prompt_path}/no-services/pre_prompt.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/no-services/codebase.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/no-services/final_prompt.txt", "r") as file:
                 final_prompt = file.read()
-        elif config.abstraction == AbstractionLevel.AGENT_SCAN:
+        elif config.strategy.abstraction == AbstractionLevel.AGENT_SCAN:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_scan"
             )
-        elif config.abstraction == AbstractionLevel.AGENT_LATERAL_MOVE:
+        elif config.strategy.abstraction == AbstractionLevel.AGENT_LATERAL_MOVE:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_lateral_move"
             )
-        elif config.abstraction == AbstractionLevel.AGENT_PRIVILEGE_ESCALATION:
+        elif config.strategy.abstraction == AbstractionLevel.AGENT_PRIVILEGE_ESCALATION:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_privilege_escalation"
             )
-        elif config.abstraction == AbstractionLevel.AGENT_EXFILTRATE_DATA:
+        elif config.strategy.abstraction == AbstractionLevel.AGENT_EXFILTRATE_DATA:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_exfiltrate_data"
             )
-        elif config.abstraction == AbstractionLevel.AGENT_FIND_INFORMATION:
+        elif config.strategy.abstraction == AbstractionLevel.AGENT_FIND_INFORMATION:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_find_information"
             )
-        elif config.abstraction == AbstractionLevel.AGENT_ALL:
+        elif config.strategy.abstraction == AbstractionLevel.AGENT_ALL:
             (pre_prompt, final_prompt) = get_default_prompt(
                 f"{pre_prompt_path}/agent_all"
             )
