@@ -26,10 +26,10 @@ class DeepSeek7bInterface(LLMInterface):
         self.ollama_url = OLLAMA_URL
         self.model = "deepseek-r1:70b"
 
-    def get_response(self, perry_response: str | None = None) -> str:
-        if perry_response:
-            self.conversation.append({"role": "user", "content": perry_response})
-            self.logger.info(f"Perry's response: \n{perry_response}")
+    def get_response(self, incalmo_response: str | None = None) -> str:
+        if incalmo_response:
+            self.conversation.append({"role": "user", "content": incalmo_response})
+            self.logger.info(f"Incalmo's response: \n{incalmo_response}")
 
         # Prepare the request for Ollama
         prompt = convert_conversation_to_prompt(self.conversation)

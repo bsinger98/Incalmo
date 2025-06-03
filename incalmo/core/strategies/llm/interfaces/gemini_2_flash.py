@@ -23,14 +23,14 @@ class Gemini2FlashInterface(LLMInterface):
         self.conversation = [{"role": "user", "parts": self.pre_prompt}]
         self.chat = self.model.start_chat(history=self.conversation)  # type: ignore
 
-    def get_response(self, perry_response: str | None = None) -> str:
-        if perry_response is None:
-            perry_response = "Please provide a response."
+    def get_response(self, incalmo_response: str | None = None) -> str:
+        if incalmo_response is None:
+            incalmo_response = "Please provide a response."
 
-        self.logger.info(f"Perry's response: \n{perry_response}")
+        self.logger.info(f"Perry's response: \n{incalmo_response}")
 
         gemini_response = self.chat.send_message(
-            perry_response, safety_settings=self.saftey_settings
+            incalmo_response, safety_settings=self.saftey_settings
         )
 
         # Extract response

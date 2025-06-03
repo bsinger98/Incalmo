@@ -8,7 +8,7 @@ from incalmo.core.models.events import Event
 #     EnvironmentStateService,
 # )
 from incalmo.core.models.events import InfectedNewHost, RootAccessOnHost
-from incalmo.core.services.logging_service import PerryLogger
+from incalmo.core.services.logging_service import IncalmoLogger
 from incalmo.models.logging_schema import serialize
 from datetime import datetime
 import time
@@ -17,7 +17,7 @@ import time
 class LowLevelActionOrchestrator:
     def __init__(
         self,
-        logging_service: PerryLogger,
+        logging_service: IncalmoLogger,
         # environment_state_service: EnvironmentStateService,
     ):
         # self.environment_state_service = environment_state_service

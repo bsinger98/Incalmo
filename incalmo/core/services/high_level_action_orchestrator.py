@@ -9,7 +9,7 @@ from incalmo.core.services import (
     LowLevelActionOrchestrator,
 )
 
-from incalmo.core.services.logging_service import PerryLogger
+from incalmo.core.services.logging_service import IncalmoLogger
 from incalmo.models.logging_schema import serialize
 from datetime import datetime
 
@@ -20,7 +20,7 @@ class HighLevelActionOrchestrator:
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
-        logging_service: PerryLogger,
+        logging_service: IncalmoLogger,
     ):
         self.environment_state_service = environment_state_service
         self.attack_graph_service = attack_graph_service
