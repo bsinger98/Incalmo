@@ -16,7 +16,7 @@ from incalmo.core.models.network import Host
 from incalmo.core.services.environment_initializer import (
     EnvironmentInitializer,
 )
-from incalmo.config.attacker_config import AttackerConfig
+from config.attacker_config import AttackerConfig
 from incalmo.core.actions.HighLevel.llm_agents.scan.scan_report import (
     ScanResults,
 )
