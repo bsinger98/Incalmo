@@ -13,11 +13,7 @@ async def run_incalmo_strategy(strategy_name=None):
     """Run incalmo with the specified strategy"""
 
     if not strategy_name:
-        # Get strategy from config
-        if not strategy_name:
-            print("[INFO] No strategy specified, checking config...")
-            config = ConfigService().get_config()
-            strategy_name = config.strategy
+        raise Exception("No strategy specified")
 
     print(f"[INFO] Starting Incalmo with strategy: {strategy_name}")
 

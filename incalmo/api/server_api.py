@@ -79,18 +79,18 @@ class C2ApiClient:
 
         raise Exception("Command polling timed out")
 
-    def incalmo_startup(self, strategy_name: str) -> None:
-        """Start Incalmo with specified strategy."""
-        payload = {"strategy": strategy_name}
-        headers = {"Content-Type": "application/json"}
-        print(f"Starting Incalmo with strategy: {strategy_name}")
+    def incalmo_startup(self, config: dict):
+        """Start incalmo with full AttackerConfig"""
+        url = f"{self.server_url}/startup"
+
         response = requests.post(
-            f"{self.server_url}/startup",
-            data=json.dumps(payload),
-            headers=headers,
+            url,
+            json=config,
+            headers={"Content-Type": "application/json"},
         )
 
-        if not response.ok:
-            raise Exception(
-                f"Failed to start Incalmo: {response.status_code} {response.text}"
-            )
+        if response.status_code == 200:
+            print("Incalmo started successfully")
+            return response.json()
+        else:
+            raise Exception(f"Failed to start Incalmo: {response.text}")

@@ -9,6 +9,7 @@ from collections import defaultdict
 from incalmo.models.command import Command, CommandStatus
 from incalmo.models.command_result import CommandResult
 from incalmo.incalmo_runner import run_incalmo_strategy
+from config.attacker_config import AttackerConfig
 from string import Template
 import logging
 from pathlib import Path
@@ -243,19 +244,23 @@ async def incalmo_startup():
     try:
         data = request.data
         json_data = json.loads(data)
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
-        strategy = json_data.get("strategy")
-        if not strategy:
-            return jsonify({"error": "No strategy provided"}), 400
+        # Validate using AttackerConfig schema
+        try:
+            config = AttackerConfig(**json_data)
+        except Exception as validation_error:
+            return jsonify(
+                {"error": "Invalid configuration", "details": str(validation_error)}
+            ), 400
+
+        strategy = config.strategy.llm
         print(f"Starting task of strategy: {strategy}")
-        # Start incalmo in background task
+
         asyncio.create_task(run_incalmo_strategy(strategy))
 
         response = {
             "status": "success",
             "message": f"Incalmo started with strategy: {strategy}",
-            "strategy": strategy,
+            "config": config.model_dump(),
         }
 
         return jsonify(response), 200
