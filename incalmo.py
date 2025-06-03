@@ -1,6 +1,6 @@
 import asyncio
 from incalmo.core.strategies.llm.haiku3_5 import Haiku3_5Strategy
-from incalmo.core.strategies.perry_strategy import PerryStrategy
+from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
 from incalmo.core.services import ConfigService
 from incalmo.core.strategies.testers.equifax_test import EquifaxStrategy
 
@@ -10,7 +10,7 @@ TIMEOUT_SECONDS = 75 * 60
 async def main():
     config = ConfigService().get_config()
     strategy_name = config.strategy
-    strategy = PerryStrategy.build_strategy(strategy_name)
+    strategy = IncalmoStrategy.build_strategy(strategy_name)
     await strategy.initialize()
     start_time = asyncio.get_event_loop().time()
     while True:

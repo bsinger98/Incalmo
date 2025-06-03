@@ -13,10 +13,10 @@ class GPT4Interface(LLMInterface):
         # Initialize the conversation
         self.conversation = [{"role": "user", "content": self.pre_prompt}]
 
-    def get_response(self, perry_response: str | None = None) -> str:
-        if perry_response:
-            self.conversation.append({"role": "user", "content": perry_response})
-            self.logger.info(f"Perry's response: \n{perry_response}")
+    def get_response(self, incalmo_response: str | None = None) -> str:
+        if incalmo_response:
+            self.conversation.append({"role": "user", "content": incalmo_response})
+            self.logger.info(f"Perry's response: \n{incalmo_response}")
 
         # Get Claude's response
         response = client.chat.completions.create(

@@ -2,7 +2,7 @@ import random
 from app.objects.c_operation import Operation
 from app.service.planning_svc import PlanningService
 
-from plugins.deception.app.strategies.perry_strategy import PerryStrategy
+from plugins.deception.app.strategies.incalmo_strategy import PerryStrategy
 from plugins.deception.app.actions.HighLevel import (
     EscelatePrivledge,
     Scan,

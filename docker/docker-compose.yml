@@ -23,7 +23,7 @@ services:
       context: ../
       dockerfile: docker/attacker/incalmo.Dockerfile
     env_file:
-      - .env
+      - ../.env
     volumes:
       - ../:/incalmo
       # TODO: Check if user config can be mounted to config directory directly
