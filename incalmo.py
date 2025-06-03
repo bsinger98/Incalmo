@@ -1,26 +1,9 @@
 import asyncio
-from incalmo.core.strategies.llm.haiku3_5 import Haiku3_5Strategy
-from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
-from incalmo.core.services import ConfigService
-from incalmo.core.strategies.testers.equifax_test import EquifaxStrategy
-
-TIMEOUT_SECONDS = 75 * 60
+from incalmo.api.server_api import C2ApiClient
 
 
 async def main():
-    config = ConfigService().get_config()
-    strategy_name = config.strategy
-    strategy = IncalmoStrategy.build_strategy(strategy_name)
-    await strategy.initialize()
-    start_time = asyncio.get_event_loop().time()
-    while True:
-        print(f"[DEBUG] Running strategy: {strategy.__class__.__name__}")
-        result = await strategy.main()
-        if result:
-            break
-        if asyncio.get_event_loop().time() - start_time > TIMEOUT_SECONDS:
-            break
-        await asyncio.sleep(0.5)
+    C2ApiClient().incalmo_startup(strategy_name="haiku3_5_strategy")
 
 
 if __name__ == "__main__":

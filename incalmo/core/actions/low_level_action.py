@@ -1,14 +1,16 @@
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
-from incalmo.core.models.events import Event
-from incalmo.models.command_result import CommandResult
-from incalmo.core.models.attacker.agent import Agent
+if TYPE_CHECKING:
+    from incalmo.core.models.events import Event
+    from incalmo.models.command_result import CommandResult
+    from incalmo.core.models.attacker.agent import Agent
 
 
 class LowLevelAction(ABC):
     def __init__(
         self,
-        agent: Agent,
+        agent: "Agent",
         command: str,
         payloads: list[str] | None = None,
         command_delay: int = 0,
@@ -31,6 +33,6 @@ class LowLevelAction(ABC):
 
     async def get_result(
         self,
-        results: CommandResult,
-    ) -> list[Event]:
+        results: "CommandResult",
+    ) -> list["Event"]:
         return []
