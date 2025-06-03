@@ -1,6 +1,7 @@
 import asyncio
 from incalmo.api.server_api import C2ApiClient
 
+
 async def main():
     # Use full AttackerConfig format
     config = {
