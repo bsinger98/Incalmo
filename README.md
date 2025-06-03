@@ -21,8 +21,10 @@ Paper: [On the Feasibility of Using LLMs to Execute Multistage Network Attacks](
    docker compose up
    ```
 
-4. In attacker container, run:
+4. Attach to docker container and run Incalmo:
 
    ```bash
+   cd docker
+   docker compose exec attacker /bin/bash
    uv run incalmo.py
    ```
