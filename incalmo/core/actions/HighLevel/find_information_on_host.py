@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     )
 
 
-
 class FindInformationOnAHost(HighLevelAction):
     def __init__(self, host: Host, user: str | None = None):
         self.host = host
