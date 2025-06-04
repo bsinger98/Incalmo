@@ -1,17 +1,12 @@
 from pydantic import BaseModel
 from typing import List
+from .open_port import OpenPort
 
 
-class OpenPort(BaseModel):
-    port: int
-    service: str
-    CVE: list[str] = []
-
-
-class Host(BaseModel):
+class ScanHost(BaseModel):
     ip: str
     open_ports: List[OpenPort]
 
 
 class ScanResults(BaseModel):
-    results: List[Host]
+    results: List[ScanHost]

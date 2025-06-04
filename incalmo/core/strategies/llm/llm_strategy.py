@@ -99,7 +99,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
 
         new_perr_reponse = ""
         if llm_action is None:
-            if self.config.abstraction == AbstractionLevel.SHELL:
+            if self.config.strategy.abstraction == AbstractionLevel.SHELL:
                 new_perr_reponse = (
                     "No <shell> tag found. Please try again and include a tag."
                 )

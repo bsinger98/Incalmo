@@ -20,9 +20,7 @@ from incalmo.core.services import (
 )
 
 
-from incalmo.core.actions.HighLevel.llm_agents.scan.scan_report import (
-    ScanResults,
-)
+from incalmo.core.models.network import ScanResults
 
 
 class LLMAgentScan(LLMAgentAction):
