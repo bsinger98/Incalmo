@@ -9,11 +9,14 @@ from incalmo.core.actions.LowLevel import (
 )
 from incalmo.core.models.events import Event, WriteablePasswd, SudoVersion
 from incalmo.core.models.network import Host
-from incalmo.core.services import (
-    LowLevelActionOrchestrator,
-    EnvironmentStateService,
-    AttackGraphService,
-)
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from incalmo.core.services import (
+        LowLevelActionOrchestrator,
+        EnvironmentStateService,
+        AttackGraphService,
+    )
 
 
 def parse_version(version: str):
@@ -52,9 +55,9 @@ class EscelatePrivledge(HighLevelAction):
 
     async def run(
         self,
-        low_level_action_orchestrator: LowLevelActionOrchestrator,
-        environment_state_service: EnvironmentStateService,
-        attack_graph_service: AttackGraphService,
+        low_level_action_orchestrator: "LowLevelActionOrchestrator",
+        environment_state_service: "EnvironmentStateService",
+        attack_graph_service: "AttackGraphService",
     ) -> list[Event]:
         events = []
         # Check if the host has a root user

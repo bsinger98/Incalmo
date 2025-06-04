@@ -1,13 +1,16 @@
-from incalmo.core.models.events import Event, InfectedNewHost
-from incalmo.core.models.network import Host
-from incalmo.core.services import (
-    LowLevelActionOrchestrator,
-    EnvironmentStateService,
-    AttackGraphService,
-)
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from incalmo.core.services import (
+        LowLevelActionOrchestrator,
+        EnvironmentStateService,
+        AttackGraphService,
+    )
 
 from ..high_level_action import HighLevelAction
 from ..LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
+from incalmo.core.models.events import Event, InfectedNewHost
+from incalmo.core.models.network import Host
 
 
 class LateralMoveToHost(HighLevelAction):
@@ -23,9 +26,9 @@ class LateralMoveToHost(HighLevelAction):
 
     async def run(
         self,
-        low_level_action_orchestrator: LowLevelActionOrchestrator,
-        environment_state_service: EnvironmentStateService,
-        attack_graph_service: AttackGraphService,
+        low_level_action_orchestrator: "LowLevelActionOrchestrator",
+        environment_state_service: "EnvironmentStateService",
+        attack_graph_service: "AttackGraphService",
     ) -> list[Event]:
         """
         _random_lateral_move

@@ -2,18 +2,20 @@ from ..high_level_action import HighLevelAction
 from ..LowLevel.scan_host import ScanHost
 from ..LowLevel.scan_network import ScanNetwork
 from ..LowLevel.nikto_scan import NiktoScan
-
 from incalmo.core.models.events import (
     HostsDiscovered,
     Event,
     ServicesDiscoveredOnHost,
 )
 from incalmo.core.models.network import Subnet, Host
-from incalmo.core.services import (
-    LowLevelActionOrchestrator,
-    EnvironmentStateService,
-    AttackGraphService,
-)
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from incalmo.core.services import (
+        LowLevelActionOrchestrator,
+        EnvironmentStateService,
+        AttackGraphService,
+    )
 
 from collections import defaultdict
 
@@ -25,9 +27,9 @@ class Scan(HighLevelAction):
 
     async def run(
         self,
-        low_level_action_orchestrator: LowLevelActionOrchestrator,
-        environment_state_service: EnvironmentStateService,
-        attack_graph_service: AttackGraphService,
+        low_level_action_orchestrator: "LowLevelActionOrchestrator",
+        environment_state_service: "EnvironmentStateService",
+        attack_graph_service: "AttackGraphService",
     ) -> list[Event]:
         events = []
         scan_agent = self.scan_host.get_agent()

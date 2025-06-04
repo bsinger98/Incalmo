@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
 
-from incalmo.core.services import (
-    LowLevelActionOrchestrator,
-    EnvironmentStateService,
-    AttackGraphService,
-)
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from incalmo.core.services import (
+        LowLevelActionOrchestrator,
+        EnvironmentStateService,
+        AttackGraphService,
+    )
 from incalmo.core.models.events import Event
 
 
@@ -23,8 +26,8 @@ class HighLevelAction(ABC):
     @abstractmethod
     async def run(
         self,
-        low_level_action_orchestrator: LowLevelActionOrchestrator,
-        environment_state_service: EnvironmentStateService,
-        attack_graph_service: AttackGraphService,
+        low_level_action_orchestrator: "LowLevelActionOrchestrator",
+        environment_state_service: "EnvironmentStateService",
+        attack_graph_service: "AttackGraphService",
     ) -> list[Event]:
         return []

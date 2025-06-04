@@ -1,15 +1,18 @@
 from ..high_level_action import HighLevelAction
 from ..LowLevel.list_files_in_directory import ListFilesInDirectory
 from ..LowLevel.find_ssh_config import FindSSHConfig
-
 from incalmo.core.models.network import Host
 from incalmo.core.models.events import Event, CriticalDataFound, FilesFound
-from incalmo.core.services import (
-    LowLevelActionOrchestrator,
-    EnvironmentStateService,
-    AttackGraphService,
-)
 from incalmo.core.models.attacker.agent import Agent
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from incalmo.core.services import (
+        LowLevelActionOrchestrator,
+        EnvironmentStateService,
+        AttackGraphService,
+    )
+
 
 
 class FindInformationOnAHost(HighLevelAction):
@@ -19,9 +22,9 @@ class FindInformationOnAHost(HighLevelAction):
 
     async def run(
         self,
-        low_level_action_orchestrator: LowLevelActionOrchestrator,
-        environment_state_service: EnvironmentStateService,
-        attack_graph_service: AttackGraphService,
+        low_level_action_orchestrator: "LowLevelActionOrchestrator",
+        environment_state_service: "EnvironmentStateService",
+        attack_graph_service: "AttackGraphService",
     ) -> list[Event]:
         """
         _try_reading_user_flags

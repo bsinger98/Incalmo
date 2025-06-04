@@ -1,4 +1,13 @@
 import os
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from incalmo.core.services import (
+        LowLevelActionOrchestrator,
+        EnvironmentStateService,
+        AttackGraphService,
+    )
+from config.attacker_config import Environment
 from incalmo.core.models.attacker.agent import Agent
 
 from incalmo.core.actions.high_level_action import HighLevelAction
@@ -11,12 +20,6 @@ from incalmo.core.actions.LowLevel import (
 )
 from incalmo.core.models.network import Host
 from incalmo.core.models.events import Event, FileContentsFound
-from incalmo.core.services import (
-    LowLevelActionOrchestrator,
-    EnvironmentStateService,
-    AttackGraphService,
-)
-from config.attacker_config import Environment
 
 
 class ExfiltrateData(HighLevelAction):
@@ -25,9 +28,9 @@ class ExfiltrateData(HighLevelAction):
 
     async def run(
         self,
-        low_level_action_orchestrator: LowLevelActionOrchestrator,
-        environment_state_service: EnvironmentStateService,
-        attack_graph_service: AttackGraphService,
+        low_level_action_orchestrator: "LowLevelActionOrchestrator",
+        environment_state_service: "EnvironmentStateService",
+        attack_graph_service: "AttackGraphService",
     ) -> list[Event]:
         target_agent = self.target_host.get_agent()
 
@@ -84,7 +87,7 @@ class ExfiltrateData(HighLevelAction):
     async def direct_ssh_exfiltrate(
         self,
         attacker_agent: Agent,
-        low_level_action_orchestrator: LowLevelActionOrchestrator,
+        low_level_action_orchestrator: "LowLevelActionOrchestrator",
     ):
         # Get SSH key of attacker agent
         events = await low_level_action_orchestrator.run_action(
@@ -138,9 +141,9 @@ class ExfiltrateData(HighLevelAction):
         self,
         attacker_agent: Agent,
         target_host: Host,
-        low_level_action_orchestrator: LowLevelActionOrchestrator,
-        env_state_service: EnvironmentStateService,
-        attack_graph_service: AttackGraphService,
+        low_level_action_orchestrator: "LowLevelActionOrchestrator",
+        env_state_service: "EnvironmentStateService",
+        attack_graph_service: "AttackGraphService",
     ):
         hosts_with_creds = attack_graph_service.find_hosts_with_credentials_to_host(
             target_host
@@ -213,7 +216,7 @@ class ExfiltrateData(HighLevelAction):
         self,
         source_host: Host,
         target_host: Host,
-        low_level_action_orchestrator: LowLevelActionOrchestrator,
+        low_level_action_orchestrator: "LowLevelActionOrchestrator",
     ):
         for src_agent in source_host.agents:
             # Get SSH key of attacker agent

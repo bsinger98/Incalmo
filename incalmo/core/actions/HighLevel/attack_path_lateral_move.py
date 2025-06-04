@@ -3,11 +3,14 @@ from incalmo.core.models.network import AttackPath
 from incalmo.core.actions.high_level_action import HighLevelAction
 from incalmo.core.actions.LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
 from incalmo.core.models.events import InfectedNewHost, Event
-from incalmo.core.services import (
-    LowLevelActionOrchestrator,
-    EnvironmentStateService,
-    AttackGraphService,
-)
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from incalmo.core.services import (
+        LowLevelActionOrchestrator,
+        EnvironmentStateService,
+        AttackGraphService,
+    )
 
 
 class AttackPathLateralMove(HighLevelAction):
@@ -17,9 +20,9 @@ class AttackPathLateralMove(HighLevelAction):
 
     async def run(
         self,
-        low_level_action_orchestrator: LowLevelActionOrchestrator,
-        environment_state_service: EnvironmentStateService,
-        attack_graph_service: AttackGraphService,
+        low_level_action_orchestrator: "LowLevelActionOrchestrator",
+        environment_state_service: "EnvironmentStateService",
+        attack_graph_service: "AttackGraphService",
     ) -> list[Event]:
         events = []
 
