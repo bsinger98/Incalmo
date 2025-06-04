@@ -19,5 +19,8 @@ class SCPFile(LowLevelAction):
         self.src_filepath = src_filepath
         self.dst_filepath = dst_filepath
 
-        command = f"scp -P {ssh_port} {ssh_user}@{ssh_ip}:{src_filepath} {dst_filepath}"
+        command = (
+            f"scp -o StrictHostKeyChecking=no -P {ssh_port} "
+            f"{ssh_user}@{ssh_ip}:{src_filepath} {dst_filepath}"
+        )
         super().__init__(agent, command)
