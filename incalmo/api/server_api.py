@@ -1,6 +1,7 @@
 from incalmo.core.actions.low_level_action import LowLevelAction
 from incalmo.core.models.attacker.agent import Agent
 from config.settings import settings
+from config.attacker_config import AttackerConfig
 import requests
 import json
 import time
@@ -79,9 +80,11 @@ class C2ApiClient:
 
         raise Exception("Command polling timed out")
 
-    def incalmo_startup(self, config: dict):
+    def incalmo_startup(self, config: AttackerConfig):
         """Start incalmo with full AttackerConfig"""
         url = f"{self.server_url}/startup"
+
+        config = config.model_dump()
 
         response = requests.post(
             url,
