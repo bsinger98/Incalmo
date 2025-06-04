@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class OpenPort:
+class OpenPort(BaseModel):
     port: int
     service: str
-    CVE: list[str]
+    CVE: list[str] = []

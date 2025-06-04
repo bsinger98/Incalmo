@@ -17,9 +17,7 @@ from incalmo.core.services.environment_initializer import (
     EnvironmentInitializer,
 )
 from config.attacker_config import AttackerConfig
-from incalmo.core.actions.HighLevel.llm_agents.scan.scan_report import (
-    ScanResults,
-)
+from incalmo.core.models.network import ScanResults
 from incalmo.core.models.network.open_port import OpenPort
 from incalmo.api.server_api import C2ApiClient
 
@@ -121,7 +119,7 @@ class EnvironmentStateService:
             self.network.add_host(host)
 
         for port, service in event.services.items():
-            host.open_ports[port] = OpenPort(port, service, [])
+            host.open_ports[port] = OpenPort(port=port, service=service, CVE=[])
 
     def handle_VulnerableServiceFound(self, event: VulnerableServiceFound):
         host = self.network.find_host_by_ip(event.host)
@@ -131,7 +129,7 @@ class EnvironmentStateService:
 
         if event.port not in host.open_ports:
             host.open_ports[event.port] = OpenPort(
-                event.port, event.service, [event.cve]
+                port=event.port, service=event.service, CVE=[event.cve]
             )
         else:
             if event.cve not in host.open_ports[event.port].CVE:
@@ -243,7 +241,7 @@ class EnvironmentStateService:
             for port in ip_scan_result.open_ports:
                 if port.port not in host.open_ports:
                     host.open_ports[port.port] = OpenPort(
-                        port.port, port.service, port.CVE
+                        port=port.port, service=port.service, CVE=port.CVE
                     )
                 else:
                     host.open_ports[port.port].service = port.service
