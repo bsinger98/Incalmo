@@ -1,13 +1,15 @@
 from flask import Flask, request, jsonify
 import json
-import os
 import base64
 import binascii
+import asyncio
 from incalmo.models.instruction import Instruction
 import uuid
 from collections import defaultdict
 from incalmo.models.command import Command, CommandStatus
 from incalmo.models.command_result import CommandResult
+from incalmo.incalmo_runner import run_incalmo_strategy
+from config.attacker_config import AttackerConfig
 from string import Template
 import logging
 from pathlib import Path
@@ -234,6 +236,38 @@ def agent_download():
 
     except Exception as e:
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+
+# Incalmo startup
+@app.route("/startup", methods=["POST"])
+async def incalmo_startup():
+    try:
+        data = request.data
+        json_data = json.loads(data)
+        # Validate using AttackerConfig schema
+        try:
+            config = AttackerConfig(**json_data)
+        except Exception as validation_error:
+            return jsonify(
+                {"error": "Invalid configuration", "details": str(validation_error)}
+            ), 400
+
+        strategy = config.strategy.llm
+        print(f"Starting task of strategy: {strategy}")
+
+        asyncio.create_task(run_incalmo_strategy(strategy))
+
+        response = {
+            "status": "success",
+            "message": f"Incalmo started with strategy: {strategy}",
+            "config": config.model_dump(),
+        }
+
+        return jsonify(response), 200
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON data"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Failed to start Incalmo server: {str(e)}"}), 500
 
 
 if __name__ == "__main__":

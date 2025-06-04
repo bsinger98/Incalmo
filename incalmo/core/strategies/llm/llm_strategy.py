@@ -290,7 +290,6 @@ async def dynamic_query_execution(
 ):
     # TODO: Make more robust
     exec_globals = get_all_action_classes()
-    print(f"[DEBUG] exec_globals: {exec_globals}")
     exec_locals = {}
     exec(code, exec_globals, exec_locals)
 
