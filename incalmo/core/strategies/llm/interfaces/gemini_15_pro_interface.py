@@ -28,7 +28,7 @@ class Gemini15ProInterface(LLMInterface):
         if incalmo_response is None:
             incalmo_response = "Please provide a response."
 
-        self.logger.info(f"Perry's response: \n{incalmo_response}")
+        self.logger.info(f"Incalmo's response: \n{incalmo_response}")
 
         for i in range(3):
             try:

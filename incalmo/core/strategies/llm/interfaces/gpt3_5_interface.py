@@ -16,7 +16,7 @@ class GPT3_5_Interface(LLMInterface):
     def get_response(self, incalmo_response: str | None = None) -> str:
         if incalmo_response:
             self.conversation.append({"role": "user", "content": incalmo_response})
-            self.logger.info(f"Perry's response: \n{incalmo_response}")
+            self.logger.info(f"Incalmo's response: \n{incalmo_response}")
 
         # Get Claude's response
         response = client.chat.completions.create(

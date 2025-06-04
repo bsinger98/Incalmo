@@ -27,7 +27,7 @@ class Gemini2FlashInterface(LLMInterface):
         if incalmo_response is None:
             incalmo_response = "Please provide a response."
 
-        self.logger.info(f"Perry's response: \n{incalmo_response}")
+        self.logger.info(f"Incalmo's response: \n{incalmo_response}")
 
         gemini_response = self.chat.send_message(
             incalmo_response, safety_settings=self.saftey_settings
