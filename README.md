@@ -49,5 +49,5 @@ In a new terminal window, attach to the running container and execute Incalmo:
    ```bash
    cd docker
    docker compose exec attacker /bin/bash
-   uv run incalmo.py
+   uv run main.py
    ```
