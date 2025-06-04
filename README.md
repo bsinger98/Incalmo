@@ -1,6 +1,6 @@
 # Incalmo: An Autonomous LLM-Based Multi-Stage Attacker
 
-📄 **Research Paper**: [On the Feasibility of Using LLMs to Execute Multistage Network Attacks](https://arxiv.org/abs/2501.16466)
+**Research Paper**: [On the Feasibility of Using LLMs to Execute Multistage Network Attacks](https://arxiv.org/abs/2501.16466)
 
 ## Quick Start Guide
 
@@ -10,27 +10,25 @@
 
 ### Setup Instructions
 
-#### 1. Configure the Application
+#### 1. Setup configuration
 
-Create your configuration file by copying the example:
+Create a configuration file by copying the example:
 
 ```bash
 cp config/config_example.json config/config.json
 ```
 
-Then edit `config/config.json` to match your setup requirements.
+Then edit `config/config.json` as needed.
 
-#### 2. Set Up API Keys
+#### 2. Set API Keys
 
-Create your environment file by copying the example:
+Create an environment file by copying the example:
 
 ```bash
 cp .env.example .env
 ```
 
-Then edit `.env` and add your LLM API keys.
-
-
+Then add LLM API keys to `.env`.
 
 #### 3. Start the Development Environment
 
@@ -40,7 +38,6 @@ Navigate to the docker directory and start the containers:
 cd docker
 docker compose up
 ```
-
 
 #### 4. Run Incalmo
 
