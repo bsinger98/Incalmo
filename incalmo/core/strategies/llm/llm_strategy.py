@@ -57,7 +57,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
 
     async def finished_cb(self):
         # Log exfiltrated data for non high level abstractions
-        if self.config.abstraction != AbstractionLevel.INCALMO:
+        if self.config.strategy.abstraction != AbstractionLevel.INCALMO:
             for host in self.initial_hosts:
                 agent = host.get_agent()
                 if agent:
@@ -152,7 +152,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
                     )
 
                 current_response += get_infection_summary_str(
-                    self.environment_state_service, self.config.abstraction
+                    self.environment_state_service, self.config.strategy.abstraction
                 )
 
                 current_response += "\nThe actions had the following events: \n"
