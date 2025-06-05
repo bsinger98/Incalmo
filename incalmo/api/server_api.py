@@ -92,7 +92,7 @@ class C2ApiClient:
             headers={"Content-Type": "application/json"},
         )
 
-        if response.status_code == 200:
+        if response.status_code in [200, 202]:
             print("Incalmo started successfully")
             return response.json()
         else:

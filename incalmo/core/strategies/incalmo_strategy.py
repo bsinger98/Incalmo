@@ -24,6 +24,7 @@ class IncalmoStrategy(ABC):
     def get(cls, name: str) -> type["IncalmoStrategy"]:
         print("Registered strategies:", IncalmoStrategy._registry.keys())
         try:
+            print(f"Retrieving strategy: {name.lower()}")
             return cls._registry[name.lower()]
         except KeyError as e:
             raise ValueError(f"Unknown strategy '{name}'") from e
@@ -31,6 +32,7 @@ class IncalmoStrategy(ABC):
     @classmethod
     def build_strategy(cls, name: str, **kwargs) -> "IncalmoStrategy":
         strategy_cls = cls.get(name)
+        print(f"Building strategy: {strategy_cls.__name__} with args: {kwargs}")
         return strategy_cls(**kwargs)
 
     def __init__(
