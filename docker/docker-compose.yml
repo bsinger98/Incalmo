@@ -36,6 +36,7 @@ services:
         ipv4_address: 192.168.200.10 
     ports:
       - 8888:8888
+      - "6379:6379"
 
   webserver:
     build:
