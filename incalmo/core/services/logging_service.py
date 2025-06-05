@@ -18,6 +18,22 @@ class IncalmoLogger:
         if not os.path.exists(f"output/{operation_id}"):
             os.mkdir(f"output/{operation_id}")
 
+        self._configure_file_only_logging()
+
+    def _configure_file_only_logging(self):
+        """Configure specific loggers to only write to files, not console"""
+
+        loggers_to_suppress = [
+            "llm",
+            "actions_logger",
+        ]
+
+        for logger_name in loggers_to_suppress:
+            logger = logging.getLogger(logger_name)
+            logger.propagate = (
+                False  # Don't propagate to root logger (which goes to console)
+            )
+
     def setup_logger(self, logger_name: str):
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
@@ -31,6 +47,7 @@ class IncalmoLogger:
 
         logger.handlers.clear()
         logger.addHandler(logger_handler)
+        logger.propagate = False
 
         return logger
 
@@ -54,5 +71,6 @@ class IncalmoLogger:
         stdlib_logger.setLevel(logging.DEBUG)
         stdlib_logger.handlers.clear()
         stdlib_logger.addHandler(file_handler)
+        stdlib_logger.propagate = False
 
         return logger
