@@ -2,13 +2,10 @@ from incalmo.core.strategies.llm.interfaces.llm_interface import LLMInterface
 from openai import OpenAI
 
 
-client = OpenAI()
-
-
 class GPT4oMiniInterface(LLMInterface):
     def __init__(self, logger, environment_state_service, config):
         super().__init__(logger, environment_state_service, config)
-
+        self.client = OpenAI()
         self.model = "gpt-4o-mini"
         # Initialize the conversation
         self.conversation = [{"role": "user", "content": self.pre_prompt}]
@@ -19,7 +16,7 @@ class GPT4oMiniInterface(LLMInterface):
             self.logger.info(f"Incalmo's response: \n{incalmo_response}")
 
         # Get Claude's response
-        response = client.chat.completions.create(
+        response = self.client.chat.completions.create(
             model=self.model,
             messages=self.conversation,
         )

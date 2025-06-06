@@ -1,4 +1,6 @@
 from .deepseek7b import Deepseek7bStrategy
+from .gemini_2_5_pro import Gemini25ProStrategy
+from .gemini_2_flash import Gemini2FlashStrategy
 from .gemini_15_pro import Gemini15ProStrategy
 from .gemini_15_flash import Gemini15FlashStrategy
 from .gemini_15_pro import Gemini15ProStrategy
