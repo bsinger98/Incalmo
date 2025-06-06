@@ -25,11 +25,7 @@ from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
 from incalmo.c2server.celery.celery_worker import celery_worker
 
 # Create Flask app
-app = Flask(
-    __name__,
-    static_folder="../frontend/incalmo-ui/build/static",
-    static_url_path="/static",
-)
+app = Flask(__name__)
 CORS(app)
 
 # Configure Flask for Celery
