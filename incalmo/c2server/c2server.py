@@ -1,6 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, send_file
+from flask_cors import CORS
 import json
 import base64
+import psutil
 import binascii
 import asyncio
 from incalmo.models.instruction import Instruction
@@ -19,13 +21,12 @@ from typing import Dict
 # Import Celery components
 from incalmo.c2server.celery.celery_app import make_celery
 from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
-from incalmo.c2server.celery.celery_tasks import (
-    run_incalmo_strategy_task,
-    cancel_strategy_task,
-)
+from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
+from incalmo.c2server.celery.celery_worker import celery_worker
 
 # Create Flask app
 app = Flask(__name__)
+CORS(app)
 
 # Configure Flask for Celery
 app.config.update(
@@ -295,10 +296,6 @@ def incalmo_startup():
             print(f"[FLASK] Cancelling existing task: {old_task_id}")
             celery.control.revoke(old_task_id, terminate=True)
 
-        # Start the Celery task
-        task = run_incalmo_strategy_task.delay(strategy_name)
-        task_id = task.id
-
         # Store the task ID
         running_strategy_tasks[strategy_name] = task_id
 
@@ -332,25 +329,38 @@ def strategy_status(strategy_name):
     task_id = running_strategy_tasks[strategy_name]
     task = run_incalmo_strategy_task.AsyncResult(task_id)
 
+    # Safely handle task.info
+    task_info = {}
+    if task.info:
+        try:
+            if isinstance(task.info, dict):
+                task_info = task.info
+            elif isinstance(task.info, Exception):
+                task_info = {"error": str(task.info), "type": type(task.info).__name__}
+            else:
+                task_info = {"info": str(task.info)}
+        except Exception as e:
+            task_info = {"serialization_error": str(e)}
+
     response = {
         "strategy": strategy_name,
         "task_id": task_id,
         "state": task.state,
-        "info": task.info or {},
+        "info": task_info,
     }
 
     if task.state == "PENDING":
         response["status"] = "Task is waiting to be processed"
     elif task.state == "PROGRESS":
-        response["status"] = task.info.get("status", "In progress")
-        response["current"] = task.info.get("current", 0)
-        response["total"] = task.info.get("total", 100)
+        response["status"] = task_info.get("status", "In progress")
+        response["current"] = task_info.get("current", 0)
+        response["total"] = task_info.get("total", 100)
     elif task.state == "SUCCESS":
         response["status"] = "Task completed successfully"
-        response["result"] = task.info
+        response["result"] = task_info
     elif task.state == "FAILURE":
         response["status"] = "Task failed"
-        response["error"] = str(task.info)
+        response["error"] = task_info.get("error", str(task.info))
 
     return jsonify(response), 200
 
@@ -360,18 +370,31 @@ def strategy_status(strategy_name):
 def task_status(task_id):
     task = run_incalmo_strategy_task.AsyncResult(task_id)
 
-    response = {"task_id": task_id, "state": task.state, "info": task.info or {}}
+    # Safely handle task.info
+    task_info = {}
+    if task.info:
+        try:
+            if isinstance(task.info, dict):
+                task_info = task.info
+            elif isinstance(task.info, Exception):
+                task_info = {"error": str(task.info), "type": type(task.info).__name__}
+            else:
+                task_info = {"info": str(task.info)}
+        except Exception as e:
+            task_info = {"serialization_error": str(e)}
+
+    response = {"task_id": task_id, "state": task.state, "info": task_info}
 
     if task.state == "PENDING":
         response["status"] = "Task is waiting to be processed"
     elif task.state == "PROGRESS":
-        response["status"] = task.info.get("status", "In progress")
+        response["status"] = task_info.get("status", "In progress")
     elif task.state == "SUCCESS":
         response["status"] = "Task completed successfully"
-        response["result"] = task.info
+        response["result"] = task_info
     elif task.state == "FAILURE":
         response["status"] = "Task failed"
-        response["error"] = str(task.info)
+        response["error"] = task_info.get("error", str(task.info))
 
     return jsonify(response), 200
 
@@ -384,29 +407,69 @@ def cancel_strategy(strategy_name):
 
     task_id = running_strategy_tasks[strategy_name]
 
-    # Revoke the task
-    celery.control.revoke(task_id, terminate=True)
+    try:
+        # Revoke the task with terminate=True and signal='SIGKILL'
+        celery_worker.control.revoke(task_id, terminate=True, signal="SIGTERM")
 
-    # Remove from tracking
-    del running_strategy_tasks[strategy_name]
+        # Remove from tracking immediately
+        del running_strategy_tasks[strategy_name]
 
-    return jsonify(
-        {"message": f"Strategy {strategy_name} cancelled", "task_id": task_id}
-    ), 200
+        print(f"[FLASK] Strategy {strategy_name} cancelled and removed from tracking")
+
+        return jsonify(
+            {
+                "message": f"Strategy {strategy_name} cancelled successfully",
+                "task_id": task_id,
+                "status": "cancelled",
+            }
+        ), 200
+
+    except Exception as e:
+        print(f"[FLASK] Error cancelling strategy {strategy_name}: {e}")
+        return jsonify(
+            {"error": f"Failed to cancel strategy: {str(e)}", "task_id": task_id}
+        ), 500
 
 
 # List all running strategies
 @app.route("/strategies", methods=["GET"])
 def list_strategies():
     strategies = {}
+    completed_strategies = []
 
     for strategy_name, task_id in running_strategy_tasks.items():
         task = run_incalmo_strategy_task.AsyncResult(task_id)
+
+        # Safely handle task.info to avoid serialization errors
+        task_info = {}
+        if task.info:
+            try:
+                if isinstance(task.info, dict):
+                    task_info = task.info
+                elif isinstance(task.info, Exception):
+                    task_info = {
+                        "error": str(task.info),
+                        "type": type(task.info).__name__,
+                    }
+                else:
+                    task_info = {"info": str(task.info)}
+            except Exception as e:
+                task_info = {"serialization_error": str(e)}
+
         strategies[strategy_name] = {
             "task_id": task_id,
             "state": task.state,
-            "info": task.info or {},
+            "info": task_info,
         }
+
+        # Mark completed/failed/revoked strategies for cleanup
+        if task.state in ["SUCCESS", "FAILURE", "REVOKED"]:
+            completed_strategies.append(strategy_name)
+
+    # Clean up completed strategies
+    for strategy_name in completed_strategies:
+        print(f"[FLASK] Cleaning up completed strategy: {strategy_name}")
+        del running_strategy_tasks[strategy_name]
 
     return jsonify(strategies), 200
 
@@ -427,6 +490,26 @@ def health_check():
             "broker": app.config.get("CELERY_BROKER_URL"),
         }
     ), 200
+
+
+# Replace with simple API-only root route:
+@app.route("/", methods=["GET"])
+def api_root():
+    return jsonify(
+        {
+            "message": "Incalmo C2 Server API",
+            "version": "1.0",
+            "endpoints": [
+                "/agents",
+                "/strategies",
+                "/startup",
+                "/health",
+                "/beacon",
+                "/send_command",
+                "/command_status",
+            ],
+        }
+    )
 
 
 if __name__ == "__main__":
