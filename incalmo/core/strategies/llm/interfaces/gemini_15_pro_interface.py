@@ -6,13 +6,10 @@ import time
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 
-genai.configure(api_key=os.environ["API_KEY"])
-
-
 class Gemini15ProInterface(LLMInterface):
     def __init__(self, logger, environment_state_service, config):
         super().__init__(logger, environment_state_service, config)
-
+        genai.configure(api_key=os.environ["API_KEY"])
         self.model_name = "gemini-1.5-pro"
         self.model = genai.GenerativeModel(self.model_name)
 
