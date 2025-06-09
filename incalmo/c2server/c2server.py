@@ -13,6 +13,8 @@ from config.attacker_config import AttackerConfig
 from string import Template
 import logging
 from pathlib import Path
+import os
+import debugpy
 
 app = Flask(__name__)
 # Disable Flask's default request logging
@@ -24,6 +26,10 @@ BASE_DIR = Path(__file__).parent
 PAYLOADS_DIR = BASE_DIR / "payloads"
 TEMPLATE_PAYLOADS_DIR = PAYLOADS_DIR / "template_payloads"
 AGENTS_DIR = BASE_DIR / "agents"
+
+# Debug configuration
+DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+DEBUG_PORT = int(os.getenv("DEBUG_PORT", 5678))
 
 # Store agents and their pending commands
 agents = {}
@@ -271,4 +277,10 @@ async def incalmo_startup():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8888, debug=True)
+    if DEBUG:
+        print(f"[DEBUG] Starting debug server on port {DEBUG_PORT}")
+        debugpy.listen(("0.0.0.0", DEBUG_PORT))
+        print(f"[DEBUG] Waiting for debugger to attach on port {DEBUG_PORT}...")
+        debugpy.wait_for_client()
+        print("[DEBUG] Debugger attached!")
+    app.run(host="0.0.0.0", port=8888, debug=False)

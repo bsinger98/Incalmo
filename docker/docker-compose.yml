@@ -25,9 +25,16 @@ services:
     env_file:
       - ../.env
     volumes:
-      - ../:/incalmo
-      # TODO: Check if user config can be mounted to config directory directly
-      - ../config/:/incalmo/user-config
+      - ../incalmo/api:/incalmo/incalmo/api
+      - ../incalmo/c2server:/incalmo/incalmo/c2server
+      - ../incalmo/core:/incalmo/incalmo/core
+      - ../incalmo/models:/incalmo/incalmo/models
+      - ../incalmo/__init__.py:/incalmo/incalmo/__init__.py
+      - ../incalmo/exceptions.py:/incalmo/incalmo/exceptions.py
+      - ../incalmo/incalmo_runner.py:/incalmo/incalmo/incalmo_runner.py
+      - ../incalmo/server.py:/incalmo/incalmo/server.py
+      - ../config/:/incalmo/config
+      - ../output/:/incalmo/output
       - venv-volume:/incalmo/.venv
     networks:
       attacker_network:
@@ -36,6 +43,7 @@ services:
         ipv4_address: 192.168.200.10 
     ports:
       - 8888:8888
+      - 5678:5678
 
   webserver:
     build:
