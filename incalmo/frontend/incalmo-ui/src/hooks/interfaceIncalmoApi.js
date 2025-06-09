@@ -42,17 +42,17 @@ export const useIncalmoApi = () => {
   const [messageType, setMessageType] = useState('info');
   const [agents, setAgents] = useState({});
   const [runningStrategies, setRunningStrategies] = useState({});
-  const [strategies, setAvailableStrategies] = useState([]);
+  const [strategies, setStrategies] = useState([]);
 
   useEffect(() => {
     fetchAgents();
     fetchRunningStrategies();
-    fetchAvailableStrategies();
+    fetchStrategies();
     
     const interval = setInterval(() => {
       fetchAgents();
       fetchRunningStrategies();
-      fetchAvailableStrategies();
+      fetchStrategies();
     }, 5000);
 
     return () => clearInterval(interval);
@@ -76,10 +76,10 @@ export const useIncalmoApi = () => {
     }
   };
 
-  const fetchAvailableStrategies = async () => {
+  const fetchStrategies = async () => {
   try {
     const response = await api.get('/available_strategies');
-    setAvailableStrategies(response.data.strategies || []);
+    setStrategies(response.data.strategies || []);
     console.log('[API] Available strategies:', response.data);
   } catch (error) {
     console.error('Failed to fetch available strategies:', error);
@@ -164,7 +164,7 @@ export const useIncalmoApi = () => {
     stopStrategy,
     fetchAgents,
     fetchRunningStrategies,
-    fetchAvailableStrategies,
+    fetchStrategies,
     getStatusColor
   };
 };
