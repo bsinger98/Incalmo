@@ -8,21 +8,23 @@ import asyncio
 from incalmo.models.instruction import Instruction
 import uuid
 from collections import defaultdict
-from incalmo.models.command import Command, CommandStatus
-from incalmo.models.command_result import CommandResult
-from incalmo.incalmo_runner import run_incalmo_strategy
-from config.attacker_config import AttackerConfig
 from string import Template
 import logging
 from pathlib import Path
 import os
 from typing import Dict
 
-# Import Celery components
 from incalmo.c2server.celery.celery_app import make_celery
 from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
 from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
 from incalmo.c2server.celery.celery_worker import celery_worker
+
+from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
+
+from incalmo.models.command import Command, CommandStatus
+from incalmo.models.command_result import CommandResult
+from incalmo.incalmo_runner import run_incalmo_strategy
+from config.attacker_config import AttackerConfig
 
 # Create Flask app
 app = Flask(__name__)
@@ -432,7 +434,7 @@ def cancel_strategy(strategy_name):
 
 
 # List all running strategies
-@app.route("/strategies", methods=["GET"])
+@app.route("/running_strategies", methods=["GET"])
 def list_strategies():
     strategies = {}
     completed_strategies = []
@@ -492,22 +494,29 @@ def health_check():
     ), 200
 
 
-# Replace with simple API-only root route:
+@app.route("/available_strategies", methods=["GET"])
+def get_available_strategies():
+    """Get all available strategies from the registry"""
+    try:
+        strategies = []
+        for strategy_name, strategy_class in IncalmoStrategy._registry.items():
+            strategy_info = {
+                "name": strategy_name,
+            }
+            strategies.append(strategy_info)
+        strategies.sort(key=lambda x: x["name"])
+
+        return jsonify({"strategies": strategies}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to get strategies: {str(e)}"}), 500
+
+
 @app.route("/", methods=["GET"])
 def api_root():
     return jsonify(
         {
             "message": "Incalmo C2 Server API",
-            "version": "1.0",
-            "endpoints": [
-                "/agents",
-                "/strategies",
-                "/startup",
-                "/health",
-                "/beacon",
-                "/send_command",
-                "/command_status",
-            ],
         }
     )
 

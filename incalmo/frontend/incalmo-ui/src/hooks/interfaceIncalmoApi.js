@@ -42,24 +42,17 @@ export const useIncalmoApi = () => {
   const [messageType, setMessageType] = useState('info');
   const [agents, setAgents] = useState({});
   const [runningStrategies, setRunningStrategies] = useState({});
-
-  const strategies = [
-    'haiku3_5_strategy',
-    'sonnet3_5_strategy',
-    'gpt4_strategy',
-    'opus3_strategy',
-    'gpt4o_mini_strategy',
-    'gemini_15_flash_strategy',
-    'deepseek7b_strategy'
-  ];
+  const [strategies, setAvailableStrategies] = useState([]);
 
   useEffect(() => {
     fetchAgents();
     fetchRunningStrategies();
+    fetchAvailableStrategies();
     
     const interval = setInterval(() => {
       fetchAgents();
       fetchRunningStrategies();
+      fetchAvailableStrategies();
     }, 5000);
 
     return () => clearInterval(interval);
@@ -76,12 +69,22 @@ export const useIncalmoApi = () => {
 
   const fetchRunningStrategies = async () => {
     try {
-      const response = await api.get('/strategies');
+      const response = await api.get('/running_strategies');
       setRunningStrategies(response.data || {});
     } catch (error) {
       console.error('Failed to fetch strategies:', error);
     }
   };
+
+  const fetchAvailableStrategies = async () => {
+  try {
+    const response = await api.get('/available_strategies');
+    setAvailableStrategies(response.data.strategies || []);
+    console.log('[API] Available strategies:', response.data);
+  } catch (error) {
+    console.error('Failed to fetch available strategies:', error);
+  }
+};
 
   const startStrategy = async () => {
     if (!selectedStrategy) {
@@ -161,6 +164,7 @@ export const useIncalmoApi = () => {
     stopStrategy,
     fetchAgents,
     fetchRunningStrategies,
+    fetchAvailableStrategies,
     getStatusColor
   };
 };

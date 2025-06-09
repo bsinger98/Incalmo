@@ -40,8 +40,8 @@ const StrategyLauncher = ({
             disabled={loading}
           >
             {strategies.map((strategy) => (
-              <MenuItem key={strategy} value={strategy}>
-                {strategy}
+              <MenuItem key={strategy.name} value={strategy.name}>
+                {strategy.name}
               </MenuItem>
             ))}
           </Select>
