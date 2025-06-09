@@ -147,7 +147,7 @@ class EnvironmentStateService:
 
     async def handle_InfectedNewHost(self, event: InfectedNewHost):
         # Add agent to network
-        self.add_infected_host(event.new_agent)
+        self.add_infected_host(event.new_agent, event.source_agent)
 
         if event.credential_used:
             event.credential_used.utilized = True
@@ -176,10 +176,11 @@ class EnvironmentStateService:
         for agent in trusted_agents:
             self.add_infected_host(agent)
 
-    def add_infected_host(self, new_agent: Agent):
+    def add_infected_host(self, new_agent: Agent, source_agent: Agent | None = None):
         # Add agent to network
         hosts = self.network.find_hosts_with_ips(new_agent.host_ip_addrs)
-
+        if source_agent is not None:
+            self.c2api_client.report_infection_source(new_agent, source_agent)
         # If no hosts, we need to create a new one
         if len(hosts) == 0:
             new_host = Host(

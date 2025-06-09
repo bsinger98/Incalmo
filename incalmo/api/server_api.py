@@ -80,6 +80,26 @@ class C2ApiClient:
 
         raise Exception("Command polling timed out")
 
+    def report_infection_source(self, new_agent: Agent, source_agent: Agent):
+        """Report the source of infection for an agent."""
+        url = f"{self.server_url}/report_infection_source"
+        payload = {
+            "new_agent": new_agent.paw,
+            "source_agent": source_agent.paw,
+        }
+
+        response = requests.post(
+            url,
+            json=payload,
+            headers={"Content-Type": "application/json"},
+        )
+
+        if response.status_code == 200:
+            print("Infection source reported successfully")
+            return response.json()
+        else:
+            raise Exception(f"Failed to report infection source: {response.text}")
+
     def incalmo_startup(self, config: AttackerConfig):
         """Start incalmo with full AttackerConfig"""
         url = f"{self.server_url}/startup"
