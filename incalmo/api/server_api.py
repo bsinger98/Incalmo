@@ -7,6 +7,7 @@ import json
 import time
 from incalmo.models.command_result import CommandResult
 from incalmo.models.command import Command, CommandStatus
+from incalmo.core.models.network import Network
 
 
 class C2ApiClient:
@@ -80,14 +81,11 @@ class C2ApiClient:
 
         raise Exception("Command polling timed out")
 
-    def report_infection_source(self, new_agent: Agent, source_agent: Agent):
-        """Report the source of infection for an agent."""
-        url = f"{self.server_url}/report_infection_source"
-        payload = {
-            "new_agent": new_agent.paw,
-            "source_agent": source_agent.paw,
-        }
-
+    def report_environment_state(self, network: Network):
+        """Report the environment state."""
+        url = f"{self.server_url}/update_environment_state"
+        hosts = network.get_all_unique_hosts()
+        payload = {"hosts": [host.to_dict() for host in hosts]}
         response = requests.post(
             url,
             json=payload,
@@ -95,10 +93,9 @@ class C2ApiClient:
         )
 
         if response.status_code == 200:
-            print("Infection source reported successfully")
             return response.json()
         else:
-            raise Exception(f"Failed to report infection source: {response.text}")
+            raise Exception(f"Failed to report environment state: {response.text}")
 
     def incalmo_startup(self, config: AttackerConfig):
         """Start incalmo with full AttackerConfig"""

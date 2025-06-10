@@ -78,7 +78,10 @@ class IncalmoStrategy(ABC):
         # Check if any new agents were created
         agents = self.c2_client.get_agents()
         self.environment_state_service.update_host_agents(agents)
-
+        self.c2_client.report_environment_state(self.environment_state_service.network)
+        print(
+            f"[DEBUG] Current environment state: {self.environment_state_service}"
+        )
         return await self.step()
 
     @abstractmethod

@@ -179,20 +179,21 @@ class EnvironmentStateService:
     def add_infected_host(self, new_agent: Agent, source_agent: Agent | None = None):
         # Add agent to network
         hosts = self.network.find_hosts_with_ips(new_agent.host_ip_addrs)
-        if source_agent is not None:
-            self.c2api_client.report_infection_source(new_agent, source_agent)
+
         # If no hosts, we need to create a new one
         if len(hosts) == 0:
             new_host = Host(
                 ip_addresses=new_agent.host_ip_addrs,
                 hostname=new_agent.hostname,
                 agents=[new_agent],
+                infection_source_agent=source_agent,
             )
             self.network.add_host(new_host)
         # If one host, we can use it
         elif len(hosts) == 1:
             host = hosts[0]
             host.hostname = new_agent.hostname
+            host.infection_source_agent = source_agent
             host.add_agent(new_agent)
         # If multiple hosts, we need to merge them
         elif len(hosts) > 1:

@@ -59,6 +59,9 @@ agents = {}
 command_queues = defaultdict(list)
 command_results: dict[str, Command] = {}
 
+# Store environment info
+hosts = []
+
 # Store running strategy tasks
 running_strategy_tasks: Dict[str, str] = {}  # strategy_name -> task_id
 
@@ -147,7 +150,6 @@ def get_agents():
                 "privilege": parsed_info.get("privilege"),
                 "pid": parsed_info.get("pid"),
                 "host_ip_addrs": parsed_info.get("host_ip_addrs"),
-                "infected_by": data.get("infected_by"),
             }
         except (binascii.Error, UnicodeDecodeError) as exc:
             raise ValueError(f"Invalid base64 data: {exc!r}")
@@ -157,27 +159,15 @@ def get_agents():
     return jsonify(agents_list)
 
 
-# Report infection source
-@app.route("/report_infection_source", methods=["POST"])
-def report_infection_source():
+# Update hosts
+@app.route("/update_environment_state", methods=["POST"])
+def update_environment_state():
+    global hosts
     try:
         data = request.data
         json_data = json.loads(data)
 
-        source_agent_paw = json_data.get("source_agent")
-        new_agent_paw = json_data.get("new_agent")
-
-        if not source_agent_paw or not new_agent_paw:
-            return jsonify({"error": "Missing source or target paw"}), 400
-
-        if source_agent_paw not in agents or new_agent_paw not in agents:
-            return jsonify({"error": "Source or target agent not found"}), 404
-
-        agents[new_agent_paw]["infected_by"] = source_agent_paw
-
-        # Here you would typically log the infection event or update the state
-        print(f"[DEBUG] Reporting infection from {source_agent_paw} to {new_agent_paw}")
-
+        hosts = json_data.get("hosts", [])
         return jsonify(
             {"status": "success", "message": "Infection source reported"}
         ), 200
@@ -186,6 +176,19 @@ def report_infection_source():
         return jsonify({"error": "Invalid JSON data"}), 400
     except Exception as e:
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+
+# Get hosts
+@app.route("/hosts", methods=["GET"])
+def get_hosts():
+    try:
+        return jsonify(
+            {
+                "hosts": hosts,
+            }
+        ), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to get hosts: {str(e)}"}), 500
 
 
 # Send command to a specific agent
@@ -474,21 +477,39 @@ def list_strategies():
     for strategy_name, task_id in running_strategy_tasks.items():
         task = run_incalmo_strategy_task.AsyncResult(task_id)
 
-        # Safely handle task.info to avoid serialization errors
+        task_state = task.state
         task_info = {}
-        if task.info:
+        if task_state == "PENDING":
+            task_info = {
+                "status": "waiting",
+                "message": "Task is waiting to be processed",
+            }
+        elif task_state == "STARTED":
+            task_info = {"status": "running", "message": "Task is currently running"}
+        elif task_state == "SUCCESS":
+            task_info = {
+                "status": "completed",
+                "message": "Task completed successfully",
+            }
             try:
-                if isinstance(task.info, dict):
-                    task_info = task.info
-                elif isinstance(task.info, Exception):
-                    task_info = {
-                        "error": str(task.info),
-                        "type": type(task.info).__name__,
-                    }
-                else:
-                    task_info = {"info": str(task.info)}
-            except Exception as e:
-                task_info = {"serialization_error": str(e)}
+                if hasattr(task, "result") and task.result:
+                    task_info["result"] = str(task.result)
+            except Exception:
+                pass  # Ignore result access errors
+        elif task_state == "FAILURE":
+            task_info = {"status": "failed", "message": "Task failed"}
+            try:
+                if hasattr(task, "result") and task.result:
+                    task_info["error"] = str(task.result)
+            except Exception:
+                task_info["error"] = "Unknown error occurred"
+        elif task_state == "REVOKED":
+            task_info = {"status": "cancelled", "message": "Task was cancelled"}
+        else:
+            task_info = {
+                "status": task_state.lower(),
+                "message": f"Task is in {task_state} state",
+            }
 
         strategies[strategy_name] = {
             "task_id": task_id,
