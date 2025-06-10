@@ -193,8 +193,13 @@ class EnvironmentStateService:
         elif len(hosts) == 1:
             host = hosts[0]
             host.hostname = new_agent.hostname
-            host.infection_source_agent = source_agent
+            host.infection_source_agent = (
+                source_agent
+                if host.infection_source_agent is None
+                else host.infection_source_agent
+            )
             host.add_agent(new_agent)
+        # If the host already has the agent, we do nothing
         # If multiple hosts, we need to merge them
         elif len(hosts) > 1:
             self._merge_multiple_hosts(hosts, new_agent)

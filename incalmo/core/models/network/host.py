@@ -42,7 +42,8 @@ class Host:
             f"open_ports: {self.open_ports} - "
             f"agents: {agent_names} - "
             f"ssh_config: {self.ssh_config} - "
-            f"critical_data_files: {self.critical_data_files}"
+            f"critical_data_files: {self.critical_data_files} - "
+            f"infected_by: {self.infection_source_agent.paw if self.infection_source_agent else None}"
         )
 
     def to_dict(self) -> dict:
@@ -126,6 +127,13 @@ class Host:
         # Merge agents lists
         merged_agents = host1.agents + host2.agents
 
+        # Merge infection source
+        merged_infection_source_agent = (
+            host1.infection_source_agent
+            if host1.infection_source_agent
+            else host2.infection_source_agent
+        )
+
         # Create new host with merged data
         merged_host = cls(
             ip_addresses=merged_ip_addresses,
@@ -133,6 +141,7 @@ class Host:
             users=merged_users,
             open_ports=merged_open_ports,
             agents=merged_agents,
+            infection_source_agent=merged_infection_source_agent,
         )
 
         # Merge ssh_config lists
