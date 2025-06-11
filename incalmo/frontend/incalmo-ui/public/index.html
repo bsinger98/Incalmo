@@ -25,6 +25,24 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>React App</title>
+    <script>
+      // Global ResizeObserver error suppression
+      window.addEventListener('error', function(event) {
+        if (event.message && event.message.includes('ResizeObserver loop completed with undelivered notifications')) {
+          event.preventDefault();
+          return false;
+        }
+      });
+      
+      // Override console.error
+      const originalConsoleError = console.error;
+      console.error = function(...args) {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('ResizeObserver loop completed with undelivered notifications')) {
+          return;
+        }
+        originalConsoleError.apply(console, args);
+      };
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -41,3 +59,4 @@
     -->
   </body>
 </html>
+

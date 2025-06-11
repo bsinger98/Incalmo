@@ -9,17 +9,23 @@ import Header from './components/Header';
 import StrategyLauncher from './components/StrategyLauncher';
 import RunningStrategies from './components/RunningStrategies';
 import ConnectedAgents from './components/ConnectedAgents';
+import NetworkGraph from './components/NetworkGraph';
 
 function App() {
   const {
     selectedStrategy,
-    setSelectedStrategy,
     loading,
     message,
     messageType,
     agents,
     runningStrategies,
     strategies,
+    hosts,
+    hostsLoading,
+    hostsError,
+    lastHostsUpdate,
+    fetchHosts,
+    setSelectedStrategy,
     startStrategy,
     stopStrategy,
     fetchRunningStrategies,
@@ -42,6 +48,14 @@ function App() {
             fetchRunningStrategies={fetchRunningStrategies}
             message={message}
             messageType={messageType}
+          />
+
+          <NetworkGraph
+            hosts={hosts}
+            loading={hostsLoading}
+            error={hostsError}
+            lastUpdate={lastHostsUpdate}
+            onRefresh={fetchHosts}
           />
 
           <RunningStrategies

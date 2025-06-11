@@ -8,7 +8,6 @@ import {
   ListItemSecondaryAction,
   IconButton,
   Chip,
-  Box
 } from '@mui/material';
 import { Stop } from '@mui/icons-material';
 

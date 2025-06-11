@@ -43,20 +43,10 @@ export const useIncalmoApi = () => {
   const [agents, setAgents] = useState({});
   const [runningStrategies, setRunningStrategies] = useState({});
   const [strategies, setStrategies] = useState([]);
-
-  useEffect(() => {
-    fetchAgents();
-    fetchRunningStrategies();
-    fetchStrategies();
-    
-    const interval = setInterval(() => {
-      fetchAgents();
-      fetchRunningStrategies();
-      fetchStrategies();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const [hosts, setHosts] = useState([]);
+  const [hostsLoading, setHostsLoading] = useState(false);
+  const [hostsError, setHostsError] = useState('');
+  const [lastHostsUpdate, setLastHostsUpdate] = useState(null);
 
   const fetchAgents = async () => {
     try {
@@ -148,23 +138,63 @@ export const useIncalmoApi = () => {
     }
   };
 
+const fetchHosts = async () => {
+  setHostsLoading(true);
+  setHostsError('');
+  
+  try {
+    const response = await api.get('/hosts');
+    const data = response.data;
+    
+    setHosts(data.hosts || []);
+    setLastHostsUpdate(new Date().toLocaleTimeString());
+    console.log('[API] Fetched hosts:', data.hosts);
+  } catch (err) {
+    setHostsError(`Network error: ${err.message}`);
+    console.error('[API] Error fetching hosts:', err);
+  } finally {
+    setHostsLoading(false);
+  }
+};
+
+  useEffect(() => {
+    fetchAgents();
+    fetchRunningStrategies();
+    fetchStrategies();
+    fetchHosts();
+    
+    const interval = setInterval(() => {
+      fetchAgents();
+      fetchRunningStrategies();
+      fetchStrategies();
+      fetchHosts();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return {
     // State
     selectedStrategy,
-    setSelectedStrategy,
     loading,
     message,
     messageType,
     agents,
     runningStrategies,
     strategies,
+     hosts,              
+    hostsLoading,       
+    hostsError,         
+    lastHostsUpdate, 
     
     // Actions
+    setSelectedStrategy,
     startStrategy,
     stopStrategy,
     fetchAgents,
     fetchRunningStrategies,
     fetchStrategies,
+    fetchHosts,
     getStatusColor
   };
 };
