@@ -37,6 +37,7 @@ class HighLevelActionOrchestrator:
             "HighLevelAction started execution",
             type="HighLevelAction",
             timestamp=datetime.now().isoformat(),
+            high_level_action_id=action.id,
             action_name=action.__class__.__name__,
             action_params=serialize(action),
             action_results={

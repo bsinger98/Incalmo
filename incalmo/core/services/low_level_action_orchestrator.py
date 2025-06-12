@@ -46,6 +46,7 @@ class LowLevelActionOrchestrator:
             "LowLevelAction executed",
             type="LowLevelAction",
             timestamp=datetime.now().isoformat(),
+            high_level_action_id=low_level_action.high_level_action_id,
             action_name=low_level_action.__class__.__name__,
             action_params=serialize(low_level_action),
             action_results={

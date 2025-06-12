@@ -4,9 +4,9 @@ from incalmo.core.models.attacker.agent import Agent
 
 
 class AddSSHKey(LowLevelAction):
-    def __init__(self, agent: Agent, public_ssh_key: str):
+    def __init__(self, agent: Agent, public_ssh_key: str, high_level_action_id: str):
         self.public_ssh_key = public_ssh_key
 
         command = f"echo '{public_ssh_key}' >> ~/.ssh/authorized_keys; sed -i 's/\\\\//g' ~/.ssh/authorized_keys"
 
-        super().__init__(agent, command)
+        super().__init__(agent, command, high_level_action_id=high_level_action_id)

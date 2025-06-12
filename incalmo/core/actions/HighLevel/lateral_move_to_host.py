@@ -17,6 +17,7 @@ class LateralMoveToHost(HighLevelAction):
         attacking_host: Host,
         stop_after_success: bool = True,
     ):
+        super().__init__()
         self.host_to_attack = host_to_attack
         self.attacking_host = attacking_host
         self.stop_after_success = stop_after_success
@@ -40,7 +41,7 @@ class LateralMoveToHost(HighLevelAction):
                 if cred.host_ip in self.host_to_attack.ip_addresses:
                     agent = cred.agent_discovered
                     new_events = await low_level_action_orchestrator.run_action(
-                        SSHLateralMove(agent, cred.hostname)
+                        SSHLateralMove(agent, cred.hostname, self.id)
                     )
                     for event in new_events:
                         if type(event) is InfectedNewHost:
@@ -71,12 +72,14 @@ class LateralMoveToHost(HighLevelAction):
                     agent,
                     self.host_to_attack.get_ip_address(),
                     str(port_to_attack),
+                    self.id,
                 )
             elif port_to_attack == 4444 and self.host_to_attack.has_an_ip_address():
                 action_to_run = NCLateralMove(
                     agent,
                     self.host_to_attack.get_ip_address(),
                     str(port_to_attack),
+                    self.id,
                 )
 
             if action_to_run is None:

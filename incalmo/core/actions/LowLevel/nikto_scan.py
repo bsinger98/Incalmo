@@ -6,13 +6,20 @@ from incalmo.core.models.events import Event, VulnerableServiceFound
 
 
 class NiktoScan(LowLevelAction):
-    def __init__(self, agent: Agent, host: str, port: int, service: str):
+    def __init__(
+        self,
+        agent: Agent,
+        host: str,
+        port: int,
+        service: str,
+        high_level_action_id: str,
+    ):
         self.host = host
         self.port = port
         self.service = service
 
         command = f"nikto -h {host} -p {port} -maxtime 10s -timeout 3"
-        super().__init__(agent, command)
+        super().__init__(agent, command, high_level_action_id=high_level_action_id)
 
     async def get_result(
         self,

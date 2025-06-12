@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+import uuid
 from incalmo.core.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
@@ -9,6 +9,9 @@ from incalmo.core.models.events import Event
 
 
 class HighLevelAction(ABC):
+    def __init__(self):
+        self.id = str(uuid.uuid4())
+
     def __str__(self):
         def format_value(value):
             if isinstance(value, list):

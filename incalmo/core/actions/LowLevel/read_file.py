@@ -8,10 +8,10 @@ from incalmo.core.models.events import Event, FileContentsFound
 class ReadFile(LowLevelAction):
     ability_name = "deception-readfile"
 
-    def __init__(self, agent: Agent, file_path: str):
+    def __init__(self, agent: Agent, file_path: str, high_level_action_id: str):
         self.file_path = file_path
         command = f"cat {file_path}"
-        super().__init__(agent, command)
+        super().__init__(agent, command, high_level_action_id=high_level_action_id)
 
     async def get_result(
         self,

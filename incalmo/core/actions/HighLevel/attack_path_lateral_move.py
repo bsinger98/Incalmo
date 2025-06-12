@@ -12,6 +12,7 @@ from incalmo.core.services import (
 
 class AttackPathLateralMove(HighLevelAction):
     def __init__(self, attack_path: AttackPath, skip_if_already_executed: bool = False):
+        super().__init__()
         self.attack_path = attack_path
         self.skip_if_already_executed = skip_if_already_executed
 
@@ -51,16 +52,12 @@ class AttackPathLateralMove(HighLevelAction):
 
             if "CVE-2017-5638" in service_to_attack.CVE:
                 action_to_run = ExploitStruts(
-                    attack_agent,
-                    ip_to_attack,
-                    port_to_attack,
+                    attack_agent, ip_to_attack, port_to_attack, self.id
                 )
 
             elif port_to_attack == "4444":
                 action_to_run = NCLateralMove(
-                    attack_agent,
-                    ip_to_attack,
-                    port_to_attack,
+                    attack_agent, ip_to_attack, port_to_attack, self.id
                 )
 
             if action_to_run:
@@ -73,7 +70,9 @@ class AttackPathLateralMove(HighLevelAction):
         if self.attack_path.attack_technique.CredentialToUse:
             credential = self.attack_path.attack_technique.CredentialToUse
             new_events = await low_level_action_orchestrator.run_action(
-                SSHLateralMove(credential.agent_discovered, credential.hostname)
+                SSHLateralMove(
+                    credential.agent_discovered, credential.hostname, self.id
+                )
             )
             for event in new_events:
                 if type(event) is InfectedNewHost:

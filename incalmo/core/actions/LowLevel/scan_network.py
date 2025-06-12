@@ -8,11 +8,11 @@ import xml.etree.ElementTree as ET
 
 
 class ScanNetwork(LowLevelAction):
-    def __init__(self, agent: Agent, subnet_mask: str):
+    def __init__(self, agent: Agent, subnet_mask: str, high_level_action_id: str):
         self.subnet_mask = subnet_mask
         command = f"nmap --max-rtt-timeout 100ms -sn -oX - {subnet_mask}"
 
-        super().__init__(agent, command)
+        super().__init__(agent, command, high_level_action_id=high_level_action_id)
 
     async def get_result(
         self,

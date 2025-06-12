@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from incalmo.core.models.events import Event
@@ -14,11 +14,13 @@ class LowLevelAction(ABC):
         command: str,
         payloads: list[str] | None = None,
         command_delay: int = 0,
+        high_level_action_id: Optional[str] = None,
     ):
         self.agent = agent
         self.command = command
         self.payloads = payloads if payloads is not None else []
         self.command_delay = command_delay
+        self.high_level_action_id = high_level_action_id
 
     def __str__(self):
         def format_value(value):

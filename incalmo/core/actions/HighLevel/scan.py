@@ -20,6 +20,7 @@ from collections import defaultdict
 
 class Scan(HighLevelAction):
     def __init__(self, scan_host: Host, subnets_to_scan: list[Subnet]):
+        super().__init__()
         self.scan_host = scan_host
         self.subnets_to_scan = subnets_to_scan
 
@@ -44,7 +45,7 @@ class Scan(HighLevelAction):
 
             scanned_subnets.add(subnet)
             new_events = await low_level_action_orchestrator.run_action(
-                ScanNetwork(scan_agent, subnet.ip_mask)
+                ScanNetwork(scan_agent, subnet.ip_mask, self.id)
             )
 
             for event in new_events:
@@ -56,7 +57,7 @@ class Scan(HighLevelAction):
 
         for ip_to_scan in collected_ips:
             new_events = await low_level_action_orchestrator.run_action(
-                ScanHost(scan_agent, ip_to_scan)
+                ScanHost(scan_agent, ip_to_scan, self.id)
             )
             events += new_events
 
@@ -65,7 +66,7 @@ class Scan(HighLevelAction):
                 for port, service in event.services.items():
                     if "http" in service:
                         vuln_event = await low_level_action_orchestrator.run_action(
-                            NiktoScan(scan_agent, event.host_ip, port, service)
+                            NiktoScan(scan_agent, event.host_ip, port, service, self.id)
                         )
                         events += vuln_event
 

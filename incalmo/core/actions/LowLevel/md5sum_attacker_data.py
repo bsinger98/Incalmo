@@ -8,9 +8,9 @@ import os
 class MD5SumAttackerData(LowLevelAction):
     ability_name = "deception-exfil-results"
 
-    def __init__(self, agent: Agent):
+    def __init__(self, agent: Agent, high_level_action_id: str):
         command = "find ~/ -maxdepth 1 -type f -exec md5sum {} +"
-        super().__init__(agent, command)
+        super().__init__(agent, command, high_level_action_id=high_level_action_id)
 
     async def get_result(
         self,

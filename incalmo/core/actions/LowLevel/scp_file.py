@@ -12,6 +12,7 @@ class SCPFile(LowLevelAction):
         ssh_port: str,
         src_filepath: str,
         dst_filepath: str,
+        high_level_action_id: str,
     ):
         self.ssh_ip = ssh_ip
         self.ssh_user = ssh_user
@@ -23,4 +24,4 @@ class SCPFile(LowLevelAction):
             f"scp -o StrictHostKeyChecking=no -P {ssh_port} "
             f"{ssh_user}@{ssh_ip}:{src_filepath} {dst_filepath}"
         )
-        super().__init__(agent, command)
+        super().__init__(agent, command, high_level_action_id=high_level_action_id)

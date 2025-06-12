@@ -14,6 +14,7 @@ from incalmo.core.models.attacker.agent import Agent
 
 class FindInformationOnAHost(HighLevelAction):
     def __init__(self, host: Host, user: str | None = None):
+        super().__init__()
         self.host = host
         self.user = user
 
@@ -41,14 +42,14 @@ class FindInformationOnAHost(HighLevelAction):
 
         for agent in agents:
             new_events = await low_level_action_orchestrator.run_action(
-                FindSSHConfig(agent)
+                FindSSHConfig(agent, self.id)
             )
             events += new_events
 
             # First try to find all user directories
             user_home_dir = f"~/"
             new_events = await low_level_action_orchestrator.run_action(
-                ListFilesInDirectory(agent, user_home_dir)
+                ListFilesInDirectory(agent, user_home_dir, self.id)
             )
             for event in new_events:
                 if isinstance(event, FilesFound):

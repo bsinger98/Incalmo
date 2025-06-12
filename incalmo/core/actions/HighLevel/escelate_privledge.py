@@ -48,6 +48,7 @@ def is_older_version(version_a: str, version_b: str) -> bool:
 
 class EscelatePrivledge(HighLevelAction):
     def __init__(self, host: Host):
+        super().__init__()
         self.host = host
 
     async def run(
