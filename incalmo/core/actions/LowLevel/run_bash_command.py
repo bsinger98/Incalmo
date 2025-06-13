@@ -5,8 +5,8 @@ from incalmo.models.command_result import CommandResult
 
 
 class RunBashCommand(LowLevelAction):
-    def __init__(self, agent: Agent, command: str, high_level_action_id: str):
-        super().__init__(agent, command, high_level_action_id=high_level_action_id)
+    def __init__(self, agent: Agent, command: str):
+        super().__init__(agent, command)
 
     async def get_result(
         self,

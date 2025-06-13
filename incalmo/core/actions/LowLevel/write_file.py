@@ -8,9 +8,8 @@ class WriteFile(LowLevelAction):
         agent: Agent,
         file_path: str,
         file_contents: str,
-        high_level_action_id: str,
     ):
         self.file_path = file_path
         self.file_contents = file_contents
         command = f'echo "{file_contents}" >> {file_path}'
-        super().__init__(agent, command, high_level_action_id=high_level_action_id)
+        super().__init__(agent, command)

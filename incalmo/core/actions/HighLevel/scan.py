@@ -14,6 +14,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
+from incalmo.core.services.action_context import Context
 
 from collections import defaultdict
 
@@ -29,6 +30,7 @@ class Scan(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: Context,
     ) -> list[Event]:
         events = []
         scan_agent = self.scan_host.get_agent()
@@ -45,7 +47,7 @@ class Scan(HighLevelAction):
 
             scanned_subnets.add(subnet)
             new_events = await low_level_action_orchestrator.run_action(
-                ScanNetwork(scan_agent, subnet.ip_mask, self.id)
+                ScanNetwork(scan_agent, subnet.ip_mask), context
             )
 
             for event in new_events:
@@ -57,7 +59,7 @@ class Scan(HighLevelAction):
 
         for ip_to_scan in collected_ips:
             new_events = await low_level_action_orchestrator.run_action(
-                ScanHost(scan_agent, ip_to_scan, self.id)
+                ScanHost(scan_agent, ip_to_scan), context
             )
             events += new_events
 
@@ -66,7 +68,7 @@ class Scan(HighLevelAction):
                 for port, service in event.services.items():
                     if "http" in service:
                         vuln_event = await low_level_action_orchestrator.run_action(
-                            NiktoScan(scan_agent, event.host_ip, port, service, self.id)
+                            NiktoScan(scan_agent, event.host_ip, port, service), context
                         )
                         events += vuln_event
 

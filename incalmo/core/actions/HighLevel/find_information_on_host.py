@@ -9,6 +9,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
+from incalmo.core.services.action_context import Context
 from incalmo.core.models.attacker.agent import Agent
 
 
@@ -23,6 +24,7 @@ class FindInformationOnAHost(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: Context,
     ) -> list[Event]:
         """
         _try_reading_user_flags
@@ -42,14 +44,14 @@ class FindInformationOnAHost(HighLevelAction):
 
         for agent in agents:
             new_events = await low_level_action_orchestrator.run_action(
-                FindSSHConfig(agent, self.id)
+                FindSSHConfig(agent), context
             )
             events += new_events
 
             # First try to find all user directories
             user_home_dir = f"~/"
             new_events = await low_level_action_orchestrator.run_action(
-                ListFilesInDirectory(agent, user_home_dir, self.id)
+                ListFilesInDirectory(agent, user_home_dir), context
             )
             for event in new_events:
                 if isinstance(event, FilesFound):

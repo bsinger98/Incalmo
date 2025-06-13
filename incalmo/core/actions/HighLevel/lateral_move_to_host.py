@@ -5,6 +5,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
+from incalmo.core.services.action_context import Context
 
 from ..high_level_action import HighLevelAction
 from ..LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
@@ -27,6 +28,7 @@ class LateralMoveToHost(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: Context,
     ) -> list[Event]:
         """
         _random_lateral_move
@@ -41,7 +43,7 @@ class LateralMoveToHost(HighLevelAction):
                 if cred.host_ip in self.host_to_attack.ip_addresses:
                     agent = cred.agent_discovered
                     new_events = await low_level_action_orchestrator.run_action(
-                        SSHLateralMove(agent, cred.hostname, self.id)
+                        SSHLateralMove(agent, cred.hostname), context
                     )
                     for event in new_events:
                         if type(event) is InfectedNewHost:
@@ -72,20 +74,20 @@ class LateralMoveToHost(HighLevelAction):
                     agent,
                     self.host_to_attack.get_ip_address(),
                     str(port_to_attack),
-                    self.id,
                 )
             elif port_to_attack == 4444 and self.host_to_attack.has_an_ip_address():
                 action_to_run = NCLateralMove(
                     agent,
                     self.host_to_attack.get_ip_address(),
                     str(port_to_attack),
-                    self.id,
                 )
 
             if action_to_run is None:
                 continue
 
-            new_events = await low_level_action_orchestrator.run_action(action_to_run)
+            new_events = await low_level_action_orchestrator.run_action(
+                action_to_run, context
+            )
 
             if len(new_events) > 0:
                 if self.stop_after_success:

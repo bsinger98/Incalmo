@@ -6,12 +6,12 @@ from incalmo.models.command_result import CommandResult
 
 
 class ListFilesInDirectory(LowLevelAction):
-    def __init__(self, agent: Agent, dir_path: str, high_level_action_id: str):
+    def __init__(self, agent: Agent, dir_path: str):
         self.dir_path = dir_path
 
         command = f"ls -l {dir_path}"
 
-        super().__init__(agent, command, high_level_action_id=high_level_action_id)
+        super().__init__(agent, command)
 
     async def get_result(
         self,

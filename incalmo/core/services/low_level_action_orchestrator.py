@@ -9,9 +9,12 @@ from incalmo.core.models.events import Event
 # )
 from incalmo.core.models.events import InfectedNewHost, RootAccessOnHost
 from incalmo.core.services.logging_service import IncalmoLogger
+from incalmo.core.services.action_context import Context
 from incalmo.models.logging_schema import serialize
 from datetime import datetime
 import time
+from uuid import uuid4
+from dataclasses import replace
 
 
 class LowLevelActionOrchestrator:
@@ -23,7 +26,10 @@ class LowLevelActionOrchestrator:
         # self.environment_state_service = environment_state_service
         self.logger = logging_service.action_logger()
 
-    async def run_action(self, low_level_action: LowLevelAction) -> list[Event]:
+    async def run_action(
+        self, low_level_action: LowLevelAction, context: Context
+    ) -> list[Event]:
+        context = replace(context, ll_id=str(uuid4()))
         c2client = C2ApiClient()
         # Get prior agents
         prior_agents = c2client.get_agents()
@@ -46,7 +52,8 @@ class LowLevelActionOrchestrator:
             "LowLevelAction executed",
             type="LowLevelAction",
             timestamp=datetime.now().isoformat(),
-            high_level_action_id=low_level_action.high_level_action_id,
+            low_level_action_id=context.ll_id,
+            high_level_action_id=context.hl_id,
             action_name=low_level_action.__class__.__name__,
             action_params=serialize(low_level_action),
             action_results={

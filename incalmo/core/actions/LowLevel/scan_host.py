@@ -12,11 +12,11 @@ class ScanHost(LowLevelAction):
     ability_name = "deception-nmap"
     host: str
 
-    def __init__(self, agent: Agent, host_ip: str, high_level_action_id: str):
+    def __init__(self, agent: Agent, host_ip: str):
         self.host = host_ip
         command = f"nmap -sV --version-light -oX - {host_ip}"
 
-        super().__init__(agent, command, high_level_action_id=high_level_action_id)
+        super().__init__(agent, command)
 
     async def get_result(
         self,

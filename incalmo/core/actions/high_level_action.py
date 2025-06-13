@@ -6,12 +6,10 @@ from incalmo.core.services import (
     AttackGraphService,
 )
 from incalmo.core.models.events import Event
+from incalmo.core.services.action_context import Context
 
 
 class HighLevelAction(ABC):
-    def __init__(self):
-        self.id = str(uuid.uuid4())
-
     def __str__(self):
         def format_value(value):
             if isinstance(value, list):
@@ -29,5 +27,6 @@ class HighLevelAction(ABC):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: Context,
     ) -> list[Event]:
         return []
