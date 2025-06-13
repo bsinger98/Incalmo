@@ -10,7 +10,7 @@ import StrategyLauncher from './components/StrategyLauncher';
 import RunningStrategies from './components/RunningStrategies';
 import ConnectedAgents from './components/ConnectedAgents';
 
-function App() {
+const App: React.FC = () => {
   const {
     selectedStrategy,
     setSelectedStrategy,
@@ -55,6 +55,6 @@ function App() {
       </div>
     </ThemeProvider>
   );
-}
+};
 
 export default App;

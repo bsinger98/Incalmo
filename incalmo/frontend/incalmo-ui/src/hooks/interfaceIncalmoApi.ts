@@ -1,7 +1,32 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Point to Docker container's Flask server
+// Types for agent and strategy info
+export interface AgentInfo {
+  username?: string;
+  privilege?: string;
+  host_ip_addrs?: string[];
+}
+
+export interface StrategyInfo {
+  state: string;
+  task_id: string;
+}
+
+export interface RunningStrategies {
+  [strategyName: string]: StrategyInfo;
+}
+
+export interface Agents {
+  [paw: string]: AgentInfo;
+}
+
+export interface Strategy {
+  name: string;
+}
+
+type MessageType = 'info' | 'error' | 'success' | 'warning';
+
 const API_BASE_URL = 'http://localhost:8888';
 
 const api = axios.create({
@@ -12,7 +37,6 @@ const api = axios.create({
   }
 });
 
-// Add request/response interceptors for debugging
 api.interceptors.request.use(
   (config) => {
     console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
@@ -36,19 +60,19 @@ api.interceptors.response.use(
 );
 
 export const useIncalmoApi = () => {
-  const [selectedStrategy, setSelectedStrategy] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('info');
-  const [agents, setAgents] = useState({});
-  const [runningStrategies, setRunningStrategies] = useState({});
-  const [strategies, setStrategies] = useState([]);
+  const [selectedStrategy, setSelectedStrategy] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
+  const [messageType, setMessageType] = useState<MessageType>('info');
+  const [agents, setAgents] = useState<Agents>({});
+  const [runningStrategies, setRunningStrategies] = useState<RunningStrategies>({});
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
 
   useEffect(() => {
     fetchAgents();
     fetchRunningStrategies();
     fetchStrategies();
-    
+
     const interval = setInterval(() => {
       fetchAgents();
       fetchRunningStrategies();
@@ -56,9 +80,10 @@ export const useIncalmoApi = () => {
     }, 5000);
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchAgents = async () => {
+  const fetchAgents = async (): Promise<void> => {
     try {
       const response = await api.get('/agents');
       setAgents(response.data || {});
@@ -67,7 +92,7 @@ export const useIncalmoApi = () => {
     }
   };
 
-  const fetchRunningStrategies = async () => {
+  const fetchRunningStrategies = async (): Promise<void> => {
     try {
       const response = await api.get('/running_strategies');
       setRunningStrategies(response.data || {});
@@ -76,17 +101,17 @@ export const useIncalmoApi = () => {
     }
   };
 
-  const fetchStrategies = async () => {
-  try {
-    const response = await api.get('/available_strategies');
-    setStrategies(response.data.strategies || []);
-    console.log('[API] Available strategies:', response.data);
-  } catch (error) {
-    console.error('Failed to fetch available strategies:', error);
-  }
-};
+  const fetchStrategies = async (): Promise<void> => {
+    try {
+      const response = await api.get('/available_strategies');
+      setStrategies(response.data.strategies || []);
+      console.log('[API] Available strategies:', response.data);
+    } catch (error) {
+      console.error('Failed to fetch available strategies:', error);
+    }
+  };
 
-  const startStrategy = async () => {
+  const startStrategy = async (): Promise<void> => {
     if (!selectedStrategy) {
       setMessage('Please select a strategy first');
       setMessageType('error');
@@ -108,14 +133,14 @@ export const useIncalmoApi = () => {
       };
 
       const response = await api.post('/startup', config);
-      
+
       setMessage(`Strategy ${selectedStrategy} started successfully! Task ID: ${response.data.task_id}`);
       setMessageType('success');
       setSelectedStrategy('');
-      
+
       fetchRunningStrategies();
-      
-    } catch (error) {
+
+    } catch (error: any) {
       const errorMsg = error.response?.data?.error || error.message || 'Failed to start strategy';
       setMessage(`Error: ${errorMsg}`);
       setMessageType('error');
@@ -125,31 +150,30 @@ export const useIncalmoApi = () => {
     }
   };
 
-  const stopStrategy = async (strategyName) => {
+  const stopStrategy = async (strategyName: string): Promise<void> => {
     try {
       await api.post(`/cancel_strategy/${strategyName}`);
       setMessage(`Strategy ${strategyName} stopped successfully`);
       setMessageType('success');
       fetchRunningStrategies();
-    } catch (error) {
+    } catch (error: any) {
       const errorMsg = error.response?.data?.error || error.message || 'Failed to stop strategy';
       setMessage(`Error stopping strategy: ${errorMsg}`);
       setMessageType('error');
     }
   };
 
-  const getStatusColor = (state) => {
-    switch (state) {
-      case 'SUCCESS': return 'success';
-      case 'FAILURE': return 'error';
-      case 'PENDING': return 'warning';
-      case 'PROGRESS': return 'info';
-      default: return 'default';
-    }
-  };
+  const getStatusColor = (state: string): 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
+  switch (state) {
+    case 'SUCCESS': return 'success';
+    case 'FAILURE': return 'error';
+    case 'PENDING': return 'warning';
+    case 'PROGRESS': return 'info';
+    default: return 'primary';
+  }
+};
 
   return {
-    // State
     selectedStrategy,
     setSelectedStrategy,
     loading,
@@ -158,8 +182,6 @@ export const useIncalmoApi = () => {
     agents,
     runningStrategies,
     strategies,
-    
-    // Actions
     startStrategy,
     stopStrategy,
     fetchAgents,
