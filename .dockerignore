@@ -1,37 +1,32 @@
-# Python virtual environment
-.venv/
-venv/
+# Exclude frontend directory
+incalmo/frontend/
+
+# Node.js
+**/node_modules/
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Development files
+.git/
+.vscode/
+.idea/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.Python
-*.so
+.pytest_cache/
+coverage/
+.coverage
 
-# IDE files
-.idea/
-.vscode/
-*.swp
-*.swo
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
 
-# Git
-.git
-.gitignore
+# Build artifacts
+**/dist/
+**/build/
 
-# Docker
-.docker/
-docker-compose*.yml
-Dockerfile*
-
-# Logs
-*.log
-
-# Local development
-.env
-.env.local
-.env.*.local
-
-# Distribution / packaging
-dist/
-build/
-*.egg-info/ 
+# Python virtual environment
+.venv/
