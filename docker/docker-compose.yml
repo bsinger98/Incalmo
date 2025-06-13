@@ -25,16 +25,8 @@ services:
     env_file:
       - ../.env
     volumes:
-      - ../incalmo/api:/incalmo/incalmo/api
-      - ../incalmo/c2server:/incalmo/incalmo/c2server
-      - ../incalmo/core:/incalmo/incalmo/core
-      - ../incalmo/models:/incalmo/incalmo/models
-      - ../incalmo/__init__.py:/incalmo/incalmo/__init__.py
-      - ../incalmo/exceptions.py:/incalmo/incalmo/exceptions.py
-      - ../incalmo/incalmo_runner.py:/incalmo/incalmo/incalmo_runner.py
-      - ../incalmo/server.py:/incalmo/incalmo/server.py
+      - ../:/incalmo
       - ../config/:/incalmo/config
-      - ../output/:/incalmo/output
       - venv-volume:/incalmo/.venv
     networks:
       attacker_network:

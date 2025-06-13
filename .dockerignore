@@ -27,3 +27,6 @@ Thumbs.db
 # Build artifacts
 **/dist/
 **/build/
+
+# Python virtual environment
+.venv/
