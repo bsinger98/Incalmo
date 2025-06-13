@@ -35,7 +35,8 @@ class Subnet:
         self.hosts.append(host)
 
     def remove_host(self, host: Host):
-        self.hosts.remove(host)
+        if host in self.hosts:
+            self.hosts.remove(host)
 
     def remove_hosts(self, hosts: list[Host]):
         for host in hosts:
