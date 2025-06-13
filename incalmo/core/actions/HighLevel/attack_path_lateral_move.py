@@ -8,10 +8,12 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
+from incalmo.core.services.action_context import HighLevelContext
 
 
 class AttackPathLateralMove(HighLevelAction):
     def __init__(self, attack_path: AttackPath, skip_if_already_executed: bool = False):
+        super().__init__()
         self.attack_path = attack_path
         self.skip_if_already_executed = skip_if_already_executed
 
@@ -20,6 +22,7 @@ class AttackPathLateralMove(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: HighLevelContext,
     ) -> list[Event]:
         events = []
 
@@ -51,21 +54,17 @@ class AttackPathLateralMove(HighLevelAction):
 
             if "CVE-2017-5638" in service_to_attack.CVE:
                 action_to_run = ExploitStruts(
-                    attack_agent,
-                    ip_to_attack,
-                    port_to_attack,
+                    attack_agent, ip_to_attack, port_to_attack
                 )
 
             elif port_to_attack == "4444":
                 action_to_run = NCLateralMove(
-                    attack_agent,
-                    ip_to_attack,
-                    port_to_attack,
+                    attack_agent, ip_to_attack, port_to_attack
                 )
 
             if action_to_run:
                 new_events = await low_level_action_orchestrator.run_action(
-                    action_to_run
+                    action_to_run, context
                 )
                 events += new_events
 
@@ -73,7 +72,8 @@ class AttackPathLateralMove(HighLevelAction):
         if self.attack_path.attack_technique.CredentialToUse:
             credential = self.attack_path.attack_technique.CredentialToUse
             new_events = await low_level_action_orchestrator.run_action(
-                SSHLateralMove(credential.agent_discovered, credential.hostname)
+                SSHLateralMove(credential.agent_discovered, credential.hostname),
+                context,
             )
             for event in new_events:
                 if type(event) is InfectedNewHost:

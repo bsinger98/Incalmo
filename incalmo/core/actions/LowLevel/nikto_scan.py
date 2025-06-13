@@ -6,7 +6,13 @@ from incalmo.core.models.events import Event, VulnerableServiceFound
 
 
 class NiktoScan(LowLevelAction):
-    def __init__(self, agent: Agent, host: str, port: int, service: str):
+    def __init__(
+        self,
+        agent: Agent,
+        host: str,
+        port: int,
+        service: str,
+    ):
         self.host = host
         self.port = port
         self.service = service

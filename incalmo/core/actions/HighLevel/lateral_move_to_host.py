@@ -5,6 +5,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
+from incalmo.core.services.action_context import HighLevelContext
 
 from ..high_level_action import HighLevelAction
 from ..LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
@@ -17,6 +18,7 @@ class LateralMoveToHost(HighLevelAction):
         attacking_host: Host,
         stop_after_success: bool = True,
     ):
+        super().__init__()
         self.host_to_attack = host_to_attack
         self.attacking_host = attacking_host
         self.stop_after_success = stop_after_success
@@ -26,6 +28,7 @@ class LateralMoveToHost(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: HighLevelContext,
     ) -> list[Event]:
         """
         _random_lateral_move
@@ -40,7 +43,7 @@ class LateralMoveToHost(HighLevelAction):
                 if cred.host_ip in self.host_to_attack.ip_addresses:
                     agent = cred.agent_discovered
                     new_events = await low_level_action_orchestrator.run_action(
-                        SSHLateralMove(agent, cred.hostname)
+                        SSHLateralMove(agent, cred.hostname), context
                     )
                     for event in new_events:
                         if type(event) is InfectedNewHost:
@@ -82,7 +85,9 @@ class LateralMoveToHost(HighLevelAction):
             if action_to_run is None:
                 continue
 
-            new_events = await low_level_action_orchestrator.run_action(action_to_run)
+            new_events = await low_level_action_orchestrator.run_action(
+                action_to_run, context
+            )
 
             if len(new_events) > 0:
                 if self.stop_after_success:
