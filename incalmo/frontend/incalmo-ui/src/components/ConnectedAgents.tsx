@@ -7,7 +7,17 @@ import {
   CardContent
 } from '@mui/material';
 
-const ConnectedAgents = ({ agents }) => {
+interface AgentInfo {
+  username?: string;
+  privilege?: string;
+  host_ip_addrs?: string[];
+}
+
+interface ConnectedAgentsProps {
+  agents: Record<string, AgentInfo>;
+}
+
+const ConnectedAgents: React.FC<ConnectedAgentsProps> = ({ agents }) => {
   return (
     <Paper sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>

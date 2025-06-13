@@ -2,7 +2,12 @@ import React from 'react';
 import { AppBar, Toolbar, Typography, Chip } from '@mui/material';
 import { Security } from '@mui/icons-material';
 
-const Header = ({ agentCount }) => {
+
+interface HeaderProps {
+  agentCount: number;
+}
+
+const Header: React.FC<HeaderProps> = ({ agentCount }) => {
   return (
     <AppBar position="static">
       <Toolbar>
