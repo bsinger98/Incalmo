@@ -9,7 +9,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
-from incalmo.core.services.action_context import Context
+from incalmo.core.services.action_context import HighLevelContext
 from incalmo.core.models.attacker.agent import Agent
 
 
@@ -24,7 +24,7 @@ class FindInformationOnAHost(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
-        context: Context,
+        context: HighLevelContext,
     ) -> list[Event]:
         """
         _try_reading_user_flags

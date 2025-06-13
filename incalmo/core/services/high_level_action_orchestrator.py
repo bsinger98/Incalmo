@@ -10,7 +10,7 @@ from incalmo.core.services import (
 )
 
 from incalmo.core.services.logging_service import IncalmoLogger
-from incalmo.core.services.action_context import Context
+from incalmo.core.services.action_context import HighLevelContext
 from incalmo.models.logging_schema import serialize
 from datetime import datetime
 from uuid import uuid4
@@ -31,7 +31,7 @@ class HighLevelActionOrchestrator:
 
     async def run_action(self, action: "HighLevelAction"):
         hl_id = str(uuid4())
-        context = Context(hl_id=hl_id)
+        context = HighLevelContext(hl_id=hl_id)
         events = await action.run(
             self.low_level_action_orchestrator,
             self.environment_state_service,
@@ -43,6 +43,7 @@ class HighLevelActionOrchestrator:
             type="HighLevelAction",
             timestamp=datetime.now().isoformat(),
             high_level_action_id=context.hl_id,
+            low_level_action_ids=context.ll_id,
             action_name=action.__class__.__name__,
             action_params=serialize(action),
             action_results={

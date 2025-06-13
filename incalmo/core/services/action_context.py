@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
-class Context:
+class HighLevelContext:
     hl_id: str
-    ll_id: str | None = None
+    ll_id: list[str] = field(default_factory=list)

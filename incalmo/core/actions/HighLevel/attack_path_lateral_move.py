@@ -8,7 +8,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
-from incalmo.core.services.action_context import Context
+from incalmo.core.services.action_context import HighLevelContext
 
 
 class AttackPathLateralMove(HighLevelAction):
@@ -22,7 +22,7 @@ class AttackPathLateralMove(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
-        context: Context,
+        context: HighLevelContext,
     ) -> list[Event]:
         events = []
 

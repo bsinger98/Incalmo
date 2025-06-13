@@ -16,7 +16,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
-from incalmo.core.services.action_context import Context
+from incalmo.core.services.action_context import HighLevelContext
 from config.attacker_config import Environment
 
 
@@ -30,7 +30,7 @@ class ExfiltrateData(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
-        context: Context,
+        context: HighLevelContext,
     ) -> list[Event]:
         target_agent = self.target_host.get_agent()
         if len(environment_state_service.initial_hosts) == 0:
@@ -81,7 +81,7 @@ class ExfiltrateData(HighLevelAction):
         self,
         attack_agent: Agent,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
-        context: Context,
+        context: HighLevelContext,
     ):
         events = await low_level_action_orchestrator.run_action(
             MD5SumAttackerData(attack_agent), context
@@ -92,7 +92,7 @@ class ExfiltrateData(HighLevelAction):
         self,
         attacker_agent: Agent,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
-        context: Context,
+        context: HighLevelContext,
     ):
         # Get SSH key of attacker agent
         events = await low_level_action_orchestrator.run_action(
@@ -150,7 +150,7 @@ class ExfiltrateData(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         env_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
-        context: Context,
+        context: HighLevelContext,
     ):
         hosts_with_creds = attack_graph_service.find_hosts_with_credentials_to_host(
             target_host
@@ -226,7 +226,7 @@ class ExfiltrateData(HighLevelAction):
         source_host: Host,
         target_host: Host,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
-        context: Context,
+        context: HighLevelContext,
     ):
         for src_agent in source_host.agents:
             # Get SSH key of attacker agent

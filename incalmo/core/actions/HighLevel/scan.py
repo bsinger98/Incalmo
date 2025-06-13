@@ -14,7 +14,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
-from incalmo.core.services.action_context import Context
+from incalmo.core.services.action_context import HighLevelContext
 
 from collections import defaultdict
 
@@ -30,7 +30,7 @@ class Scan(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
-        context: Context,
+        context: HighLevelContext,
     ) -> list[Event]:
         events = []
         scan_agent = self.scan_host.get_agent()

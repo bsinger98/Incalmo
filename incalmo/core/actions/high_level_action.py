@@ -6,7 +6,7 @@ from incalmo.core.services import (
     AttackGraphService,
 )
 from incalmo.core.models.events import Event
-from incalmo.core.services.action_context import Context
+from incalmo.core.services.action_context import HighLevelContext
 
 
 class HighLevelAction(ABC):
@@ -27,6 +27,6 @@ class HighLevelAction(ABC):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
-        context: Context,
+        context: HighLevelContext,
     ) -> list[Event]:
         return []
