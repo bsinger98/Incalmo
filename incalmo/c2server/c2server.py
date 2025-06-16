@@ -1,8 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response, stream_with_context
 import json
 import base64
 import binascii
 import asyncio
+import time
 from incalmo.models.instruction import Instruction
 import uuid
 from collections import defaultdict
@@ -242,6 +243,60 @@ def agent_download():
 
     except Exception as e:
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+
+# Stream logs
+@app.route("/stream_logs", methods=["GET"])
+def stream_logs():
+    def generate_log_stream():
+        # Send headers for SSE
+        yield "retry: 1000\n\n"
+
+        # Get the latest output directory
+        output_dirs = sorted(Path("output").glob("*_*-*-*"), reverse=True)
+        if not output_dirs:
+            yield f"data: {json.dumps({'error': 'No log directories found'})}\n\n"
+            return
+
+        latest_dir = output_dirs[0]
+        actions_log_path = latest_dir / "actions.json"
+
+        if not actions_log_path.exists():
+            yield f"data: {json.dumps({'error': 'Actions log file not found'})}\n\n"
+            return
+
+        position = 0
+
+        while True:
+            try:
+                with open(actions_log_path, "r") as f:
+                    f.seek(position)
+                    # Read any new lines
+                    for line in f:
+                        try:
+                            log_entry = json.loads(line)
+                            if log_entry.get("type") == "LowLevelAction":
+                                yield f"data: {line.strip()}\n\n"
+                        except json.JSONDecodeError:
+                            continue
+                    # Update position for next read
+                    position = f.tell()
+
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            time.sleep(1)
+
+    # Set appropriate headers for SSE
+    return Response(
+        stream_with_context(generate_log_stream()),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*",
+            "X-Accel-Buffering": "no",  # Disable buffering in Nginx if you use it
+        },
+    )
 
 
 # Incalmo startup
