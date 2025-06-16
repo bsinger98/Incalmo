@@ -149,7 +149,7 @@ def delete_agent(paw):
         decoded_info = decode_base64(agents[paw]["info"])
         agent_info = json.loads(decoded_info)
         agent_pid = agent_info.get("pid")
-        
+
         kill_command = f"(sleep 3 && kill -9 {agent_pid}) &"
         exec_template = read_template_file("Exec_Bash_Template.sh")
         executor_script_content = exec_template.safe_substitute(command=kill_command)
