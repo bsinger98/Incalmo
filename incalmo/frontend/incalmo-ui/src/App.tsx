@@ -11,7 +11,7 @@ import RunningStrategies from './components/RunningStrategies';
 import ConnectedAgents from './components/ConnectedAgents';
 import NetworkGraph from './components/NetworkGraph';
 
-function App() {
+const App: React.FC = () => {
   const {
     selectedStrategy,
     loading,
@@ -69,6 +69,6 @@ function App() {
       </div>
     </ThemeProvider>
   );
-}
+};
 
 export default App;

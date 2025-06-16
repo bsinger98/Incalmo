@@ -1,5 +1,4 @@
-// Update: incalmo/frontend/incalmo-ui/src/components/NetworkGraph.js
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, MouseEvent } from 'react';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -9,8 +8,13 @@ import ReactFlow, {
   addEdge,
   ConnectionLineType,
   Panel,
-  Handle,    
+  Handle,
   Position,
+  Node,
+  Edge,
+  NodeChange,
+  EdgeChange,
+  Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import {
@@ -33,9 +37,26 @@ import {
   Info,
 } from '@mui/icons-material';
 
+// --- Types ---
+export interface Host {
+  hostname?: string;
+  ip_addresses?: string[];
+  infected?: boolean;
+  infected_by?: string;
+  agents?: string[];
+}
+
+interface NetworkGraphProps {
+  hosts: Host[];
+  loading: boolean;
+  error?: string;
+  lastUpdate?: string;
+  onRefresh: () => void;
+}
+
 // Suppress ResizeObserver errors
 const suppressResizeObserverError = () => {
-  const resizeObserverErrorHandler = (e) => {
+  const resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
       e.stopImmediatePropagation();
     }
@@ -45,21 +66,24 @@ const suppressResizeObserverError = () => {
 };
 
 // Memoized HostNode component
-const HostNode = React.memo(({ data }) => {
-  const [anchorEl, setAnchorEl] = useState(null);
+interface HostNodeProps {
+  data: Host;
+}
+const HostNode: React.FC<HostNodeProps> = React.memo(({ data }) => {
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [showPopover, setShowPopover] = useState(false);
-  
-  const handleMouseEnter = (event) => {
+
+  const handleMouseEnter = (event: MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
     setShowPopover(true);
   };
-  
+
   const handleMouseLeave = () => {
     setShowPopover(false);
     setAnchorEl(null);
   };
 
-  const getHostDisplayName = (host) => {
+  const getHostDisplayName = (host: Host) => {
     if (host.hostname && host.hostname.trim()) {
       return host.hostname;
     }
@@ -72,29 +96,29 @@ const HostNode = React.memo(({ data }) => {
   };
 
   const displayName = getHostDisplayName(data);
-  
+
   return (
     <>
-      <Handle 
-        type="target" 
-        position={Position.Left} 
-        style={{ 
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{
           background: '#f44336',
           width: 8,
           height: 8,
         }}
       />
-      <Handle 
-        type="source" 
-        position={Position.Right} 
-        style={{ 
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{
           background: '#4caf50',
           width: 8,
           height: 8,
         }}
       />
-      <Card 
-        sx={{ 
+      <Card
+        sx={{
           minWidth: 180,
           maxWidth: 220,
           border: data.infected ? '3px solid #f44336' : '3px solid #4caf50',
@@ -121,22 +145,22 @@ const HostNode = React.memo(({ data }) => {
               {displayName}
             </Typography>
           </Box>
-          
+
           <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 1 }}>
             {data.ip_addresses?.join(', ') || 'No IPs'}
           </Typography>
-          
+
           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-            <Chip 
-              label={data.infected ? 'Compromised' : 'Clean'} 
-              color={data.infected ? 'error' : 'success'} 
-              size="small" 
+            <Chip
+              label={data.infected ? 'Compromised' : 'Clean'}
+              color={data.infected ? 'error' : 'success'}
+              size="small"
             />
             {data.agents && data.agents.length > 0 && (
-              <Chip 
-                label={`${data.agents.length} Agent${data.agents.length > 1 ? 's' : ''}`} 
-                color="primary" 
-                size="small" 
+              <Chip
+                label={`${data.agents.length} Agent${data.agents.length > 1 ? 's' : ''}`}
+                color="primary"
+                size="small"
               />
             )}
           </Box>
@@ -156,17 +180,17 @@ const HostNode = React.memo(({ data }) => {
           <Typography variant="h6" gutterBottom>
             {displayName}
           </Typography>
-          
+
           <Typography variant="body2" color="textSecondary" gutterBottom>
             <strong>IPs:</strong> {data.ip_addresses?.join(', ') || 'None'}
           </Typography>
 
           <Typography variant="body2" gutterBottom>
-            <strong>Status:</strong> 
-            <Chip 
-              label={data.infected ? 'Compromised' : 'Clean'} 
-              color={data.infected ? 'error' : 'success'} 
-              size="small" 
+            <strong>Status:</strong>
+            <Chip
+              label={data.infected ? 'Compromised' : 'Clean'}
+              color={data.infected ? 'error' : 'success'}
+              size="small"
               sx={{ ml: 1 }}
             />
           </Typography>
@@ -203,12 +227,12 @@ const nodeTypes = {
   hostNode: HostNode,
 };
 
-const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
+const NetworkGraph: React.FC<NetworkGraphProps> = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [nodePositions, setNodePositions] = useState(new Map());
-  const updateTimeoutRef = useRef(null);
+  const [nodePositions, setNodePositions] = useState<Map<string, { x: number; y: number }>>(new Map());
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Suppress ResizeObserver errors
   useEffect(() => {
@@ -217,7 +241,7 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
   }, []);
 
   // Generate a unique ID for each host
-  const getHostId = (host, index) => {
+  const getHostId = (host: Host, index: number): string => {
     if (host.hostname && host.hostname.trim()) {
       return host.hostname;
     }
@@ -233,38 +257,38 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
 
     return hosts.map((host, index) => {
       const hostId = getHostId(host, index);
-      
+
       let position;
       if (nodePositions.has(hostId)) {
-        position = nodePositions.get(hostId);
+        position = nodePositions.get(hostId)!;
       } else {
         const angle = (index / hosts.length) * 2 * Math.PI;
         const radius = Math.max(200, hosts.length * 30);
         const centerX = 400;
         const centerY = 300;
-        
-        position = { 
+
+        position = {
           x: centerX + radius * Math.cos(angle),
           y: centerY + radius * Math.sin(angle)
         };
-        
+
         setNodePositions(prev => new Map(prev.set(hostId, position)));
       }
-      
+
       return {
         id: hostId,
         type: 'hostNode',
         position,
         data: { ...host },
         draggable: true,
-      };
+      } as Node<Host>;
     });
   }, [hosts, nodePositions]);
 
-  const handleNodesChange = useCallback((changes) => {
+  const handleNodesChange = useCallback((changes: NodeChange[]) => {
     changes.forEach((change) => {
       if (change.type === 'position' && change.position) {
-        setNodePositions(prev => new Map(prev.set(change.id, change.position)));
+        setNodePositions(prev => new Map(prev.set(change.id, change.position!)));
       }
     });
     onNodesChange(changes);
@@ -274,35 +298,33 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
   const infectionEdges = useMemo(() => {
     if (!hosts || hosts.length === 0) return [];
 
-    const edges = [];
-    
+    const edges: Edge[] = [];
+
     hosts.forEach((targetHost, targetIndex) => {
       if (targetHost.infected && targetHost.infected_by) {
-        const sourceHostIndex = hosts.findIndex(h => 
-          h.agents && h.agents.includes(targetHost.infected_by)
+        const sourceHostIndex = hosts.findIndex(h =>
+          h.agents && h.agents.includes(targetHost.infected_by!)
         );
-        
+
         if (sourceHostIndex !== -1) {
           const sourceHost = hosts[sourceHostIndex];
           const sourceHostId = getHostId(sourceHost, sourceHostIndex);
           const targetHostId = getHostId(targetHost, targetIndex);
-          
+
           if (sourceHostId !== targetHostId) {
-            console.log(`[NetworkGraph] Creating edge: ${sourceHostId} -> ${targetHostId} (agent: ${targetHost.infected_by})`);
-            
             edges.push({
               id: `${sourceHostId}->${targetHostId}`,
               source: sourceHostId,
               target: targetHostId,
               type: 'smoothstep',
               animated: true,
-              style: { 
-                stroke: '#f44336', 
+              style: {
+                stroke: '#f44336',
                 strokeWidth: 4,
               },
               label: targetHost.infected_by,
-              labelStyle: { 
-                fontSize: 12, 
+              labelStyle: {
+                fontSize: 12,
                 fontWeight: 'bold',
                 fill: '#f44336'
               },
@@ -310,22 +332,21 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
                 type: 'arrowclosed',
                 color: '#f44336',
               },
-            });
+            } as Edge);
           }
         }
       }
     });
-    
-    console.log(`[NetworkGraph] Created ${edges.length} edges:`, edges);
+
     return edges;
   }, [hosts]);
 
   // Debounced update function
-  const updateNodesAndEdges = useCallback((newNodes, newEdges) => {
+  const updateNodesAndEdges = useCallback((newNodes: Node<Host>[], newEdges: Edge[]) => {
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
     }
-    
+
     updateTimeoutRef.current = setTimeout(() => {
       setNodes(newNodes);
       setEdges(newEdges);
@@ -350,7 +371,7 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
   }, []);
 
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
@@ -359,7 +380,7 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
     const infectedHosts = hosts?.filter(h => h.infected).length || 0;
     const cleanHosts = totalHosts - infectedHosts;
     const totalAgents = hosts?.reduce((sum, h) => sum + (h.agents?.length || 0), 0) || 0;
-    
+
     return { totalHosts, infectedHosts, cleanHosts, totalAgents };
   }, [hosts]);
 
@@ -378,13 +399,13 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
     <Paper sx={{ p: 3, mb: 3, height: 700 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h6">Network Attack Graph</Typography>
-        
+
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Chip label={`${stats.totalHosts} Hosts`} color="default" size="small" />
           <Chip label={`${stats.infectedHosts} Infected`} color="error" size="small" />
           <Chip label={`${stats.cleanHosts} Clean`} color="success" size="small" />
           <Chip label={`${stats.totalAgents} Agents`} color="primary" size="small" />
-          
+
           <Tooltip title="Refresh">
             <IconButton onClick={onRefresh} disabled={loading}>
               <Refresh />
@@ -419,16 +440,16 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
         >
           <Background />
           <Controls />
-          <MiniMap 
+          <MiniMap
             nodeStrokeColor={(n) => n.data?.infected ? '#f44336' : '#4caf50'}
             nodeColor={(n) => n.data?.infected ? '#ffcdd2' : '#c8e6c9'}
             nodeBorderRadius={2}
           />
-          
+
           <Panel position="top-left">
-            <Box sx={{ 
-              backgroundColor: 'rgba(255,255,255,0.9)', 
-              p: 1, 
+            <Box sx={{
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              p: 1,
               borderRadius: 1,
               border: '1px solid #ddd'
             }}>

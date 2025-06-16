@@ -11,7 +11,22 @@ import {
 } from '@mui/material';
 import { Stop } from '@mui/icons-material';
 
-const RunningStrategies = ({ runningStrategies, stopStrategy, getStatusColor }) => {
+interface StrategyInfo {
+  state: string;
+  task_id: string;
+}
+
+interface RunningStrategiesProps {
+  runningStrategies: Record<string, StrategyInfo>;
+  stopStrategy: (strategyName: string) => void;
+  getStatusColor: (state: string) => 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+}
+
+const RunningStrategies: React.FC<RunningStrategiesProps> = ({
+  runningStrategies,
+  stopStrategy,
+  getStatusColor,
+}) => {
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h6" gutterBottom>
