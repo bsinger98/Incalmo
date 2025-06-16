@@ -14,6 +14,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
+from incalmo.core.services.action_context import HighLevelContext
 
 
 def parse_version(version: str):
@@ -48,6 +49,7 @@ def is_older_version(version_a: str, version_b: str) -> bool:
 
 class EscelatePrivledge(HighLevelAction):
     def __init__(self, host: Host):
+        super().__init__()
         self.host = host
 
     async def run(
@@ -55,6 +57,7 @@ class EscelatePrivledge(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: HighLevelContext,
     ) -> list[Event]:
         events = []
         # Check if the host has a root user
@@ -71,17 +74,19 @@ class EscelatePrivledge(HighLevelAction):
 
         # See if sudoers is writeable
         events = await low_level_action_orchestrator.run_action(
-            CheckPasswdPermissions(agent)
+            CheckPasswdPermissions(agent), context
         )
 
         if len(events) > 0 and isinstance(events[0], WriteablePasswd):
             # If sudoers is writeable, we can exploit it
             return await low_level_action_orchestrator.run_action(
-                WriteablePasswdExploit(agent)
+                WriteablePasswdExploit(agent), context
             )
 
         # If sudoers is not writeable, we can try to exploit sudoedit
-        events = await low_level_action_orchestrator.run_action(GetSudoVersion(agent))
+        events = await low_level_action_orchestrator.run_action(
+            GetSudoVersion(agent), context
+        )
         sudo_version = None
         for event in events:
             if isinstance(event, SudoVersion):
@@ -93,7 +98,7 @@ class EscelatePrivledge(HighLevelAction):
         if sudo_version and is_older_version(sudo_version, "1.8.30"):
             # If the sudo version is older than 1.9.11, we can exploit sudoedit
             return await low_level_action_orchestrator.run_action(
-                SudoBaronExploit(agent)
+                SudoBaronExploit(agent), context
             )
 
         return []
