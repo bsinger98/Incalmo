@@ -141,12 +141,14 @@ const HostNode: React.FC<HostNodeProps> = React.memo(({ data }) => {
             ) : (
               <Computer color="success" sx={{ mr: 1, fontSize: 20 }} />
             )}
-            <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 'bold', color: data.infected ? '#630000' : '#1b5e20'  }}>
               {displayName}
             </Typography>
           </Box>
 
-          <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 1 }}>
+          <Typography 
+            variant="caption" 
+            sx={{ display: 'block', mb: 1, color: 'rgba(0, 0, 0, 0.87)' }} >
             {data.ip_addresses?.join(', ') || 'No IPs'}
           </Typography>
 
@@ -453,19 +455,19 @@ const NetworkGraph: React.FC<NetworkGraphProps> = ({ hosts, loading, error, last
               borderRadius: 1,
               border: '1px solid #ddd'
             }}>
-              <Typography variant="caption" display="block">
+              <Typography variant="caption" display="block" sx={{ color: 'rgba(0, 0, 0, 0.87)' }}>
                 <Security color="error" sx={{ fontSize: 12, mr: 0.5 }} />
                 Red = Compromised
               </Typography>
-              <Typography variant="caption" display="block">
+              <Typography variant="caption" display="block" sx={{ color: 'rgba(0, 0, 0, 0.87)' }}>
                 <Computer color="success" sx={{ fontSize: 12, mr: 0.5 }} />
                 Green = Clean
               </Typography>
-              <Typography variant="caption" display="block">
+              <Typography variant="caption" display="block" sx={{ color: 'rgba(0, 0, 0, 0.87)' }}>
                 <Warning color="warning" sx={{ fontSize: 12, mr: 0.5 }} />
                 Arrows = Infection Path
               </Typography>
-              <Typography variant="caption" display="block">
+              <Typography variant="caption" display="block" sx={{ color: 'rgba(0, 0, 0, 0.87)' }}>
                 <Info color="info" sx={{ fontSize: 12, mr: 0.5 }} />
                 Hover for details
               </Typography>
