@@ -1,4 +1,12 @@
-from flask import Flask, request, jsonify, send_from_directory, send_file, Response, stream_with_context
+from flask import (
+    Flask,
+    request,
+    jsonify,
+    send_from_directory,
+    send_file,
+    Response,
+    stream_with_context,
+)
 from flask_cors import CORS
 import json
 import base64
@@ -243,6 +251,7 @@ def get_hosts():
             "hosts": hosts,
         }
     ), 200
+
 
 @app.route("/agent/delete/<paw>", methods=["DELETE"])
 def delete_agent(paw):
