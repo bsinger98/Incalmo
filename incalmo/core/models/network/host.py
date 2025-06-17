@@ -13,6 +13,7 @@ class Host:
         users: dict[str, str] | None = None,
         open_ports: dict[int, OpenPort] | None = None,
         agents: list[Agent] | None = None,
+        infection_source_agent: Agent | None = None,
     ):
         self.hostname = hostname
         self.ip_addresses = ip_addresses if ip_addresses is not None else []
@@ -29,6 +30,7 @@ class Host:
         self.agents: list[Agent] = agents if agents is not None else []
 
         self.infected = len(self.agents) > 0
+        self.infection_source_agent = infection_source_agent or None
 
     def __str__(self):
         agent_names = [agent.paw for agent in self.agents]
@@ -40,8 +42,20 @@ class Host:
             f"open_ports: {self.open_ports} - "
             f"agents: {agent_names} - "
             f"ssh_config: {self.ssh_config} - "
-            f"critical_data_files: {self.critical_data_files}"
+            f"critical_data_files: {self.critical_data_files} - "
+            f"infected_by: {self.infection_source_agent.paw if self.infection_source_agent else None}"
         )
+
+    def to_dict(self) -> dict:
+        return {
+            "hostname": self.hostname,
+            "ip_addresses": self.ip_addresses,
+            "infected": self.infected,
+            "agents": [agent.paw for agent in self.agents],
+            "infected_by": self.infection_source_agent.paw
+            if self.infection_source_agent
+            else None,
+        }
 
     def get_port_for_service(self, service: str):
         for port, cur_service in self.open_ports.items():
@@ -113,6 +127,13 @@ class Host:
         # Merge agents lists
         merged_agents = host1.agents + host2.agents
 
+        # Merge infection source
+        merged_infection_source_agent = (
+            host1.infection_source_agent
+            if host1.infection_source_agent
+            else host2.infection_source_agent
+        )
+
         # Create new host with merged data
         merged_host = cls(
             ip_addresses=merged_ip_addresses,
@@ -120,6 +141,7 @@ class Host:
             users=merged_users,
             open_ports=merged_open_ports,
             agents=merged_agents,
+            infection_source_agent=merged_infection_source_agent,
         )
 
         # Merge ssh_config lists

@@ -5,6 +5,7 @@ import base64
 import psutil
 import binascii
 import asyncio
+from enum import Enum
 from incalmo.models.instruction import Instruction
 import uuid
 from collections import defaultdict
@@ -15,7 +16,6 @@ import os
 from typing import Dict
 
 from incalmo.c2server.celery.celery_app import make_celery
-from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
 from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
 from incalmo.c2server.celery.celery_worker import celery_worker
 
@@ -59,8 +59,38 @@ agents = {}
 command_queues = defaultdict(list)
 command_results: dict[str, Command] = {}
 
+# Store environment info
+hosts = []
+
 # Store running strategy tasks
 running_strategy_tasks: Dict[str, str] = {}  # strategy_name -> task_id
+
+
+# Enums
+class TaskState(Enum):
+    PENDING = "PENDING"
+    STARTED = "STARTED"
+    SUCCESS = "SUCCESS"
+    FAILURE = "FAILURE"
+    REVOKED = "REVOKED"
+    RETRY = "RETRY"
+    RECEIVED = "RECEIVED"
+    PROGRESS = "PROGRESS"
+
+    @classmethod
+    def from_string(cls, state_str):
+        try:
+            if not state_str or not isinstance(state_str, str):
+                # If state_str is None or empty, return PENDING
+                return cls.PENDING
+            return cls(state_str)
+
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
+            # Return default state when conversion fails
+            return cls.PENDING
+
+    def __str__(self):
+        return self.value
 
 
 def decode_base64(data):
@@ -97,7 +127,7 @@ def beacon():
         # Validate all required fields are present and not None
         if all(json_data.get(field) not in (None, "", []) for field in required_fields):
             print(f"New agent: {paw}")
-            agents[paw] = {"paw": paw, "info": data}
+            agents[paw] = {"paw": paw, "info": data, "infected_by": None}
         else:
             print(
                 f"[ERROR] Agent {paw} missing required fields, not adding: "
@@ -154,6 +184,33 @@ def get_agents():
             raise ValueError(f"Malformed JSON: {exc!r}")
 
     return jsonify(agents_list)
+
+
+# Update hosts
+@app.route("/update_environment_state", methods=["POST"])
+def update_environment_state():
+    global hosts
+    try:
+        data = request.data
+        json_data = json.loads(data)
+
+        hosts = json_data.get("hosts", [])
+        return jsonify(
+            {"status": "success", "message": "Infection source reported"}
+        ), 200
+
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON data"}), 400
+
+
+# Get hosts
+@app.route("/hosts", methods=["GET"])
+def get_hosts():
+    return jsonify(
+        {
+            "hosts": hosts,
+        }
+    ), 200
 
 
 # Send command to a specific agent
@@ -330,6 +387,7 @@ def strategy_status(strategy_name):
 
     task_id = running_strategy_tasks[strategy_name]
     task = run_incalmo_strategy_task.AsyncResult(task_id)
+    task_state = TaskState.from_string(task.state)
 
     # Safely handle task.info
     task_info = {}
@@ -347,20 +405,20 @@ def strategy_status(strategy_name):
     response = {
         "strategy": strategy_name,
         "task_id": task_id,
-        "state": task.state,
+        "state": str(task_state),
         "info": task_info,
     }
 
-    if task.state == "PENDING":
+    if task_state == TaskState.PENDING:
         response["status"] = "Task is waiting to be processed"
-    elif task.state == "PROGRESS":
+    elif task_state == TaskState.PROGRESS:
         response["status"] = task_info.get("status", "In progress")
         response["current"] = task_info.get("current", 0)
         response["total"] = task_info.get("total", 100)
-    elif task.state == "SUCCESS":
+    elif task_state == TaskState.SUCCESS:
         response["status"] = "Task completed successfully"
         response["result"] = task_info
-    elif task.state == "FAILURE":
+    elif task_state == TaskState.FAILURE:
         response["status"] = "Task failed"
         response["error"] = task_info.get("error", str(task.info))
 
@@ -371,6 +429,7 @@ def strategy_status(strategy_name):
 @app.route("/task_status/<task_id>", methods=["GET"])
 def task_status(task_id):
     task = run_incalmo_strategy_task.AsyncResult(task_id)
+    task_state = TaskState.from_string(task.state)
 
     # Safely handle task.info
     task_info = {}
@@ -385,16 +444,16 @@ def task_status(task_id):
         except Exception as e:
             task_info = {"serialization_error": str(e)}
 
-    response = {"task_id": task_id, "state": task.state, "info": task_info}
+    response = {"task_id": task_id, "state": str(task_state), "info": task_info}
 
-    if task.state == "PENDING":
+    if task_state == TaskState.PENDING:
         response["status"] = "Task is waiting to be processed"
-    elif task.state == "PROGRESS":
+    elif task_state == TaskState.PROGRESS:
         response["status"] = task_info.get("status", "In progress")
-    elif task.state == "SUCCESS":
+    elif task_state == TaskState.SUCCESS:
         response["status"] = "Task completed successfully"
         response["result"] = task_info
-    elif task.state == "FAILURE":
+    elif task_state == TaskState.FAILURE:
         response["status"] = "Task failed"
         response["error"] = task_info.get("error", str(task.info))
 
@@ -422,7 +481,7 @@ def cancel_strategy(strategy_name):
             {
                 "message": f"Strategy {strategy_name} cancelled successfully",
                 "task_id": task_id,
-                "status": "cancelled",
+                "status": str(TaskState.REVOKED),
             }
         ), 200
 
@@ -442,21 +501,39 @@ def list_strategies():
     for strategy_name, task_id in running_strategy_tasks.items():
         task = run_incalmo_strategy_task.AsyncResult(task_id)
 
-        # Safely handle task.info to avoid serialization errors
+        task_state = TaskState.from_string(task.state)
         task_info = {}
-        if task.info:
+        if task_state == TaskState.PENDING:
+            task_info = {
+                "status": "waiting",
+                "message": "Task is waiting to be processed",
+            }
+        elif task_state == TaskState.STARTED:
+            task_info = {"status": "running", "message": "Task is currently running"}
+        elif task_state == TaskState.SUCCESS:
+            task_info = {
+                "status": "completed",
+                "message": "Task completed successfully",
+            }
             try:
-                if isinstance(task.info, dict):
-                    task_info = task.info
-                elif isinstance(task.info, Exception):
-                    task_info = {
-                        "error": str(task.info),
-                        "type": type(task.info).__name__,
-                    }
-                else:
-                    task_info = {"info": str(task.info)}
-            except Exception as e:
-                task_info = {"serialization_error": str(e)}
+                if hasattr(task, "result") and task.result:
+                    task_info["result"] = str(task.result)
+            except Exception:
+                pass  # Ignore result access errors
+        elif task_state == TaskState.FAILURE:
+            task_info = {"status": "failed", "message": "Task failed"}
+            try:
+                if hasattr(task, "result") and task.result:
+                    task_info["error"] = str(task.result)
+            except Exception:
+                task_info["error"] = "Unknown error occurred"
+        elif task_state == TaskState.REVOKED:
+            task_info = {"status": "cancelled", "message": "Task was cancelled"}
+        else:
+            task_info = {
+                "status": str(task_state),
+                "message": f"Task is in {task_state} state",
+            }
 
         strategies[strategy_name] = {
             "task_id": task_id,
@@ -465,7 +542,7 @@ def list_strategies():
         }
 
         # Mark completed/failed/revoked strategies for cleanup
-        if task.state in ["SUCCESS", "FAILURE", "REVOKED"]:
+        if task.state in [TaskState.SUCCESS, TaskState.FAILURE, TaskState.REVOKED]:
             completed_strategies.append(strategy_name)
 
     # Clean up completed strategies

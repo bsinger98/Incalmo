@@ -16,6 +16,17 @@ class Network:
 
         return all_hosts
 
+    def get_all_unique_hosts(self) -> list[Host]:
+        unique_hosts: list[Host] = []
+        seen_ips: set[str] = set()
+        for subnet in self.subnets:
+            for host in subnet.hosts:
+                host_ip_set = set(host.ip_addresses)
+                if not host_ip_set.intersection(seen_ips):
+                    unique_hosts.append(host)
+                    seen_ips.update(host_ip_set)
+        return unique_hosts
+
     def find_host_by_hostname(self, hostname: str):
         for subnet in self.subnets:
             for host in subnet.hosts:

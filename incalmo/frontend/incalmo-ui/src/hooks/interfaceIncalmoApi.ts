@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Host } from '../components/NetworkGraph';
 
 // Types for agent and strategy info
 export interface AgentInfo {
@@ -39,7 +40,6 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
@@ -50,7 +50,6 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    console.log(`[API] Response: ${response.status} ${response.config.url}`);
     return response;
   },
   (error) => {
@@ -67,6 +66,11 @@ export const useIncalmoApi = () => {
   const [agents, setAgents] = useState<Agents>({});
   const [runningStrategies, setRunningStrategies] = useState<RunningStrategies>({});
   const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [hosts, setHosts] = useState<Host[]>([]);
+  const [hostsLoading, setHostsLoading] = useState<boolean>(false);
+  const [hostsError, setHostsError] = useState<string>('');
+  const [lastHostsUpdate, setLastHostsUpdate] = useState<string>('');
+
 
   useEffect(() => {
     fetchAgents();
@@ -105,7 +109,6 @@ export const useIncalmoApi = () => {
     try {
       const response = await api.get('/available_strategies');
       setStrategies(response.data.strategies || []);
-      console.log('[API] Available strategies:', response.data);
     } catch (error) {
       console.error('Failed to fetch available strategies:', error);
     }
@@ -173,20 +176,61 @@ export const useIncalmoApi = () => {
   }
 };
 
+const fetchHosts = async () => {
+  setHostsLoading(true);
+  setHostsError('');
+  
+  try {
+    const response = await api.get('/hosts');
+    const data = response.data;
+    
+    setHosts(data.hosts || []);
+    setLastHostsUpdate(new Date().toLocaleTimeString());
+  } catch (err) {
+    setHostsError(`Network error: ${err.message}`);
+    console.error('[API] Error fetching hosts:', err);
+  } finally {
+    setHostsLoading(false);
+  }
+};
+
+  useEffect(() => {
+    fetchAgents();
+    fetchRunningStrategies();
+    fetchStrategies();
+    fetchHosts();
+    
+    const interval = setInterval(() => {
+      fetchAgents();
+      fetchRunningStrategies();
+      fetchStrategies();
+      fetchHosts();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return {
     selectedStrategy,
-    setSelectedStrategy,
     loading,
     message,
     messageType,
     agents,
     runningStrategies,
     strategies,
+    hosts,              
+    hostsLoading,       
+    hostsError,         
+    lastHostsUpdate, 
+    
+    // Actions
+    setSelectedStrategy,
     startStrategy,
     stopStrategy,
     fetchAgents,
     fetchRunningStrategies,
     fetchStrategies,
+    fetchHosts,
     getStatusColor
   };
 };
