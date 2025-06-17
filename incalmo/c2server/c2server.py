@@ -33,6 +33,7 @@ DEBUG_PORT = int(os.getenv("DEBUG_PORT", 5678))
 
 # Store agents and their pending commands
 agents = {}
+agent_deletion_queue = set()
 command_queues = defaultdict(list)
 command_results: dict[str, Command] = {}
 
@@ -67,7 +68,7 @@ def beacon():
 
     # Store agent info if new
     required_fields = ["host_ip_addrs"]
-    if paw not in agents:
+    if paw not in agents and paw not in agent_deletion_queue:
         # Validate all required fields are present and not None
         if all(json_data.get(field) not in (None, "", []) for field in required_fields):
             print(f"New agent: {paw}")
@@ -94,10 +95,17 @@ def beacon():
     if command_queues[paw]:
         next_command = command_queues[paw].pop(0)
         instructions.append(next_command)
+    # Delete agent information in server once final command is set
+    sleep_time = 3
+    if paw in agent_deletion_queue:
+        del agents[paw]
+        del command_queues[paw]
+        agent_deletion_queue.remove(paw)
+        sleep_time = 10  # Do not beacon for a while to allow for proper deletion
 
     response = {
         "paw": paw,
-        "sleep": 3,
+        "sleep": sleep_time,
         "watchdog": int(60),
         "instructions": json.dumps([json.dumps(i.display) for i in instructions]),
     }
@@ -128,6 +136,47 @@ def get_agents():
             raise ValueError(f"Malformed JSON: {exc!r}")
 
     return jsonify(agents_list)
+
+
+@app.route("/agent/delete/<paw>", methods=["DELETE"])
+def delete_agent(paw):
+    if paw not in agents:
+        return jsonify({"error": "Agent not found"}), 404
+
+    # Queue a kill command for the agent
+    decoded_info = decode_base64(agents[paw]["info"])
+    agent_info = json.loads(decoded_info)
+    agent_pid = agent_info.get("pid")
+
+    kill_command = f"(sleep 3 && kill -9 {agent_pid}) &"
+    exec_template = read_template_file("Exec_Bash_Template.sh")
+    executor_script_content = exec_template.safe_substitute(command=kill_command)
+    executor_script_path = PAYLOADS_DIR / "kill_agent.sh"
+    executor_script_path.write_text(executor_script_content)
+
+    command_id = str(uuid.uuid4())
+    instruction = Instruction(
+        id=command_id,
+        command=encode_base64("./kill_agent.sh"),
+        executor="sh",
+        timeout=60,
+        payloads=["kill_agent.sh"],
+        uploads=[],
+        delete_payload=True,
+    )
+
+    # Add command to queue
+    command_queues[paw].append(instruction)
+    command_results[command_id] = Command(
+        id=command_id,
+        instructions=instruction,
+        status=CommandStatus.PENDING,
+        result=None,
+    )
+
+    agent_deletion_queue.add(paw)
+
+    return jsonify({"message": f"Agent {paw} deleted successfully"}), 200
 
 
 # Send command to a specific agent
@@ -283,4 +332,4 @@ if __name__ == "__main__":
         print(f"[DEBUG] Waiting for debugger to attach on port {DEBUG_PORT}...")
         debugpy.wait_for_client()
         print("[DEBUG] Debugger attached!")
-    app.run(host="0.0.0.0", port=8888, debug=False)
+    app.run(host="0.0.0.0", port=8888, debug=True if not DEBUG else False)
