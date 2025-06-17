@@ -53,6 +53,19 @@ def read_template_file(filename):
     return Template(template_path.read_text())
 
 
+def get_latest_actions_log_path():
+    # Find the most recent log directory
+    output_dirs = sorted(Path("output").glob("*_*-*-*"), reverse=True)
+    if not output_dirs:
+        raise FileNotFoundError("No log directories found")
+
+    # Get the actions.json file path
+    latest_dir = output_dirs[0]
+    actions_log_path = latest_dir / "actions.json"
+
+    return actions_log_path
+
+
 # Agent check-in
 @app.route("/beacon", methods=["POST"])
 def beacon():
@@ -249,41 +262,47 @@ def agent_download():
 @app.route("/stream_logs", methods=["GET"])
 def stream_logs():
     def generate_log_stream():
-        # Send headers for SSE
         yield "retry: 1000\n\n"
 
-        # Get the latest output directory
-        output_dirs = sorted(Path("output").glob("*_*-*-*"), reverse=True)
-        if not output_dirs:
-            yield f"data: {json.dumps({'error': 'No log directories found'})}\n\n"
-            return
-
-        latest_dir = output_dirs[0]
-        actions_log_path = latest_dir / "actions.json"
-
-        if not actions_log_path.exists():
-            yield f"data: {json.dumps({'error': 'Actions log file not found'})}\n\n"
-            return
-
+        # Track the currently streaming log file
+        current_log_path = None
         position = 0
+        last_check_time = 0
 
         while True:
-            try:
-                with open(actions_log_path, "r") as f:
-                    f.seek(position)
-                    # Read any new lines
-                    for line in f:
-                        try:
-                            log_entry = json.loads(line)
-                            if log_entry.get("type") == "LowLevelAction":
-                                yield f"data: {line.strip()}\n\n"
-                        except json.JSONDecodeError:
-                            continue
-                    # Update position for next read
-                    position = f.tell()
+            # Check for a newer log file every 10 seconds
+            current_time = time.time()
+            if current_time - last_check_time > 10 or current_log_path is None:
+                try:
+                    latest_log_path = get_latest_actions_log_path()
+                    if latest_log_path != current_log_path:
+                        current_log_path = latest_log_path
+                        position = 0  # Reset position for the new file
+                        yield f"data: {json.dumps({'status': 'Switched to new log file'})}\n\n"
+                    last_check_time = current_time
+                except FileNotFoundError as e:
+                    yield f"data: {json.dumps({'error': str(e)})}\n\n"
+                    time.sleep(1)
+                    continue
 
-            except Exception as e:
-                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            # Stream from current log file
+            if current_log_path:
+                try:
+                    with open(current_log_path, "r") as f:
+                        f.seek(position)
+                        for line in f:
+                            try:
+                                log_entry = json.loads(line)
+                                if log_entry.get("type") == "LowLevelAction":
+                                    yield f"data: {line.strip()}\n\n"
+                            except json.JSONDecodeError:
+                                continue
+                        position = f.tell()
+                except FileNotFoundError:
+                    yield f"data: {json.dumps({'error': 'Log file not found, waiting...'})}\n\n"
+            else:
+                yield f"data: {json.dumps({'status': 'No log file available yet'})}\n\n"
+
             time.sleep(1)
 
     # Set appropriate headers for SSE
@@ -294,7 +313,6 @@ def stream_logs():
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "Access-Control-Allow-Origin": "*",
-            "X-Accel-Buffering": "no",  # Disable buffering in Nginx if you use it
         },
     )
 
