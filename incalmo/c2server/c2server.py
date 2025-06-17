@@ -144,45 +144,40 @@ def delete_agent(paw):
     if paw not in agents:
         return jsonify({"error": "Agent not found"}), 404
 
-    try:
-        # Queue a kill command for the agent
-        decoded_info = decode_base64(agents[paw]["info"])
-        agent_info = json.loads(decoded_info)
-        agent_pid = agent_info.get("pid")
+    # Queue a kill command for the agent
+    decoded_info = decode_base64(agents[paw]["info"])
+    agent_info = json.loads(decoded_info)
+    agent_pid = agent_info.get("pid")
 
-        kill_command = f"(sleep 3 && kill -9 {agent_pid}) &"
-        exec_template = read_template_file("Exec_Bash_Template.sh")
-        executor_script_content = exec_template.safe_substitute(command=kill_command)
-        executor_script_path = PAYLOADS_DIR / "kill_agent.sh"
-        executor_script_path.write_text(executor_script_content)
+    kill_command = f"(sleep 3 && kill -9 {agent_pid}) &"
+    exec_template = read_template_file("Exec_Bash_Template.sh")
+    executor_script_content = exec_template.safe_substitute(command=kill_command)
+    executor_script_path = PAYLOADS_DIR / "kill_agent.sh"
+    executor_script_path.write_text(executor_script_content)
 
-        command_id = str(uuid.uuid4())
-        instruction = Instruction(
-            id=command_id,
-            command=encode_base64("./kill_agent.sh"),
-            executor="sh",
-            timeout=60,
-            payloads=["kill_agent.sh"],
-            uploads=[],
-            delete_payload=True,
-        )
+    command_id = str(uuid.uuid4())
+    instruction = Instruction(
+        id=command_id,
+        command=encode_base64("./kill_agent.sh"),
+        executor="sh",
+        timeout=60,
+        payloads=["kill_agent.sh"],
+        uploads=[],
+        delete_payload=True,
+    )
 
-        # Add command to queue
-        command_queues[paw].append(instruction)
-        command_results[command_id] = Command(
-            id=command_id,
-            instructions=instruction,
-            status=CommandStatus.PENDING,
-            result=None,
-        )
+    # Add command to queue
+    command_queues[paw].append(instruction)
+    command_results[command_id] = Command(
+        id=command_id,
+        instructions=instruction,
+        status=CommandStatus.PENDING,
+        result=None,
+    )
 
-        agent_deletion_queue.add(paw)
+    agent_deletion_queue.add(paw)
 
-        return jsonify({"message": f"Agent {paw} deleted successfully"}), 200
-
-    except Exception as e:
-        print(f"Error deleting agent {paw}: {str(e)}")
-        return jsonify({"error": f"Failed to delete agent: {str(e)}"}), 500
+    return jsonify({"message": f"Agent {paw} deleted successfully"}), 200
 
 
 # Send command to a specific agent
