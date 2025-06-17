@@ -262,6 +262,7 @@ def agent_download():
 @app.route("/stream_logs", methods=["GET"])
 def stream_logs():
     def generate_log_stream():
+        # Retry in case of initial connection failure
         yield "retry: 1000\n\n"
 
         # Track the currently streaming log file
