@@ -17,7 +17,6 @@ __pycache__/
 .pytest_cache/
 coverage/
 .coverage
-
 # Temporary files
 *.tmp
 *.temp

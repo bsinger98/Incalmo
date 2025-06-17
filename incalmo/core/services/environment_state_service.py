@@ -147,7 +147,7 @@ class EnvironmentStateService:
 
     async def handle_InfectedNewHost(self, event: InfectedNewHost):
         # Add agent to network
-        self.add_infected_host(event.new_agent)
+        self.add_infected_host(event.new_agent, event.source_agent)
 
         if event.credential_used:
             event.credential_used.utilized = True
@@ -176,7 +176,7 @@ class EnvironmentStateService:
         for agent in trusted_agents:
             self.add_infected_host(agent)
 
-    def add_infected_host(self, new_agent: Agent):
+    def add_infected_host(self, new_agent: Agent, source_agent: Agent | None = None):
         # Add agent to network
         hosts = self.network.find_hosts_with_ips(new_agent.host_ip_addrs)
 
@@ -186,13 +186,20 @@ class EnvironmentStateService:
                 ip_addresses=new_agent.host_ip_addrs,
                 hostname=new_agent.hostname,
                 agents=[new_agent],
+                infection_source_agent=source_agent,
             )
             self.network.add_host(new_host)
         # If one host, we can use it
         elif len(hosts) == 1:
             host = hosts[0]
             host.hostname = new_agent.hostname
+            host.infection_source_agent = (
+                source_agent
+                if host.infection_source_agent is None
+                else host.infection_source_agent
+            )
             host.add_agent(new_agent)
+        # If the host already has the agent, we do nothing
         # If multiple hosts, we need to merge them
         elif len(hosts) > 1:
             self._merge_multiple_hosts(hosts, new_agent)

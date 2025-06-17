@@ -1,23 +1,64 @@
-from flask import Flask, request, jsonify, Response, stream_with_context
+from flask import (
+    Flask,
+    request,
+    jsonify,
+    send_from_directory,
+    send_file,
+    Response,
+    stream_with_context,
+)
+from flask_cors import CORS
 import json
 import base64
+import psutil
 import binascii
 import asyncio
+from enum import Enum
 import time
 from incalmo.models.instruction import Instruction
 import uuid
 from collections import defaultdict
+from string import Template
+import logging
+from pathlib import Path
+import os
+from typing import Dict
+
+from incalmo.c2server.celery.celery_app import make_celery
+from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
+from incalmo.c2server.celery.celery_worker import celery_worker
+
+from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
+
 from incalmo.models.command import Command, CommandStatus
 from incalmo.models.command_result import CommandResult
 from incalmo.incalmo_runner import run_incalmo_strategy
 from config.attacker_config import AttackerConfig
+
 from string import Template
 import logging
 from pathlib import Path
 import os
 import debugpy
 
+# Create Flask app
 app = Flask(__name__)
+CORS(app)
+
+# Configure Flask for Celery
+app.config.update(
+    broker_url=os.environ.get("broker_url", "redis://localhost:6379/0"),
+    result_backend=os.environ.get("result_backend", "redis://localhost:6379/0"),
+)
+celery = make_celery(app)
+app.extensions["celery"] = celery
+
+print(f"[DEBUG] Flask app broker_url: {app.config.get('broker_url')}")
+print(f"[DEBUG] Flask app result_backend: {app.config.get('result_backend')}")
+print(f"[DEBUG] Environment broker_url: {os.environ.get('broker_url')}")
+print(f"[DEBUG] Environment result_backend: {os.environ.get('result_backend')}")
+print(f"[DEBUG] Celery broker URL: {celery.conf.broker_url}")
+print(f"[DEBUG] Celery result backend: {celery.conf.result_backend}")
 # Disable Flask's default request logging
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
@@ -37,6 +78,39 @@ agents = {}
 agent_deletion_queue = set()
 command_queues = defaultdict(list)
 command_results: dict[str, Command] = {}
+
+# Store environment info
+hosts = []
+
+# Store running strategy tasks
+running_strategy_tasks: Dict[str, str] = {}  # strategy_name -> task_id
+
+
+# Enums
+class TaskState(Enum):
+    PENDING = "PENDING"
+    STARTED = "STARTED"
+    SUCCESS = "SUCCESS"
+    FAILURE = "FAILURE"
+    REVOKED = "REVOKED"
+    RETRY = "RETRY"
+    RECEIVED = "RECEIVED"
+    PROGRESS = "PROGRESS"
+
+    @classmethod
+    def from_string(cls, state_str):
+        try:
+            if not state_str or not isinstance(state_str, str):
+                # If state_str is None or empty, return PENDING
+                return cls.PENDING
+            return cls(state_str)
+
+        except (ValueError, KeyError, AttributeError, TypeError) as e:
+            # Return default state when conversion fails
+            return cls.PENDING
+
+    def __str__(self):
+        return self.value
 
 
 def decode_base64(data):
@@ -86,7 +160,7 @@ def beacon():
         # Validate all required fields are present and not None
         if all(json_data.get(field) not in (None, "", []) for field in required_fields):
             print(f"New agent: {paw}")
-            agents[paw] = {"paw": paw, "info": data}
+            agents[paw] = {"paw": paw, "info": data, "infected_by": None}
         else:
             print(
                 f"[ERROR] Agent {paw} missing required fields, not adding: "
@@ -150,6 +224,33 @@ def get_agents():
             raise ValueError(f"Malformed JSON: {exc!r}")
 
     return jsonify(agents_list)
+
+
+# Update hosts
+@app.route("/update_environment_state", methods=["POST"])
+def update_environment_state():
+    global hosts
+    try:
+        data = request.data
+        json_data = json.loads(data)
+
+        hosts = json_data.get("hosts", [])
+        return jsonify(
+            {"status": "success", "message": "Infection source reported"}
+        ), 200
+
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON data"}), 400
+
+
+# Get hosts
+@app.route("/hosts", methods=["GET"])
+def get_hosts():
+    return jsonify(
+        {
+            "hosts": hosts,
+        }
+    ), 200
 
 
 @app.route("/agent/delete/<paw>", methods=["DELETE"])
@@ -369,10 +470,11 @@ def stream_logs():
 
 # Incalmo startup
 @app.route("/startup", methods=["POST"])
-async def incalmo_startup():
+def incalmo_startup():
     try:
-        data = request.data
+        data = request.get_data()
         json_data = json.loads(data)
+
         # Validate using AttackerConfig schema
         try:
             config = AttackerConfig(**json_data)
@@ -381,22 +483,260 @@ async def incalmo_startup():
                 {"error": "Invalid configuration", "details": str(validation_error)}
             ), 400
 
-        strategy = config.strategy.llm
-        print(f"Starting task of strategy: {strategy}")
+        strategy_name = config.strategy.llm
+        print(f"[FLASK] Starting Celery task for strategy: {strategy_name}")
 
-        asyncio.create_task(run_incalmo_strategy(strategy))
+        # Use the imported task function
+        task = run_incalmo_strategy_task.delay(strategy_name)
+        task_id = task.id
+
+        # Cancel any existing strategy with the same name
+        if strategy_name in running_strategy_tasks:
+            old_task_id = running_strategy_tasks[strategy_name]
+            print(f"[FLASK] Cancelling existing task: {old_task_id}")
+            celery.control.revoke(old_task_id, terminate=True)
+
+        # Store the task ID
+        running_strategy_tasks[strategy_name] = task_id
 
         response = {
             "status": "success",
-            "message": f"Incalmo started with strategy: {strategy}",
+            "message": f"Incalmo strategy {strategy_name} started as background task",
             "config": config.model_dump(),
+            "task_id": task_id,
+            "strategy": strategy_name,
         }
 
-        return jsonify(response), 200
+        print(f"[FLASK] Strategy {strategy_name} queued with task ID: {task_id}")
+        return jsonify(response), 202  # 202 Accepted for async operation
+
     except json.JSONDecodeError:
         return jsonify({"error": "Invalid JSON data"}), 400
     except Exception as e:
+        print(f"[FLASK] Error starting strategy: {e}")
+        import traceback
+
+        traceback.print_exc()
         return jsonify({"error": f"Failed to start Incalmo server: {str(e)}"}), 500
+
+
+# Check strategy status
+@app.route("/strategy_status/<strategy_name>", methods=["GET"])
+def strategy_status(strategy_name):
+    if strategy_name not in running_strategy_tasks:
+        return jsonify({"error": "Strategy not found"}), 404
+
+    task_id = running_strategy_tasks[strategy_name]
+    task = run_incalmo_strategy_task.AsyncResult(task_id)
+    task_state = TaskState.from_string(task.state)
+
+    # Safely handle task.info
+    task_info = {}
+    if task.info:
+        try:
+            if isinstance(task.info, dict):
+                task_info = task.info
+            elif isinstance(task.info, Exception):
+                task_info = {"error": str(task.info), "type": type(task.info).__name__}
+            else:
+                task_info = {"info": str(task.info)}
+        except Exception as e:
+            task_info = {"serialization_error": str(e)}
+
+    response = {
+        "strategy": strategy_name,
+        "task_id": task_id,
+        "state": str(task_state),
+        "info": task_info,
+    }
+
+    if task_state == TaskState.PENDING:
+        response["status"] = "Task is waiting to be processed"
+    elif task_state == TaskState.PROGRESS:
+        response["status"] = task_info.get("status", "In progress")
+        response["current"] = task_info.get("current", 0)
+        response["total"] = task_info.get("total", 100)
+    elif task_state == TaskState.SUCCESS:
+        response["status"] = "Task completed successfully"
+        response["result"] = task_info
+    elif task_state == TaskState.FAILURE:
+        response["status"] = "Task failed"
+        response["error"] = task_info.get("error", str(task.info))
+
+    return jsonify(response), 200
+
+
+# Check task status by task ID
+@app.route("/task_status/<task_id>", methods=["GET"])
+def task_status(task_id):
+    task = run_incalmo_strategy_task.AsyncResult(task_id)
+    task_state = TaskState.from_string(task.state)
+
+    # Safely handle task.info
+    task_info = {}
+    if task.info:
+        try:
+            if isinstance(task.info, dict):
+                task_info = task.info
+            elif isinstance(task.info, Exception):
+                task_info = {"error": str(task.info), "type": type(task.info).__name__}
+            else:
+                task_info = {"info": str(task.info)}
+        except Exception as e:
+            task_info = {"serialization_error": str(e)}
+
+    response = {"task_id": task_id, "state": str(task_state), "info": task_info}
+
+    if task_state == TaskState.PENDING:
+        response["status"] = "Task is waiting to be processed"
+    elif task_state == TaskState.PROGRESS:
+        response["status"] = task_info.get("status", "In progress")
+    elif task_state == TaskState.SUCCESS:
+        response["status"] = "Task completed successfully"
+        response["result"] = task_info
+    elif task_state == TaskState.FAILURE:
+        response["status"] = "Task failed"
+        response["error"] = task_info.get("error", str(task.info))
+
+    return jsonify(response), 200
+
+
+# Cancel strategy
+@app.route("/cancel_strategy/<strategy_name>", methods=["POST"])
+def cancel_strategy(strategy_name):
+    if strategy_name not in running_strategy_tasks:
+        return jsonify({"error": "Strategy not found"}), 404
+
+    task_id = running_strategy_tasks[strategy_name]
+
+    try:
+        # Revoke the task with terminate=True and signal='SIGKILL'
+        celery_worker.control.revoke(task_id, terminate=True, signal="SIGTERM")
+
+        # Remove from tracking immediately
+        del running_strategy_tasks[strategy_name]
+
+        print(f"[FLASK] Strategy {strategy_name} cancelled and removed from tracking")
+
+        return jsonify(
+            {
+                "message": f"Strategy {strategy_name} cancelled successfully",
+                "task_id": task_id,
+                "status": str(TaskState.REVOKED),
+            }
+        ), 200
+
+    except Exception as e:
+        print(f"[FLASK] Error cancelling strategy {strategy_name}: {e}")
+        return jsonify(
+            {"error": f"Failed to cancel strategy: {str(e)}", "task_id": task_id}
+        ), 500
+
+
+# List all running strategies
+@app.route("/running_strategies", methods=["GET"])
+def list_strategies():
+    strategies = {}
+    completed_strategies = []
+
+    for strategy_name, task_id in running_strategy_tasks.items():
+        task = run_incalmo_strategy_task.AsyncResult(task_id)
+
+        task_state = TaskState.from_string(task.state)
+        task_info = {}
+        if task_state == TaskState.PENDING:
+            task_info = {
+                "status": "waiting",
+                "message": "Task is waiting to be processed",
+            }
+        elif task_state == TaskState.STARTED:
+            task_info = {"status": "running", "message": "Task is currently running"}
+        elif task_state == TaskState.SUCCESS:
+            task_info = {
+                "status": "completed",
+                "message": "Task completed successfully",
+            }
+            try:
+                if hasattr(task, "result") and task.result:
+                    task_info["result"] = str(task.result)
+            except Exception:
+                pass  # Ignore result access errors
+        elif task_state == TaskState.FAILURE:
+            task_info = {"status": "failed", "message": "Task failed"}
+            try:
+                if hasattr(task, "result") and task.result:
+                    task_info["error"] = str(task.result)
+            except Exception:
+                task_info["error"] = "Unknown error occurred"
+        elif task_state == TaskState.REVOKED:
+            task_info = {"status": "cancelled", "message": "Task was cancelled"}
+        else:
+            task_info = {
+                "status": str(task_state),
+                "message": f"Task is in {task_state} state",
+            }
+
+        strategies[strategy_name] = {
+            "task_id": task_id,
+            "state": task.state,
+            "info": task_info,
+        }
+
+        # Mark completed/failed/revoked strategies for cleanup
+        if task.state in [TaskState.SUCCESS, TaskState.FAILURE, TaskState.REVOKED]:
+            completed_strategies.append(strategy_name)
+
+    # Clean up completed strategies
+    for strategy_name in completed_strategies:
+        print(f"[FLASK] Cleaning up completed strategy: {strategy_name}")
+        del running_strategy_tasks[strategy_name]
+
+    return jsonify(strategies), 200
+
+
+# Health check
+@app.route("/health", methods=["GET"])
+def health_check():
+    # Check if Celery workers are available
+    inspector = celery.control.inspect()
+    active_workers = inspector.active()
+
+    return jsonify(
+        {
+            "status": "healthy",
+            "server": "Flask + Celery",
+            "celery_workers": len(active_workers) if active_workers else 0,
+            "running_strategies": len(running_strategy_tasks),
+            "broker": app.config.get("CELERY_BROKER_URL"),
+        }
+    ), 200
+
+
+@app.route("/available_strategies", methods=["GET"])
+def get_available_strategies():
+    """Get all available strategies from the registry"""
+    try:
+        strategies = []
+        for strategy_name, strategy_class in IncalmoStrategy._registry.items():
+            strategy_info = {
+                "name": strategy_name,
+            }
+            strategies.append(strategy_info)
+        strategies.sort(key=lambda x: x["name"])
+
+        return jsonify({"strategies": strategies}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to get strategies: {str(e)}"}), 500
+
+
+@app.route("/", methods=["GET"])
+def api_root():
+    return jsonify(
+        {
+            "message": "Incalmo C2 Server API",
+        }
+    )
 
 
 if __name__ == "__main__":
