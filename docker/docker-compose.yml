@@ -36,6 +36,7 @@ services:
     ports:
       - 8888:8888
       - "6379:6379"
+      - 5678:5678
 
   webserver:
     build:

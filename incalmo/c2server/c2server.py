@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, send_file
+from flask import Flask, request, jsonify, send_from_directory, send_file, Response, stream_with_context
 from flask_cors import CORS
 import json
 import base64
@@ -6,6 +6,7 @@ import psutil
 import binascii
 import asyncio
 from enum import Enum
+import time
 from incalmo.models.instruction import Instruction
 import uuid
 from collections import defaultdict
@@ -25,6 +26,12 @@ from incalmo.models.command import Command, CommandStatus
 from incalmo.models.command_result import CommandResult
 from incalmo.incalmo_runner import run_incalmo_strategy
 from config.attacker_config import AttackerConfig
+
+from string import Template
+import logging
+from pathlib import Path
+import os
+import debugpy
 
 # Create Flask app
 app = Flask(__name__)
@@ -54,8 +61,13 @@ PAYLOADS_DIR = BASE_DIR / "payloads"
 TEMPLATE_PAYLOADS_DIR = PAYLOADS_DIR / "template_payloads"
 AGENTS_DIR = BASE_DIR / "agents"
 
+# Debug configuration
+DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+DEBUG_PORT = int(os.getenv("DEBUG_PORT", 5678))
+
 # Store agents and their pending commands
 agents = {}
+agent_deletion_queue = set()
 command_queues = defaultdict(list)
 command_results: dict[str, Command] = {}
 
@@ -108,6 +120,19 @@ def read_template_file(filename):
     return Template(template_path.read_text())
 
 
+def get_latest_actions_log_path():
+    # Find the most recent log directory
+    output_dirs = sorted(Path("output").glob("*_*-*-*"), reverse=True)
+    if not output_dirs:
+        raise FileNotFoundError("No log directories found")
+
+    # Get the actions.json file path
+    latest_dir = output_dirs[0]
+    actions_log_path = latest_dir / "actions.json"
+
+    return actions_log_path
+
+
 # Agent check-in
 @app.route("/beacon", methods=["POST"])
 def beacon():
@@ -123,7 +148,7 @@ def beacon():
 
     # Store agent info if new
     required_fields = ["host_ip_addrs"]
-    if paw not in agents:
+    if paw not in agents and paw not in agent_deletion_queue:
         # Validate all required fields are present and not None
         if all(json_data.get(field) not in (None, "", []) for field in required_fields):
             print(f"New agent: {paw}")
@@ -150,10 +175,17 @@ def beacon():
     if command_queues[paw]:
         next_command = command_queues[paw].pop(0)
         instructions.append(next_command)
+    # Delete agent information in server once final command is set
+    sleep_time = 3
+    if paw in agent_deletion_queue:
+        del agents[paw]
+        del command_queues[paw]
+        agent_deletion_queue.remove(paw)
+        sleep_time = 10  # Do not beacon for a while to allow for proper deletion
 
     response = {
         "paw": paw,
-        "sleep": 3,
+        "sleep": sleep_time,
         "watchdog": int(60),
         "instructions": json.dumps([json.dumps(i.display) for i in instructions]),
     }
@@ -211,6 +243,46 @@ def get_hosts():
             "hosts": hosts,
         }
     ), 200
+
+@app.route("/agent/delete/<paw>", methods=["DELETE"])
+def delete_agent(paw):
+    if paw not in agents:
+        return jsonify({"error": "Agent not found"}), 404
+
+    # Queue a kill command for the agent
+    decoded_info = decode_base64(agents[paw]["info"])
+    agent_info = json.loads(decoded_info)
+    agent_pid = agent_info.get("pid")
+
+    kill_command = f"(sleep 3 && kill -9 {agent_pid}) &"
+    exec_template = read_template_file("Exec_Bash_Template.sh")
+    executor_script_content = exec_template.safe_substitute(command=kill_command)
+    executor_script_path = PAYLOADS_DIR / "kill_agent.sh"
+    executor_script_path.write_text(executor_script_content)
+
+    command_id = str(uuid.uuid4())
+    instruction = Instruction(
+        id=command_id,
+        command=encode_base64("./kill_agent.sh"),
+        executor="sh",
+        timeout=60,
+        payloads=["kill_agent.sh"],
+        uploads=[],
+        delete_payload=True,
+    )
+
+    # Add command to queue
+    command_queues[paw].append(instruction)
+    command_results[command_id] = Command(
+        id=command_id,
+        instructions=instruction,
+        status=CommandStatus.PENDING,
+        result=None,
+    )
+
+    agent_deletion_queue.add(paw)
+
+    return jsonify({"message": f"Agent {paw} deleted successfully"}), 200
 
 
 # Send command to a specific agent
@@ -325,6 +397,66 @@ def agent_download():
 
     except Exception as e:
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+
+
+# Stream logs
+@app.route("/stream_logs", methods=["GET"])
+def stream_logs():
+    def generate_log_stream():
+        # Retry in case of initial connection failure
+        yield "retry: 1000\n\n"
+
+        # Track the currently streaming log file
+        current_log_path = None
+        position = 0
+        last_check_time = 0
+
+        while True:
+            # Check for a newer log file every 10 seconds
+            current_time = time.time()
+            if current_time - last_check_time > 10 or current_log_path is None:
+                try:
+                    latest_log_path = get_latest_actions_log_path()
+                    if latest_log_path != current_log_path:
+                        current_log_path = latest_log_path
+                        position = 0  # Reset position for the new file
+                        yield f"data: {json.dumps({'status': 'Switched to new log file'})}\n\n"
+                    last_check_time = current_time
+                except FileNotFoundError as e:
+                    yield f"data: {json.dumps({'error': str(e)})}\n\n"
+                    time.sleep(1)
+                    continue
+
+            # Stream from current log file
+            if current_log_path:
+                try:
+                    with open(current_log_path, "r") as f:
+                        f.seek(position)
+                        for line in f:
+                            try:
+                                log_entry = json.loads(line)
+                                if log_entry.get("type") == "LowLevelAction":
+                                    yield f"data: {line.strip()}\n\n"
+                            except json.JSONDecodeError:
+                                continue
+                        position = f.tell()
+                except FileNotFoundError:
+                    yield f"data: {json.dumps({'error': 'Log file not found, waiting...'})}\n\n"
+            else:
+                yield f"data: {json.dumps({'status': 'No log file available yet'})}\n\n"
+
+            time.sleep(1)
+
+    # Set appropriate headers for SSE
+    return Response(
+        stream_with_context(generate_log_stream()),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
 
 
 # Incalmo startup
@@ -599,4 +731,10 @@ def api_root():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8888, debug=True)
+    if DEBUG:
+        print(f"[DEBUG] Starting debug server on port {DEBUG_PORT}")
+        debugpy.listen(("0.0.0.0", DEBUG_PORT))
+        print(f"[DEBUG] Waiting for debugger to attach on port {DEBUG_PORT}...")
+        debugpy.wait_for_client()
+        print("[DEBUG] Debugger attached!")
+    app.run(host="0.0.0.0", port=8888, debug=True if not DEBUG else False)
