@@ -102,7 +102,6 @@ def beacon():
         del command_queues[paw]
         agent_deletion_queue.remove(paw)
         sleep_time = 10  # Do not beacon for a while to allow for proper deletion
-        print(f"Agent {paw} deleted. Remaining agents: {list(agents.keys())}")
 
     response = {
         "paw": paw,
