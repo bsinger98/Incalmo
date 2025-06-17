@@ -40,7 +40,6 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => {
@@ -51,7 +50,6 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    console.log(`[API] Response: ${response.status} ${response.config.url}`);
     return response;
   },
   (error) => {
@@ -111,7 +109,6 @@ export const useIncalmoApi = () => {
     try {
       const response = await api.get('/available_strategies');
       setStrategies(response.data.strategies || []);
-      console.log('[API] Available strategies:', response.data);
     } catch (error) {
       console.error('Failed to fetch available strategies:', error);
     }
@@ -189,7 +186,6 @@ const fetchHosts = async () => {
     
     setHosts(data.hosts || []);
     setLastHostsUpdate(new Date().toLocaleTimeString());
-    console.log('[API] Fetched hosts:', data.hosts);
   } catch (err) {
     setHostsError(`Network error: ${err.message}`);
     console.error('[API] Error fetching hosts:', err);
