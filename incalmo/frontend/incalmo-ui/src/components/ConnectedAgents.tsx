@@ -7,15 +7,7 @@ import {
   CardContent
 } from '@mui/material';
 
-interface AgentInfo {
-  username?: string;
-  privilege?: string;
-  host_ip_addrs?: string[];
-}
-
-interface ConnectedAgentsProps {
-  agents: Record<string, AgentInfo>;
-}
+import { ConnectedAgentsProps } from '../types';
 
 const ConnectedAgents: React.FC<ConnectedAgentsProps> = ({ agents }) => {
   return (

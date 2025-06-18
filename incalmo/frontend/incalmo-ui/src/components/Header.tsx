@@ -1,11 +1,7 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, Chip } from '@mui/material';
 import { Security } from '@mui/icons-material';
-
-
-interface HeaderProps {
-  agentCount: number;
-}
+import { HeaderProps } from '../types';
 
 const Header: React.FC<HeaderProps> = ({ agentCount }) => {
   return (

@@ -11,16 +11,7 @@ import {
 } from '@mui/material';
 import { Stop } from '@mui/icons-material';
 
-interface StrategyInfo {
-  state: string;
-  task_id: string;
-}
-
-interface RunningStrategiesProps {
-  runningStrategies: Record<string, StrategyInfo>;
-  stopStrategy: (strategyName: string) => void;
-  getStatusColor: (state: string) => 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
-}
+import { RunningStrategiesProps } from '../types';
 
 const RunningStrategies: React.FC<RunningStrategiesProps> = ({
   runningStrategies,

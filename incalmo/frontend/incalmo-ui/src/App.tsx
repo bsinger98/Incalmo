@@ -10,6 +10,7 @@ import StrategyLauncher from './components/StrategyLauncher';
 import RunningStrategies from './components/RunningStrategies';
 import ConnectedAgents from './components/ConnectedAgents';
 import NetworkGraph from './components/NetworkGraph';
+import Logs from './components/Logs';
 
 const App: React.FC = () => {
   const {
@@ -24,6 +25,9 @@ const App: React.FC = () => {
     hostsLoading,
     hostsError,
     lastHostsUpdate,
+    logs,
+    streamConnected,
+    streamError,
     fetchHosts,
     setSelectedStrategy,
     startStrategy,
@@ -65,6 +69,11 @@ const App: React.FC = () => {
           />
 
           <ConnectedAgents agents={agents} />
+          <Logs 
+            logs={logs}
+            isConnected={streamConnected}
+            error={streamError}
+          />
         </Container>
       </div>
     </ThemeProvider>

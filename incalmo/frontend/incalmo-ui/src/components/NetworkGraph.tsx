@@ -37,22 +37,7 @@ import {
   Info,
 } from '@mui/icons-material';
 
-// --- Types ---
-export interface Host {
-  hostname?: string;
-  ip_addresses?: string[];
-  infected?: boolean;
-  infected_by?: string;
-  agents?: string[];
-}
-
-interface NetworkGraphProps {
-  hosts: Host[];
-  loading: boolean;
-  error?: string;
-  lastUpdate?: string;
-  onRefresh: () => void;
-}
+import { Host, NetworkGraphProps, HostNodeProps } from '../types';
 
 // Suppress ResizeObserver errors
 const suppressResizeObserverError = () => {
@@ -65,10 +50,6 @@ const suppressResizeObserverError = () => {
   return () => window.removeEventListener('error', resizeObserverErrorHandler);
 };
 
-// Memoized HostNode component
-interface HostNodeProps {
-  data: Host;
-}
 const HostNode: React.FC<HostNodeProps> = React.memo(({ data }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [showPopover, setShowPopover] = useState(false);

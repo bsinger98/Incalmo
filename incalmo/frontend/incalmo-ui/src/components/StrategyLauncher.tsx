@@ -14,20 +14,7 @@ import {
 } from '@mui/material';
 import { PlayArrow, Refresh } from '@mui/icons-material';
 
-interface Strategy {
-  name: string;
-}
-
-interface StrategyLauncherProps {
-  selectedStrategy: string;
-  setSelectedStrategy: (strategy: string) => void;
-  strategies: Strategy[];
-  loading: boolean;
-  startStrategy: () => void;
-  fetchRunningStrategies: () => void;
-  message: string;
-  messageType: 'info' | 'error' | 'success' | 'warning';
-}
+import { StrategyLauncherProps } from '../types';
 
 const StrategyLauncher: React.FC<StrategyLauncherProps> = ({
   selectedStrategy,
