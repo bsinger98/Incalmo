@@ -7,6 +7,7 @@
 ### Prerequisites
 
 - **[Docker Desktop](https://www.docker.com/)**
+- **[Node.js](https://nodejs.org/en)**
 
 ### Setup Instructions
 
@@ -48,3 +49,32 @@ In a new terminal window, attach to the running container and execute Incalmo:
    docker compose exec attacker /bin/bash
    uv run main.py
    ```
+
+### UI Interface (optional)
+
+If you want to use the web-based interface for Incalmo:
+
+#### 1. Start Backend
+
+Follow Steps 1 through 3 in the [Setup Instructions](#setup-instructions).
+
+#### 2. Install Node.js dependencies
+
+Install Node dependencies:
+
+   ```bash
+   cd frontend/incalmo-ui
+   npm install
+   ```
+
+#### 3. Start the React Server
+
+Once dependencies are installed, run the react server:
+
+   ```bash
+   npm start
+   ```
+
+This will lauch the frontend at [http://localhost:3000](http://localhost:3000)
+
+
