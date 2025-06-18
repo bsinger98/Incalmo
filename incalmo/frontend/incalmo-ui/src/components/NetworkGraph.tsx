@@ -50,7 +50,7 @@ const suppressResizeObserverError = () => {
   return () => window.removeEventListener('error', resizeObserverErrorHandler);
 };
 
-const HostNode: React.FC<HostNodeProps> = React.memo(({ data }) => {
+const HostNode = React.memo(({ data }: HostNodeProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [showPopover, setShowPopover] = useState(false);
 
@@ -210,7 +210,7 @@ const nodeTypes = {
   hostNode: HostNode,
 };
 
-const NetworkGraph: React.FC<NetworkGraphProps> = ({ hosts, loading, error, lastUpdate, onRefresh }) => {
+const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkGraphProps) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isInitialized, setIsInitialized] = useState(false);

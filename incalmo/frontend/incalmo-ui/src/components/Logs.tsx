@@ -15,7 +15,7 @@ import {
 import { ExpandMore, ExpandLess } from '@mui/icons-material';
 import { LogsProps } from '../types';
 
-const Logs: React.FC<LogsProps> = ({ logs, isConnected, error }) => {
+const Logs = ({ logs, isConnected, error }: LogsProps) => {
   const logContainerRef = useRef<HTMLDivElement>(null);
   const [expandedLogs, setExpandedLogs] = useState<Record<number, boolean>>({});
 

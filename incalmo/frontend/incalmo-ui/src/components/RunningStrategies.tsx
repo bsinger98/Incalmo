@@ -13,11 +13,11 @@ import { Stop } from '@mui/icons-material';
 
 import { RunningStrategiesProps } from '../types';
 
-const RunningStrategies: React.FC<RunningStrategiesProps> = ({
+const RunningStrategies = ({
   runningStrategies,
   stopStrategy,
   getStatusColor,
-}) => {
+}: RunningStrategiesProps) => {
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h6" gutterBottom>

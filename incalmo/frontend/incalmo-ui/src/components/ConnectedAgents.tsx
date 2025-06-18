@@ -9,7 +9,7 @@ import {
 
 import { ConnectedAgentsProps } from '../types';
 
-const ConnectedAgents: React.FC<ConnectedAgentsProps> = ({ agents }) => {
+const ConnectedAgents = ({ agents } : ConnectedAgentsProps) => {
   return (
     <Paper sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>

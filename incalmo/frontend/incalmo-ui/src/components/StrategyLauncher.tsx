@@ -16,7 +16,7 @@ import { PlayArrow, Refresh } from '@mui/icons-material';
 
 import { StrategyLauncherProps } from '../types';
 
-const StrategyLauncher: React.FC<StrategyLauncherProps> = ({
+const StrategyLauncher = ({
   selectedStrategy,
   setSelectedStrategy,
   strategies,
@@ -25,7 +25,7 @@ const StrategyLauncher: React.FC<StrategyLauncherProps> = ({
   fetchRunningStrategies,
   message,
   messageType
-}) => {
+}:StrategyLauncherProps) => {
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h5" gutterBottom>
