@@ -14,22 +14,9 @@ import {
 } from '@mui/material';
 import { PlayArrow, Refresh } from '@mui/icons-material';
 
-interface Strategy {
-  name: string;
-}
+import { StrategyLauncherProps } from '../types';
 
-interface StrategyLauncherProps {
-  selectedStrategy: string;
-  setSelectedStrategy: (strategy: string) => void;
-  strategies: Strategy[];
-  loading: boolean;
-  startStrategy: () => void;
-  fetchRunningStrategies: () => void;
-  message: string;
-  messageType: 'info' | 'error' | 'success' | 'warning';
-}
-
-const StrategyLauncher: React.FC<StrategyLauncherProps> = ({
+const StrategyLauncher = ({
   selectedStrategy,
   setSelectedStrategy,
   strategies,
@@ -38,7 +25,7 @@ const StrategyLauncher: React.FC<StrategyLauncherProps> = ({
   fetchRunningStrategies,
   message,
   messageType
-}) => {
+}:StrategyLauncherProps) => {
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
       <Typography variant="h5" gutterBottom>

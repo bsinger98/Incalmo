@@ -1,32 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Host } from '../components/NetworkGraph';
 
-// Types for agent and strategy info
-export interface AgentInfo {
-  username?: string;
-  privilege?: string;
-  host_ip_addrs?: string[];
-}
+import {
+  Host,
+  RunningStrategies,
+  Agents,
+  Strategy,
+  LogEntry,
+  MessageType
+} from '../types'
 
-export interface StrategyInfo {
-  state: string;
-  task_id: string;
-}
 
-export interface RunningStrategies {
-  [strategyName: string]: StrategyInfo;
-}
-
-export interface Agents {
-  [paw: string]: AgentInfo;
-}
-
-export interface Strategy {
-  name: string;
-}
-
-type MessageType = 'info' | 'error' | 'success' | 'warning';
 
 const API_BASE_URL = 'http://localhost:8888';
 
@@ -58,6 +42,7 @@ api.interceptors.response.use(
   }
 );
 
+// Hook to manage Incalmo API interactions
 export const useIncalmoApi = () => {
   const [selectedStrategy, setSelectedStrategy] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -71,20 +56,33 @@ export const useIncalmoApi = () => {
   const [hostsError, setHostsError] = useState<string>('');
   const [lastHostsUpdate, setLastHostsUpdate] = useState<string>('');
 
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [streamConnected, setStreamConnected] = useState<boolean>(false);
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
     fetchAgents();
     fetchRunningStrategies();
     fetchStrategies();
-
+    fetchHosts();
+    connectToLogStream();
+    
+    // Set up polling interval
     const interval = setInterval(() => {
       fetchAgents();
       fetchRunningStrategies();
       fetchStrategies();
-    }, 5000);
+      fetchHosts();
+    }, 10000);
 
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      clearInterval(interval);
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+    };
   }, []);
 
   const fetchAgents = async (): Promise<void> => {
@@ -194,21 +192,64 @@ const fetchHosts = async () => {
   }
 };
 
-  useEffect(() => {
-    fetchAgents();
-    fetchRunningStrategies();
-    fetchStrategies();
-    fetchHosts();
-    
-    const interval = setInterval(() => {
-      fetchAgents();
-      fetchRunningStrategies();
-      fetchStrategies();
-      fetchHosts();
-    }, 10000);
+  const connectToLogStream = () => {
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+    }
 
-    return () => clearInterval(interval);
-  }, []);
+    try {
+      const eventSource = new EventSource(`${API_BASE_URL}/stream_logs`);
+      eventSourceRef.current = eventSource;
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.status) {
+            console.log('Log stream status:', data.status);
+            return;
+          }
+          
+          if (data.error) {
+            setStreamError(data.error);
+            return;
+          }
+          
+          if (data.type === 'LowLevelAction') {
+            setLogs(prevLogs => {
+              const newLogs = [...prevLogs, data];
+              if (newLogs.length > 200) {
+                return newLogs.slice(-200);
+              }
+              return newLogs;
+            });
+          }
+        } catch (e) {
+          console.error('Error parsing log data:', e);
+        }
+      };
+      
+      eventSource.onopen = () => {
+        setStreamConnected(true);
+        setStreamError(null);
+      };
+      
+      eventSource.onerror = () => {
+        setStreamConnected(false);
+        setStreamError('Connection to log stream failed. Will try to reconnect...');
+        
+        setTimeout(() => {
+          if (eventSourceRef.current === eventSource) {
+            connectToLogStream();
+          }
+        }, 5000);
+      };
+    } catch (error) {
+      console.error('Failed to connect to log stream:', error);
+      setStreamError('Failed to establish log stream connection');
+    }
+  };
+
 
   return {
     selectedStrategy,
@@ -222,6 +263,9 @@ const fetchHosts = async () => {
     hostsLoading,       
     hostsError,         
     lastHostsUpdate, 
+    logs,                
+    streamConnected,     
+    streamError, 
     
     // Actions
     setSelectedStrategy,
