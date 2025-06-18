@@ -7,7 +7,7 @@
 ### Prerequisites
 
 - **[Docker Desktop](https://www.docker.com/)**
-- **[Node.js](https://nodejs.org/en)**(Optional: only needed [UI Interface](#ui-interface-optional))
+- **[Node.js](https://nodejs.org/en)** (Optional: only needed for [UI Interface](#ui-interface-optional))
 
 ### Setup Instructions
 
