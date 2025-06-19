@@ -29,6 +29,7 @@ const App = () => {
     streamConnected,
     streamError,
     fetchHosts,
+    deleteAgent,
     setSelectedStrategy,
     startStrategy,
     stopStrategy,
@@ -122,7 +123,7 @@ const App = () => {
                   display: 'flex',
                   flexDirection: 'column' 
                 }}>
-                  <ConnectedAgents agents={agents} />
+                  <ConnectedAgents agents={agents} deleteAgent={deleteAgent}/>
                 </Box>
               </Paper>
             </Box>
