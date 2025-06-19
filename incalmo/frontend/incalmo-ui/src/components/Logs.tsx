@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   Chip,
   Divider,
@@ -10,7 +9,8 @@ import {
   Alert,
   CircularProgress,
   IconButton,
-  Collapse
+  Collapse,
+  Tooltip
 } from '@mui/material';
 import { ExpandMore, ExpandLess } from '@mui/icons-material';
 import { LogsProps } from '../types';
@@ -31,9 +31,9 @@ const Logs = ({ logs, isConnected, error }: LogsProps) => {
   };
 
   return (
-    <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Box sx={{ 
-        p: 2, 
+        p: 1.5, 
         backgroundColor: 'primary.dark', 
         color: 'primary.contrastText',
         display: 'flex',
@@ -59,7 +59,7 @@ const Logs = ({ logs, isConnected, error }: LogsProps) => {
         sx={{ 
           flex: 1, 
           overflow: 'auto',
-          p: 1,
+          p: 0.5,
           backgroundColor: 'background.default'
         }}
       >
@@ -74,68 +74,114 @@ const Logs = ({ logs, isConnected, error }: LogsProps) => {
               <ListItem 
                 key={index} 
                 sx={{ 
-                  mb: 1, 
-                  p: 2, 
+                  mb: 0.5, 
+                  p: 1, 
                   backgroundColor: 'background.paper',
                   borderRadius: 1,
-                  borderLeft: 4, 
+                  borderLeft: 4,
+                  borderColor: 'primary.main',
+                  display: 'block'
                 }}
               >
-                <Box sx={{ width: '100%' }}>
-                  {/* Main log info always visible */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ ml: 1, fontSize: '0.8rem' }}>
-                      {log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : ''}
-                    </Typography>
-                    <Typography variant="subtitle2" sx={{ ml: 2, fontWeight: 'bold', flexGrow: 1 }}>
-                      {log.action_name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
-                      {log.action_params.agent.paw || 'N/A'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ mr: 2 }}>
-                      {log.type}
-                    </Typography>
-                    
-                    {/* Only show expand button if action_results contains stdout or stderr */}
-                    {hasExpandableContent(log) && (
+                {/* Time and action name */}
+                <Box sx={{ mb: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="caption" color="text.secondary">
+                    {log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : ''}
+                  </Typography>
+                  {hasExpandableContent(log) && (
+                    <Tooltip title={expandedLogs[index] ? "Hide details" : "Show details"}>
                       <IconButton 
                         size="small" 
                         onClick={() => toggleExpand(index)}
-                        sx={{ ml: 1 }}
+                        sx={{ p: 0, ml: 0.5, height: 20, width: 20 }}
                       >
-                        {expandedLogs[index] ? <ExpandLess /> : <ExpandMore />}
+                        {expandedLogs[index] ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
                       </IconButton>
-                    )}
-                  </Box>
-                  
-                  {/* Collapsible stdout/stderr section from action_results */}
-                  {hasExpandableContent(log) && (
-                    <Collapse in={expandedLogs[index] === true} timeout="auto" unmountOnExit>
-                      <Box sx={{ ml: 2, mt: 1 }}>
-                        {log.action_results?.stdout && (
-                          <Box sx={{ mt: 1, p: 1, backgroundColor: 'action.hover', borderRadius: 1, overflow: 'auto' }}>
-                            <Typography variant="caption" color="text.secondary">Output:</Typography>
-                            <pre style={{ margin: 0, fontSize: '0.8rem' }}>{log.action_results.stdout}</pre>
-                          </Box>
-                        )}
-                        
-                        {log.action_results?.stderr && (
-                          <Box sx={{ mt: 1, p: 1, backgroundColor: 'error.main', color: 'error.contrastText', borderRadius: 1, overflow: 'auto' }}>
-                            <Typography variant="caption">Error:</Typography>
-                            <pre style={{ margin: 0, fontSize: '0.8rem' }}>{log.action_results.stderr}</pre>
-                          </Box>
-                        )}
-                      </Box>
-                    </Collapse>
+                    </Tooltip>
                   )}
                 </Box>
+                
+                {/* Action name and PAW */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'medium', maxWidth: '65%' }} noWrap>
+                    {log.action_name}
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Chip
+                      label={log.action_params?.agent?.paw || 'N/A'}
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      sx={{ 
+                        height: 20, 
+                        fontSize: '0.7rem',
+                        '& .MuiChip-label': { px: 1 }
+                      }}
+                    />
+                  </Box>
+                </Box>
+                
+                {/* Collapsible stdout/stderr section */}
+                {hasExpandableContent(log) && (
+                  <Collapse in={expandedLogs[index] === true} timeout="auto" unmountOnExit>
+                    <Box sx={{ mt: 1 }}>
+                      {log.action_results?.stdout && (
+                        <Box sx={{ 
+                          p: 1, 
+                          backgroundColor: 'action.hover', 
+                          borderRadius: 1, 
+                          mb: 1,
+                          maxHeight: '150px',
+                          overflow: 'auto'
+                        }}>
+                          <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                            Output:
+                          </Typography>
+                          <pre style={{ 
+                            margin: 0, 
+                            fontSize: '0.75rem',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all',
+                            overflowWrap: 'break-word'
+                          }}>
+                            {log.action_results.stdout}
+                          </pre>
+                        </Box>
+                      )}
+                      
+                      {log.action_results?.stderr && (
+                        <Box sx={{ 
+                          p: 1, 
+                          backgroundColor: 'error.main', 
+                          color: 'error.contrastText', 
+                          borderRadius: 1,
+                          maxHeight: '150px',
+                          overflow: 'auto'
+                        }}>
+                          <Typography variant="caption" display="block" gutterBottom>
+                            Error:
+                          </Typography>
+                          <pre style={{ 
+                            margin: 0, 
+                            fontSize: '0.75rem',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all',
+                            overflowWrap: 'break-word'
+                          }}>
+                            {log.action_results.stderr}
+                          </pre>
+                        </Box>
+                      )}
+                    </Box>
+                  </Collapse>
+                )}
               </ListItem>
             ))}
           </List>
         )}
       </Box>
-    </Paper>
+    </Box>
   );
 };
 
