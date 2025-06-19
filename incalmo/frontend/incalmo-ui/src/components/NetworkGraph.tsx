@@ -379,8 +379,13 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
   }
 
   return (
-    <Paper sx={{ p: 3, mb: 3, height: 700 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100%',
+      width: '100%' 
+    }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="h6">Network Attack Graph</Typography>
 
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -398,7 +403,7 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 1 }}>
           {error}
         </Alert>
       )}
@@ -409,7 +414,13 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
         </Typography>
       )}
 
-      <Box sx={{ height: 600, border: '1px solid #ddd', borderRadius: 1 }}>
+      <Box sx={{ 
+        flex: 1, // Take up remaining space
+        border: '1px solid #ddd',
+        borderRadius: 1,
+        overflow: 'hidden', // Prevent overflow
+        minHeight: 0 // Critical for flexbox children to scroll properly
+      }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -420,6 +431,7 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
           connectionLineType={ConnectionLineType.SmoothStep}
           fitView={nodes.length === 0}
           fitViewOptions={{ padding: 0.1 }}
+          style={{ width: '100%', height: '100%' }} // Ensure ReactFlow fills the container
         >
           <Background />
           <Controls />
@@ -458,13 +470,13 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
       </Box>
 
       {(!hosts || hosts.length === 0) && !loading && (
-        <Box sx={{ textAlign: 'center', py: 4 }}>
+        <Box sx={{ textAlign: 'center', py: 2 }}>
           <Typography color="textSecondary">
             No hosts data available. Start a strategy to see the network graph.
           </Typography>
         </Box>
       )}
-    </Paper>
+    </Box>
   );
 };
 

@@ -1,13 +1,13 @@
 import React from 'react';
 import {
-  Paper,
   Typography,
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   Chip,
+  Box,
+  Divider
 } from '@mui/material';
 import { Stop } from '@mui/icons-material';
 
@@ -19,49 +19,65 @@ const RunningStrategies = ({
   getStatusColor,
 }: RunningStrategiesProps) => {
   return (
-    <Paper sx={{ p: 3, mb: 3 }}>
-      <Typography variant="h6" gutterBottom>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Typography variant="subtitle1" gutterBottom fontWeight="medium">
         Running Strategies ({Object.keys(runningStrategies).length})
       </Typography>
       
+      <Divider sx={{ mb: 1 }} />
+      
       {Object.keys(runningStrategies).length === 0 ? (
-        <Typography color="textSecondary">
+        <Typography color="text.secondary" variant="body2" sx={{ py: 2, textAlign: 'center' }}>
           No strategies currently running
         </Typography>
       ) : (
-        <List>
+        <List dense sx={{ 
+          overflow: 'auto', 
+          flex: 1,
+          '& .MuiListItem-root': {
+            py: 1
+          }
+        }}>
           {Object.entries(runningStrategies).map(([strategyName, strategyInfo]) => (
-            <ListItem key={strategyName} divider>
+            <ListItem 
+              key={strategyName} 
+              divider
+              secondaryAction={
+                <IconButton
+                  edge="end"
+                  onClick={() => stopStrategy(strategyName)}
+                  color="error"
+                  size="small"
+                  title="Stop Strategy"
+                >
+                  <Stop fontSize="small" />
+                </IconButton>
+              }
+            >
               <ListItemText
                 primary={strategyName}
+                slotProps={{
+                  primary: { variant: 'body2', fontWeight: 'medium' }
+                }}
                 secondary={
-                  // Use React.Fragment instead of Box to avoid div-in-p nesting
                   <React.Fragment>
                     <Chip
                       label={strategyInfo.state}
                       color={getStatusColor(strategyInfo.state)}
                       size="small"
-                      sx={{ mr: 1 }}
+                      sx={{ mr: 1, mt: 0.5, height: 20, '& .MuiChip-label': { px: 1, fontSize: '0.7rem' } }}
                     />
-                    Task ID: {strategyInfo.task_id}
+                    <Typography variant="caption" component="span" color="text.secondary">
+                      ID: {strategyInfo.task_id.substring(0, 8)}...
+                    </Typography>
                   </React.Fragment>
                 }
               />
-              <ListItemSecondaryAction>
-                <IconButton
-                  edge="end"
-                  onClick={() => stopStrategy(strategyName)}
-                  color="error"
-                  title="Stop Strategy"
-                >
-                  <Stop />
-                </IconButton>
-              </ListItemSecondaryAction>
             </ListItem>
           ))}
         </List>
       )}
-    </Paper>
+    </Box>
   );
 };
 

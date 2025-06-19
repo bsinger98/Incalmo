@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Paper,
   Typography,
   Box,
   FormControl,
@@ -27,13 +26,14 @@ const StrategyLauncher = ({
   messageType
 }:StrategyLauncherProps) => {
   return (
-    <Paper sx={{ p: 3, mb: 3 }}>
-      <Typography variant="h5" gutterBottom>
+    <Box>
+      <Typography variant="h6" gutterBottom>
         Launch Incalmo Strategy
       </Typography>
       
-      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-        <FormControl sx={{ minWidth: 300 }}>
+      {/* Changed to vertical layout */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+        <FormControl fullWidth>
           <InputLabel>Select Strategy</InputLabel>
           <Select
             value={selectedStrategy}
@@ -49,19 +49,22 @@ const StrategyLauncher = ({
           </Select>
         </FormControl>
         
-        <Button
-          variant="contained"
-          startIcon={loading ? <CircularProgress size={20} /> : <PlayArrow />}
-          onClick={startStrategy}
-          disabled={loading || !selectedStrategy}
-          size="large"
-        >
-          {loading ? 'Starting...' : 'Start Strategy'}
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            variant="contained"
+            startIcon={loading ? <CircularProgress size={20} /> : <PlayArrow />}
+            onClick={startStrategy}
+            disabled={loading || !selectedStrategy}
+            size="large"
+            fullWidth
+          >
+            {loading ? 'Starting...' : 'Start Strategy'}
+          </Button>
 
-        <IconButton onClick={fetchRunningStrategies} title="Refresh">
-          <Refresh />
-        </IconButton>
+          <IconButton onClick={fetchRunningStrategies} title="Refresh">
+            <Refresh />
+          </IconButton>
+        </Box>
       </Box>
 
       {message && (
@@ -69,7 +72,7 @@ const StrategyLauncher = ({
           {message}
         </Alert>
       )}
-    </Paper>
+    </Box>
   );
 };
 
