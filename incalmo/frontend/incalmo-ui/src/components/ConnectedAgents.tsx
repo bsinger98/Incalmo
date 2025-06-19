@@ -1,16 +1,42 @@
-import React from 'react';
+import React , {useState} from 'react';
 import {
   Typography,
   Box,
   Card,
   Divider,
-  Chip
+  Chip,
+  IconButton, 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions, 
+  Button,
+  CircularProgress
 } from '@mui/material';
-import { Computer, PersonOutline } from '@mui/icons-material';
+import { Delete, Computer, PersonOutline } from '@mui/icons-material';
 
 import { ConnectedAgentsProps } from '../types';
 
-const ConnectedAgents = ({ agents } : ConnectedAgentsProps) => {
+const ConnectedAgents = ({ agents, deleteAgent } : ConnectedAgentsProps) => {
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  const [agentToDelete, setAgentToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  const handleDeleteClick = (paw: string) => {
+    setAgentToDelete(paw);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!agentToDelete) return; 
+    setIsDeleting(true);
+    await deleteAgent(agentToDelete);
+    setIsDeleting(false);
+    setDeleteDialogOpen(false);
+    setAgentToDelete(null);
+  };
+
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="subtitle1" gutterBottom fontWeight="medium">
@@ -40,8 +66,23 @@ const ConnectedAgents = ({ agents } : ConnectedAgentsProps) => {
               mb: 1,
               py: 0.5,
               px: 1,
-              height: 'fit-content' 
+              pb: 2,
+              height: 'fit-content', 
+              position: 'relative',
             }}>
+              <IconButton 
+                size="small" 
+                sx={{ 
+                  position: 'absolute', 
+                  bottom: 2, 
+                  right: 2,
+                  padding: 0.5,
+                  '&:hover': { color: 'error.main' }
+                }}
+                onClick={() => handleDeleteClick(paw)}
+              >
+                <Delete fontSize="small" />
+              </IconButton>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Computer color="primary" sx={{ fontSize: 16, mr: 0.5 }} />
                 <Typography variant="subtitle2" color="primary.main" noWrap sx={{ flex: 1, lineHeight: 1.2 }}>
@@ -83,6 +124,32 @@ const ConnectedAgents = ({ agents } : ConnectedAgentsProps) => {
               </Typography>
             </Card>
           ))}
+          <Dialog
+            open={deleteDialogOpen}
+            onClose={() => setDeleteDialogOpen(false)}
+            aria-labelledby="delete-dialog-title"
+          >
+            <DialogTitle id="delete-dialog-title">Delete Agent</DialogTitle>
+            <DialogContent>
+              <Typography>
+                Are you sure you want to delete agent {agentToDelete}? 
+                This will terminate the agent process on the remote machine.
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={confirmDelete} 
+                color="error" 
+                disabled={isDeleting}
+                startIcon={isDeleting ? <CircularProgress size={16} /> : null}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       )}
     </Box>

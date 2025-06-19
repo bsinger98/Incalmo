@@ -94,6 +94,15 @@ export const useIncalmoApi = () => {
     }
   };
 
+  const deleteAgent = async (paw: string): Promise<void> => {
+    try {
+      await api.delete(`/agent/delete/${paw}`);
+      await fetchAgents();
+      } catch (error) {
+      console.error('Failed to fetch agents:', error);
+    }
+  };
+
   const fetchRunningStrategies = async (): Promise<void> => {
     try {
       const response = await api.get('/running_strategies');
@@ -272,6 +281,7 @@ const fetchHosts = async () => {
     startStrategy,
     stopStrategy,
     fetchAgents,
+    deleteAgent,
     fetchRunningStrategies,
     fetchStrategies,
     fetchHosts,
