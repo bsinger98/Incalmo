@@ -51,7 +51,7 @@ class LangChainRegistry:
                 model="gemini-2-flash", temperature=0.7
             ),
             # Other models
-            "deepseek-7b": lambda: ChatDeepseek(
+            "deepseek-7b": lambda: ChatDeepSeek(
                 model="deepseek-ai/deepseek-coder-7b-instruct", temperature=0.7
             ),
         }
@@ -74,3 +74,6 @@ class LangChainRegistry:
         model = self._model_factories[model_name]()
         self._models[model_name] = model
         return model
+
+    def list_models(self) -> list[str]:
+        return list(self._model_factories.keys())
