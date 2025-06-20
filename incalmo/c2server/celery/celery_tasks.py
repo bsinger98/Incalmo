@@ -7,7 +7,6 @@ import os
 import sys
 import psutil
 
-# Import the worker's celery instance
 from incalmo.c2server.celery.celery_worker import celery_worker
 
 
@@ -37,7 +36,7 @@ def run_incalmo_strategy_task(self, strategy_name: str):
             },
         )
 
-        # Run the strategy (remove signal handling - let Celery handle termination)
+        # Run the strategy
         result = asyncio.run(run_incalmo_strategy(strategy_name))
 
         self.update_state(
@@ -56,7 +55,6 @@ def run_incalmo_strategy_task(self, strategy_name: str):
         print(f"[CELERY_TASK] Strategy {strategy_name} failed with error: {e}")
         traceback.print_exc()
 
-        # Ensure error info is JSON serializable
         error_info = {
             "error": str(e),
             "error_type": type(e).__name__,
@@ -65,7 +63,6 @@ def run_incalmo_strategy_task(self, strategy_name: str):
 
         self.update_state(state="FAILURE", meta=error_info)
 
-        # Return the error instead of raising to avoid serialization issues
         return {"status": "failed", "error": str(e), "strategy": strategy_name}
 
 
@@ -73,7 +70,6 @@ def run_incalmo_strategy_task(self, strategy_name: str):
 def cancel_strategy_task(self, task_id: str):
     """Cancel a running strategy task."""
     try:
-        # Use SIGTERM instead of SIGKILL for more graceful termination
         celery_worker.control.revoke(task_id, terminate=True, signal="SIGTERM")
         return {"status": "success", "message": f"Task {task_id} cancelled"}
     except Exception as e:

@@ -9,6 +9,7 @@ from incalmo.core.services import (
 from incalmo.api.server_api import C2ApiClient
 from abc import ABC, abstractmethod
 from datetime import datetime
+from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
 
 
 class IncalmoStrategy(ABC):
@@ -22,7 +23,6 @@ class IncalmoStrategy(ABC):
 
     @classmethod
     def get(cls, name: str) -> type["IncalmoStrategy"]:
-        print("Registered strategies:", IncalmoStrategy._registry.keys())
         try:
             print(f"Retrieving strategy: {name.lower()}")
             return cls._registry[name.lower()]
@@ -31,6 +31,12 @@ class IncalmoStrategy(ABC):
 
     @classmethod
     def build_strategy(cls, name: str, **kwargs) -> "IncalmoStrategy":
+        print("Registered strategies:", IncalmoStrategy._registry.keys())
+        registry = LangChainRegistry()
+        available_models = registry.list_models()
+        if name in available_models:
+            langchain_strategy_cls = cls._registry["langchain"]
+            return langchain_strategy_cls(llm=name)
         strategy_cls = cls.get(name)
         print(f"Building strategy: {strategy_cls.__name__} with args: {kwargs}")
         return strategy_cls(**kwargs)
