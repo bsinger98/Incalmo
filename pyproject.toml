@@ -20,6 +20,9 @@ dependencies = [
     "redis>=6.2.0",
     "requests>=2.32.3",
     "structlog>=25.3.0",
+    "langchain>=0.3.25",
+    "langchain-openai>=0.3.24",
+    "langchain-anthropic>=0.3.15",
 ]
 
 [dependency-groups]
