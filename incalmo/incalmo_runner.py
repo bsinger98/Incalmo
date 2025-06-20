@@ -19,7 +19,7 @@ async def run_incalmo_strategy(strategy_name: str):
     print(f"[INFO] Starting Incalmo with strategy: {strategy_name}")
 
     print(f"[DEBUG] Building strategy...")
-    strategy = LangChainStrategy(strategy_name)
+    strategy = IncalmoStrategy.build_strategy(strategy_name)
 
     print(f"[DEBUG] Initializing strategy...")
     await strategy.initialize()

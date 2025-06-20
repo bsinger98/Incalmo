@@ -29,6 +29,7 @@ from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
 from incalmo.c2server.celery.celery_worker import celery_worker
 
 from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
+from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
 
 from incalmo.models.command import Command, CommandStatus
 from incalmo.models.command_result import CommandResult
@@ -718,12 +719,22 @@ def get_available_strategies():
     try:
         strategies = []
         for strategy_name, strategy_class in IncalmoStrategy._registry.items():
-            strategy_info = {
-                "name": strategy_name,
-            }
-            strategies.append(strategy_info)
-        strategies.sort(key=lambda x: x["name"])
+            if strategy_name not in ["langchain", "llmstrategy"]:
+                strategies.append(
+                    {
+                        "name": strategy_name,
+                    }
+                )
+            elif strategy_name == "langchain":
+                models = LangChainRegistry().list_models()
+                for model in models:
+                    strategies.append(
+                        {
+                            "name": model,
+                        }
+                    )
 
+        strategies.sort(key=lambda x: x["name"])
         return jsonify({"strategies": strategies}), 200
 
     except Exception as e:
