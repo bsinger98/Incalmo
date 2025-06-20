@@ -1,15 +1,17 @@
 from incalmo.core.strategies.llm.interfaces.llm_interface import LLMInterface
 from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from config.attacker_config import AttackerConfig
+from incalmo.core.services import EnvironmentStateService
 
 
 class LangChainInterface(LLMInterface):
     def __init__(
         self,
         logger,
-        environment_state_service,
-        config,
-        model_name,
+        environment_state_service: EnvironmentStateService,
+        config: AttackerConfig,
+        model_name: str,
     ):
         super().__init__(logger, environment_state_service, config)
 
