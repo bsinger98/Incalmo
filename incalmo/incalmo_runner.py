@@ -5,11 +5,12 @@ from incalmo.core.strategies import llm
 from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
 from incalmo.core.services import ConfigService
 from incalmo.core.strategies.testers.equifax_test import EquifaxStrategy
+from incalmo.core.strategies.llm.langchain_strategy import LangChainStrategy
 
 TIMEOUT_SECONDS = 75 * 60
 
 
-async def run_incalmo_strategy(strategy_name=None):
+async def run_incalmo_strategy(strategy_name: str):
     """Run incalmo with the specified strategy"""
 
     if not strategy_name:
@@ -18,7 +19,7 @@ async def run_incalmo_strategy(strategy_name=None):
     print(f"[INFO] Starting Incalmo with strategy: {strategy_name}")
 
     print(f"[DEBUG] Building strategy...")
-    strategy = IncalmoStrategy.build_strategy(strategy_name)
+    strategy = LangChainStrategy(strategy_name)
 
     print(f"[DEBUG] Initializing strategy...")
     await strategy.initialize()
@@ -27,9 +28,7 @@ async def run_incalmo_strategy(strategy_name=None):
     start_time = asyncio.get_event_loop().time()
 
     while True:
-        print(
-            f"[DEBUG] Running strategy: {strategy.__class__.__name__}"
-        )  # Regular print
+        print(f"[DEBUG] Running strategy: {strategy.__class__.__name__}")
         result = await strategy.main()
         if result:
             print(f"[DEBUG] Strategy completed with result: {result}")

@@ -183,7 +183,7 @@ def beacon():
     if command_queues[paw]:
         next_command = command_queues[paw].pop(0)
         instructions.append(next_command)
-    # Delete agent information in server once final command is set
+
     sleep_time = 3
     if paw in agent_deletion_queue:
         del agents[paw]

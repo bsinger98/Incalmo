@@ -43,7 +43,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
         )
 
         # Initial network assumptions
-        self.llm_interface = self.create_llm_interface(self.config.strategy.llm)
+        self.llm_interface = self.create_llm_interface()
 
         self.bash_log = ""
 
@@ -52,7 +52,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
         self.last_response = None
 
     @abstractmethod
-    def create_llm_interface(self, model_name) -> LLMInterface:
+    def create_llm_interface(self) -> LLMInterface:
         pass
 
     async def finished_cb(self):

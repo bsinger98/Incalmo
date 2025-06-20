@@ -13,7 +13,11 @@ class EquifaxAttackerState(Enum):
 
 
 class LangChainStrategy(LLMStrategy, name="langchain"):
-    def create_llm_interface(self, model_name) -> LLMInterface:
+    def __init__(self, llm: str = ""):
+        self.llm = llm
+        super().__init__()
+
+    def create_llm_interface(self) -> LLMInterface:
         return LangChainInterface(
-            self.logger, self.environment_state_service, self.config, model_name
+            self.logger, self.environment_state_service, self.config, self.llm
         )
