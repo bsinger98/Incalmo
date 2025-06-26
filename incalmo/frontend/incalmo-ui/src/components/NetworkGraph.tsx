@@ -36,6 +36,7 @@ import {
   Refresh,
   Info,
 } from '@mui/icons-material';
+import dagre from 'dagre';
 
 import { Host, NetworkGraphProps, HostNodeProps } from '../types';
 
@@ -49,6 +50,40 @@ const suppressResizeObserverError = () => {
   window.addEventListener('error', resizeObserverErrorHandler);
   return () => window.removeEventListener('error', resizeObserverErrorHandler);
 };
+
+// Tree layout configuration
+const dagreGraph = new dagre.graphlib.Graph();
+dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+const nodeWidth = 220;  // match Card min/maxWidth
+const nodeHeight = 100; // estimate node height
+
+function getTreeLayoutedElements(nodes: Node[], edges: Edge[]) {
+  dagreGraph.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 100 });
+
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+  });
+
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  return nodes.map((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    return {
+      ...node,
+      position: {
+        x: nodeWithPosition.x - nodeWidth / 2,
+        y: nodeWithPosition.y - nodeHeight / 2,
+      },
+      sourcePosition: Position.Bottom,
+      targetPosition: Position.Top,
+    };
+  });
+}
 
 const HostNode = React.memo(({ data }: HostNodeProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -82,7 +117,7 @@ const HostNode = React.memo(({ data }: HostNodeProps) => {
     <>
       <Handle
         type="target"
-        position={Position.Left}
+        position={Position.Top}
         style={{
           background: '#f44336',
           width: 8,
@@ -91,7 +126,7 @@ const HostNode = React.memo(({ data }: HostNodeProps) => {
       />
       <Handle
         type="source"
-        position={Position.Right}
+        position={Position.Bottom}
         style={{
           background: '#4caf50',
           width: 8,
@@ -241,27 +276,10 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
     return hosts.map((host, index) => {
       const hostId = getHostId(host, index);
 
-      let position;
-      if (nodePositions.has(hostId)) {
-        position = nodePositions.get(hostId)!;
-      } else {
-        const angle = (index / hosts.length) * 2 * Math.PI;
-        const radius = Math.max(200, hosts.length * 30);
-        const centerX = 400;
-        const centerY = 300;
-
-        position = {
-          x: centerX + radius * Math.cos(angle),
-          y: centerY + radius * Math.sin(angle)
-        };
-
-        setNodePositions(prev => new Map(prev.set(hostId, position)));
-      }
-
       return {
         id: hostId,
         type: 'hostNode',
-        position,
+        position: { x: 0, y: 0 },
         data: { ...host },
         draggable: true,
       } as Node<Host>;
@@ -323,6 +341,12 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
 
     return edges;
   }, [hosts]);
+
+  const [layoutedNodes, layoutedEdges] = useMemo(() => {
+    if (!hostNodes.length) return [[], []];
+    const layouted = getTreeLayoutedElements(hostNodes, infectionEdges);
+    return [layouted, infectionEdges];
+  }, [hostNodes, infectionEdges]);
 
   // Debounced update function
   const updateNodesAndEdges = useCallback((newNodes: Node<Host>[], newEdges: Edge[]) => {
@@ -422,24 +446,20 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
         minHeight: 0 // Critical for flexbox children to scroll properly
       }}>
         <ReactFlow
-          nodes={nodes}
-          edges={edges}
+          nodes={layoutedNodes}
+          edges={layoutedEdges}
           onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           connectionLineType={ConnectionLineType.SmoothStep}
-          fitView={nodes.length === 0}
+          fitView={layoutedNodes.length === 0}
           fitViewOptions={{ padding: 0.1 }}
-          style={{ width: '100%', height: '100%' }} // Ensure ReactFlow fills the container
+          style={{ width: '100%', height: '100%' }}
+          proOptions={{ hideAttribution: true }}
         >
           <Background />
           <Controls />
-          <MiniMap
-            nodeStrokeColor={(n) => n.data?.infected ? '#f44336' : '#4caf50'}
-            nodeColor={(n) => n.data?.infected ? '#ffcdd2' : '#c8e6c9'}
-            nodeBorderRadius={2}
-          />
 
           <Panel position="top-left">
             <Box sx={{
