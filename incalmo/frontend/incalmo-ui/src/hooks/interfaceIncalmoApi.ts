@@ -6,7 +6,7 @@ import {
   RunningStrategies,
   Agents,
   Strategy,
-  LogEntry,
+  ActionLogEntry,
   MessageType
 } from '../types'
 
@@ -56,17 +56,20 @@ export const useIncalmoApi = () => {
   const [hostsError, setHostsError] = useState<string>('');
   const [lastHostsUpdate, setLastHostsUpdate] = useState<string>('');
 
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [streamConnected, setStreamConnected] = useState<boolean>(false);
-  const [streamError, setStreamError] = useState<string | null>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const [actionLogs, setActionLogs] = useState<ActionLogEntry[]>([]);
+  const [actionStreamConnected, setActionStreamConnected] = useState<boolean>(false);
+  const [actionStreamError, setActionStreamError] = useState<string | null>(null);
+  const [llmLogs, setLLMLogs] = useState<string[]>([]);
+  const [llmStreamConnected, setLLMStreamConnected] = useState<boolean>(false);
+  const [llmStreamError, setLLMStreamError] = useState<string | null>(null);
+  const actionEventSourceRef = useRef<EventSource | null>(null);
+  const llmEventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
     fetchAgents();
     fetchRunningStrategies();
     fetchStrategies();
     fetchHosts();
-    //connectToLogStream();
     
     // Set up polling interval
     const interval = setInterval(() => {
@@ -78,9 +81,13 @@ export const useIncalmoApi = () => {
 
     return () => {
       clearInterval(interval);
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
+      if (actionEventSourceRef.current) {
+        actionEventSourceRef.current.close();
+        actionEventSourceRef.current = null;
+      }
+      if (llmEventSourceRef.current) {
+        llmEventSourceRef.current.close();
+        llmEventSourceRef.current = null;
       }
     };
   }, []);
@@ -130,7 +137,8 @@ export const useIncalmoApi = () => {
 
     setLoading(true);
     setMessage('');
-    setLogs([]);
+    setActionLogs([]);
+    setLLMLogs([]);
 
     try {
       const config = {
@@ -151,7 +159,8 @@ export const useIncalmoApi = () => {
 
       fetchRunningStrategies();
       setTimeout(() => {
-        connectToLogStream();
+        connectToActionLogStream();
+        connectToLLMLogStream();
       }, 5000);
 
     } catch (error: any) {
@@ -205,18 +214,19 @@ const fetchHosts = async () => {
   }
 };
 
-  const connectToLogStream = () => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
+  const connectToActionLogStream = () => {
+    if (actionEventSourceRef.current) {
+      actionEventSourceRef.current.close();
     }
 
     try {
-      const eventSource = new EventSource(`${API_BASE_URL}/stream_logs`);
-      eventSourceRef.current = eventSource;
+      const eventSource = new EventSource(`${API_BASE_URL}/stream_action_logs`);
+      actionEventSourceRef.current = eventSource;
 
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          console.log("Parsed log data:", data);
           
           if (data.status) {
             console.log('Log stream status:', data.status);
@@ -224,12 +234,12 @@ const fetchHosts = async () => {
           }
           
           if (data.error) {
-            setStreamError(data.error);
+            setActionStreamError(data.error);
             return;
           }
           
           if (data.type === 'LowLevelAction') {
-            setLogs(prevLogs => {
+            setActionLogs(prevLogs => {
               const newLogs = [...prevLogs, data];
               if (newLogs.length > 200) {
                 return newLogs.slice(-200);
@@ -238,28 +248,74 @@ const fetchHosts = async () => {
             });
           }
         } catch (e) {
-          console.error('Error parsing log data:', e);
+          console.error('Error parsing action log data:', e);
         }
       };
       
       eventSource.onopen = () => {
-        setStreamConnected(true);
-        setStreamError(null);
+        setActionStreamConnected(true);
+        setActionStreamError(null);
       };
       
       eventSource.onerror = () => {
-        setStreamConnected(false);
-        setStreamError('Connection to log stream failed. Will try to reconnect...');
+        setActionStreamConnected(false);
+        setActionStreamError('Connection to action log stream failed. Will try to reconnect...');
         
         setTimeout(() => {
-          if (eventSourceRef.current === eventSource) {
-            connectToLogStream();
+          if (actionEventSourceRef.current === eventSource) {
+            connectToActionLogStream();
+          }
+        }, 5000);
+      };
+    } catch (error) {
+      console.error('Failed to connect to action log stream:', error);
+      setActionStreamError('Failed to establish action log stream connection');
+    }
+  };
+
+  const connectToLLMLogStream = () => {
+    if (llmEventSourceRef.current) {
+      llmEventSourceRef.current.close();
+    }
+
+    try {
+      const eventSource = new EventSource(`${API_BASE_URL}/stream_llm_logs`);
+      llmEventSourceRef.current = eventSource;
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = event.data;
+          
+          setLLMLogs(prevLogs => {
+          const newLogs = [...prevLogs, data];
+          if (newLogs.length > 200) {
+            return newLogs.slice(-200);
+          }
+          return newLogs;
+        });
+        } catch (e) {
+          console.error('Error parsing LLM log data:', e);
+        }
+      };
+      
+      eventSource.onopen = () => {
+        setLLMStreamConnected(true);
+        setLLMStreamError(null);
+      };
+      
+      eventSource.onerror = () => {
+        setLLMStreamConnected(false);
+        setLLMStreamError('Connection to LLM log stream failed. Will try to reconnect...');
+        
+        setTimeout(() => {
+          if (llmEventSourceRef.current === eventSource) {
+            connectToLLMLogStream();
           }
         }, 5000);
       };
     } catch (error) {
       console.error('Failed to connect to log stream:', error);
-      setStreamError('Failed to establish log stream connection');
+      setLLMStreamError('Failed to establish log stream connection');
     }
   };
 
@@ -276,9 +332,12 @@ const fetchHosts = async () => {
     hostsLoading,       
     hostsError,         
     lastHostsUpdate, 
-    logs,                
-    streamConnected,     
-    streamError, 
+    actionLogs,                
+    actionStreamConnected,     
+    actionStreamError, 
+    llmLogs,
+    llmStreamConnected,
+    llmStreamError,
     
     // Actions
     setSelectedStrategy,

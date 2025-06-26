@@ -1,4 +1,4 @@
-import { Agents, Strategy, MessageType, StrategyInfo, LogEntry } from './api.types';
+import { Agents, Strategy, MessageType, StrategyInfo, ActionLogEntry } from './api.types';
 
 // Header
 export interface HeaderProps {
@@ -52,8 +52,14 @@ export interface HostNodeProps {
 }
 
 // Logs
-export interface LogsProps {
-  logs: LogEntry[];
+export interface ActionLogsProps {
+  logs: ActionLogEntry[];
+  isConnected: boolean;
+  error: string | null;
+}
+
+export interface LLMLogsProps {
+  logs: string[];
   isConnected: boolean;
   error: string | null;
 }

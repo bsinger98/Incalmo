@@ -22,7 +22,7 @@ export interface Strategy {
   name: string;
 }
 
-export interface LogEntry {
+export interface ActionLogEntry {
   type: string;
   timestamp: string;
   action_name: string;

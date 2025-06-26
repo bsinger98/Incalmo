@@ -129,17 +129,20 @@ def read_template_file(filename):
     return Template(template_path.read_text())
 
 
-def get_latest_actions_log_path():
+def get_latest_log_path():
     # Find the most recent log directory
     output_dirs = sorted(Path("output").glob("*_*-*-*"), reverse=True)
     if not output_dirs:
         raise FileNotFoundError("No log directories found")
 
-    # Get the actions.json file path
     latest_dir = output_dirs[0]
+    # Get the actions.json file path
     actions_log_path = latest_dir / "actions.json"
 
-    return actions_log_path
+    # Get the llm.log file path
+    llm_log_path = latest_dir / "llm.log"
+
+    return actions_log_path, llm_log_path
 
 
 # Agent check-in
@@ -409,9 +412,9 @@ def agent_download():
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
-# Stream logs
-@app.route("/stream_logs", methods=["GET"])
-def stream_logs():
+# Stream action logs
+@app.route("/stream_action_logs", methods=["GET"])
+def stream_action_logs():
     def generate_log_stream():
         # Retry in case of initial connection failure
         yield "retry: 1000\n\n"
@@ -426,7 +429,7 @@ def stream_logs():
             current_time = time.time()
             if current_time - last_check_time > 10 or current_log_path is None:
                 try:
-                    latest_log_path = get_latest_actions_log_path()
+                    latest_log_path = get_latest_log_path()[0]
                     if latest_log_path != current_log_path:
                         current_log_path = latest_log_path
                         position = 0  # Reset position for the new file
@@ -449,6 +452,61 @@ def stream_logs():
                                     yield f"data: {line.strip()}\n\n"
                             except json.JSONDecodeError:
                                 continue
+                        position = f.tell()
+                except FileNotFoundError:
+                    yield f"data: {json.dumps({'error': 'Log file not found, waiting...'})}\n\n"
+            else:
+                yield f"data: {json.dumps({'status': 'No log file available yet'})}\n\n"
+
+            time.sleep(1)
+
+    # Set appropriate headers for SSE
+    return Response(
+        stream_with_context(generate_log_stream()),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
+
+
+# Stream llm logs
+@app.route("/stream_llm_logs", methods=["GET"])
+def stream_llm_logs():
+    def generate_log_stream():
+        # Retry in case of initial connection failure
+        yield "retry: 1000\n\n"
+
+        # Track the currently streaming log file
+        current_log_path = None
+        position = 0
+        last_check_time = 0
+
+        while True:
+            # Check for a newer log file every 10 seconds
+            current_time = time.time()
+            if current_time - last_check_time > 10 or current_log_path is None:
+                try:
+                    latest_log_path = get_latest_log_path()[1]
+                    if latest_log_path != current_log_path:
+                        current_log_path = latest_log_path
+                        position = 0  # Reset position for the new file
+                        yield f"data: {json.dumps({'status': 'Switched to new log file'})}\n\n"
+                    last_check_time = current_time
+                except FileNotFoundError as e:
+                    yield f"data: {json.dumps({'error': str(e)})}\n\n"
+                    time.sleep(1)
+                    continue
+
+            # Stream from current log file
+            if current_log_path:
+                try:
+                    with open(current_log_path, "r") as f:
+                        f.seek(position)
+                        for line in f:
+                            yield f"data: {line.strip()}\n\n"
                         position = f.tell()
                 except FileNotFoundError:
                     yield f"data: {json.dumps({'error': 'Log file not found, waiting...'})}\n\n"
