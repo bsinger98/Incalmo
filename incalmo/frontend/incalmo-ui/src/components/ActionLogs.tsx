@@ -40,7 +40,7 @@ const ActionLogs = ({ logs, isConnected, error }: ActionLogsProps) => {
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <Typography variant="h6">Action Logs</Typography>
+        <Typography variant="h6">Incalmo Action Logs</Typography>
         <Chip 
           label={isConnected ? 'Connected' : 'Disconnected'} 
           color={isConnected ? 'success' : 'error'}
