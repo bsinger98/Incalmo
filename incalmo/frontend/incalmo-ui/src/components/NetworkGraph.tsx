@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef, MouseEvent } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, MouseEvent } from 'react';
 import ReactFlow, {
-  MiniMap,
   Controls,
   Background,
   useNodesState,
@@ -13,7 +12,6 @@ import ReactFlow, {
   Node,
   Edge,
   NodeChange,
-  EdgeChange,
   Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -40,17 +38,6 @@ import dagre from 'dagre';
 
 import { Host, NetworkGraphProps, HostNodeProps } from '../types';
 
-// Suppress ResizeObserver errors
-const suppressResizeObserverError = () => {
-  const resizeObserverErrorHandler = (e: ErrorEvent) => {
-    if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
-      e.stopImmediatePropagation();
-    }
-  };
-  window.addEventListener('error', resizeObserverErrorHandler);
-  return () => window.removeEventListener('error', resizeObserverErrorHandler);
-};
-
 // Tree layout configuration
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -58,10 +45,13 @@ dagreGraph.setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 220;  // match Card min/maxWidth
 const nodeHeight = 100; // estimate node height
 
-function getTreeLayoutedElements(nodes: Node[], edges: Edge[]) {
+function getTreeLayoutedElements(nodes: Node[], edges: Edge[], savedPositions: Map<string, {x: number, y: number}>) {
+  const nodesToLayout = nodes.filter(node => !savedPositions.has(node.id));
+  const nodesWithSavedPositions = nodes.filter(node => savedPositions.has(node.id));
+  
   dagreGraph.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 100 });
 
-  nodes.forEach((node) => {
+  nodesToLayout.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
   });
 
@@ -71,7 +61,7 @@ function getTreeLayoutedElements(nodes: Node[], edges: Edge[]) {
 
   dagre.layout(dagreGraph);
 
-  return nodes.map((node) => {
+  const layoutedNodes = nodesToLayout.map((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
     return {
       ...node,
@@ -83,6 +73,8 @@ function getTreeLayoutedElements(nodes: Node[], edges: Edge[]) {
       targetPosition: Position.Top,
     };
   });
+
+  return [...layoutedNodes, ...nodesWithSavedPositions];
 }
 
 const HostNode = React.memo(({ data }: HostNodeProps) => {
@@ -250,7 +242,6 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [nodePositions, setNodePositions] = useState<Map<string, { x: number; y: number }>>(new Map());
-  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Suppress ResizeObserver errors
   useEffect(() => {
@@ -333,11 +324,15 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
 
     return hosts.map((host, index) => {
       const hostId = getHostId(host, index);
+    
+    const position = nodePositions.has(hostId) 
+      ? nodePositions.get(hostId)! 
+      : { x: 0, y: 0 };
 
       return {
         id: hostId,
         type: 'hostNode',
-        position: { x: 0, y: 0 },
+        position: position,
         data: { ...host },
         draggable: true,
       } as Node<Host>;
@@ -402,38 +397,30 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
 
   const [layoutedNodes, layoutedEdges] = useMemo(() => {
     if (!hostNodes.length) return [[], []];
-    const layouted = getTreeLayoutedElements(hostNodes, infectionEdges);
-    return [layouted, infectionEdges];
-  }, [hostNodes, infectionEdges]);
-
-  // Debounced update function
-  const updateNodesAndEdges = useCallback((newNodes: Node<Host>[], newEdges: Edge[]) => {
-    if (updateTimeoutRef.current) {
-      clearTimeout(updateTimeoutRef.current);
-    }
-
-    updateTimeoutRef.current = setTimeout(() => {
-      setNodes(newNodes);
-      setEdges(newEdges);
-    }, 100);
-  }, [setNodes, setEdges]);
+    const allLayoutedNodes = getTreeLayoutedElements(hostNodes, infectionEdges, nodePositions);
+    const finalNodes = allLayoutedNodes.map(node => {
+      if (nodePositions.has(node.id)) {
+        return {
+          ...node,
+          position: nodePositions.get(node.id)!
+        };
+      }
+      return node;
+    });
+    return [finalNodes, infectionEdges];
+  }, [hostNodes, infectionEdges, nodePositions]);
 
   // Update nodes and edges when hosts change
   useEffect(() => {
-    if (!loading && hosts && hosts.length > 0) {
-      updateNodesAndEdges(hostNodes, infectionEdges);
-      setIsInitialized(true);
-    }
-  }, [hostNodes, infectionEdges, loading, updateNodesAndEdges]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (updateTimeoutRef.current) {
-        clearTimeout(updateTimeoutRef.current);
+    if (layoutedNodes.length > 0) {
+      setNodes(layoutedNodes);
+      setEdges(layoutedEdges);
+      
+      if (!isInitialized && !loading) {
+        setIsInitialized(true);
       }
-    };
-  }, []);
+    }
+  }, [layoutedNodes, layoutedEdges, loading, setNodes, setEdges, isInitialized]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -504,14 +491,14 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
         minHeight: 0 // Critical for flexbox children to scroll properly
       }}>
         <ReactFlow
-          nodes={layoutedNodes}
-          edges={layoutedEdges}
+          nodes={nodes}
+          edges={edges}
           onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           connectionLineType={ConnectionLineType.SmoothStep}
-          fitView={layoutedNodes.length === 0}
+          fitView={nodes.length === 0}
           fitViewOptions={{ padding: 0.1 }}
           style={{ width: '100%', height: '100%' }}
           proOptions={{ hideAttribution: true }}
