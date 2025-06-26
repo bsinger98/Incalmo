@@ -66,7 +66,7 @@ export const useIncalmoApi = () => {
     fetchRunningStrategies();
     fetchStrategies();
     fetchHosts();
-    connectToLogStream();
+    //connectToLogStream();
     
     // Set up polling interval
     const interval = setInterval(() => {
@@ -130,6 +130,7 @@ export const useIncalmoApi = () => {
 
     setLoading(true);
     setMessage('');
+    setLogs([]);
 
     try {
       const config = {
@@ -149,6 +150,9 @@ export const useIncalmoApi = () => {
       setSelectedStrategy('');
 
       fetchRunningStrategies();
+      setTimeout(() => {
+        connectToLogStream();
+      }, 5000);
 
     } catch (error: any) {
       const errorMsg = error.response?.data?.error || error.message || 'Failed to start strategy';
