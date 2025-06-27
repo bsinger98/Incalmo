@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, MouseEvent } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -7,11 +7,6 @@ import ReactFlow, {
   addEdge,
   ConnectionLineType,
   Panel,
-  Handle,
-  Position,
-  Node,
-  Edge,
-  NodeChange,
   Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -19,219 +14,17 @@ import {
   Paper,
   Typography,
   Box,
-  Chip,
-  Card,
-  CardContent,
-  IconButton,
-  Tooltip,
   Alert,
-  Popover,
 } from '@mui/material';
-import {
-  Computer,
-  Security,
-  Warning,
-  Refresh,
-  Info,
-} from '@mui/icons-material';
-import dagre from 'dagre';
 
-import { Host, NetworkGraphProps, HostNodeProps } from '../types';
-
-// Tree layout configuration
-const dagreGraph = new dagre.graphlib.Graph();
-dagreGraph.setDefaultEdgeLabel(() => ({}));
-
-const nodeWidth = 220;  // match Card min/maxWidth
-const nodeHeight = 100; // estimate node height
-
-function getTreeLayoutedElements(nodes: Node[], edges: Edge[], savedPositions: Map<string, {x: number, y: number}>) {
-  const nodesToLayout = nodes.filter(node => !savedPositions.has(node.id));
-  const nodesWithSavedPositions = nodes.filter(node => savedPositions.has(node.id));
-  
-  dagreGraph.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 100 });
-
-  nodesToLayout.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-  });
-
-  edges.forEach((edge) => {
-    dagreGraph.setEdge(edge.source, edge.target);
-  });
-
-  dagre.layout(dagreGraph);
-
-  const layoutedNodes = nodesToLayout.map((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
-    return {
-      ...node,
-      position: {
-        x: nodeWithPosition.x - nodeWidth / 2,
-        y: nodeWithPosition.y - nodeHeight / 2,
-      },
-      sourcePosition: Position.Bottom,
-      targetPosition: Position.Top,
-    };
-  });
-
-  return [...layoutedNodes, ...nodesWithSavedPositions];
-}
-
-const HostNode = React.memo(({ data }: HostNodeProps) => {
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const [showPopover, setShowPopover] = useState(false);
-
-  const handleMouseEnter = (event: MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-    setShowPopover(true);
-  };
-
-  const handleMouseLeave = () => {
-    setShowPopover(false);
-    setAnchorEl(null);
-  };
-
-  const getHostDisplayName = (host: Host) => {
-    if (host.hostname && host.hostname.trim()) {
-      return host.hostname;
-    }
-    if (host.ip_addresses && host.ip_addresses.length > 0) {
-      const firstIp = host.ip_addresses[0];
-      const lastOctet = firstIp.split('.').pop();
-      return `Host-${lastOctet}`;
-    }
-    return 'Unknown-Host';
-  };
-
-  const displayName = getHostDisplayName(data);
-
-  return (
-    <>
-      <Handle
-        type="target"
-        position={Position.Top}
-        style={{
-          background: '#f44336',
-          width: 8,
-          height: 8,
-        }}
-      />
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        style={{
-          background: '#4caf50',
-          width: 8,
-          height: 8,
-        }}
-      />
-      <Card
-        sx={{
-          minWidth: 180,
-          maxWidth: 220,
-          border: data.infected ? '3px solid #f44336' : '3px solid #4caf50',
-          backgroundColor: data.infected ? '#ffebee' : '#e8f5e9',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease-in-out',
-          position: 'relative',
-          '&:hover': {
-            boxShadow: 6,
-            transform: 'scale(1.05)',
-          },
-        }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        <CardContent sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            {data.infected ? (
-              <Security color="error" sx={{ mr: 1, fontSize: 20 }} />
-            ) : (
-              <Computer color="success" sx={{ mr: 1, fontSize: 20 }} />
-            )}
-            <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 'bold', color: data.infected ? '#630000' : '#1b5e20'  }}>
-              {displayName}
-            </Typography>
-          </Box>
-
-          <Typography 
-            variant="caption" 
-            sx={{ display: 'block', mb: 1, color: 'rgba(0, 0, 0, 0.87)' }} >
-            {data.ip_addresses?.join(', ') || 'No IPs'}
-          </Typography>
-
-          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-            <Chip
-              label={data.infected ? 'Compromised' : 'Clean'}
-              color={data.infected ? 'error' : 'success'}
-              size="small"
-            />
-            {data.agents && data.agents.length > 0 && (
-              <Chip
-                label={`${data.agents.length} Agent${data.agents.length > 1 ? 's' : ''}`}
-                color="primary"
-                size="small"
-              />
-            )}
-          </Box>
-        </CardContent>
-      </Card>
-
-      <Popover
-        open={showPopover}
-        anchorEl={anchorEl}
-        onClose={handleMouseLeave}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        sx={{ pointerEvents: 'none' }}
-        disableRestoreFocus
-      >
-        <Card sx={{ maxWidth: 350, p: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            {displayName}
-          </Typography>
-
-          <Typography variant="body2" color="textSecondary" gutterBottom>
-            <strong>IPs:</strong> {data.ip_addresses?.join(', ') || 'None'}
-          </Typography>
-
-          <Typography variant="body2" gutterBottom>
-            <strong>Status:</strong>
-            <Chip
-              label={data.infected ? 'Compromised' : 'Clean'}
-              color={data.infected ? 'error' : 'success'}
-              size="small"
-              sx={{ ml: 1 }}
-            />
-          </Typography>
-
-          {data.infected_by && (
-            <Typography variant="body2" color="error" gutterBottom>
-              <strong>Infected by Agent:</strong> {data.infected_by}
-            </Typography>
-          )}
-
-          {data.agents && data.agents.length > 0 && (
-            <Box sx={{ mb: 1 }}>
-              <Typography variant="body2" fontWeight="bold">Agents:</Typography>
-              {data.agents.map((agentPaw, idx) => (
-                <Typography key={idx} variant="caption" display="block" sx={{ ml: 1 }}>
-                  • {agentPaw}
-                </Typography>
-              ))}
-            </Box>
-          )}
-
-          {(!data.agents || data.agents.length === 0) && (
-            <Typography variant="body2" color="textSecondary" gutterBottom>
-              <strong>Agents:</strong> None
-            </Typography>
-          )}
-        </Card>
-      </Popover>
-    </>
-  );
-});
+import { NetworkGraphProps } from '../types';
+import HostNode from './HostNode';
+import NetworkGraphStats from './NetworkGraphStats';
+import NetworkGraphLegend from './NetworkGraphLegend';
+import { useNodePositions } from '../hooks/useNodePositions';
+import { useErrorSuppression } from '../hooks/useErrorSuppression';
+import { useGraphData } from '../hooks/useGraphData';
+import { getTreeLayoutedElements, calculateNetworkStats } from '../utils/graphUtils';
 
 const nodeTypes = {
   hostNode: HostNode,
@@ -239,164 +32,23 @@ const nodeTypes = {
 
 const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkGraphProps) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [nodePositions, setNodePositions] = useState<Map<string, { x: number; y: number }>>(new Map());
 
-  // Suppress ResizeObserver errors
-  useEffect(() => {
-      // Store original console methods
-      const originalConsoleError = console.error;
-      
-      // Override console.error to intercept ResizeObserver messages
-      console.error = (...args) => {
-        // Check if this is a ResizeObserver error
-        if (
-          args.length > 0 && 
-          typeof args[0] === 'string' && 
-          (args[0].includes('ResizeObserver loop') || args[0].includes('ResizeObserver'))
-        ) {
-          // Silently ignore
-          return;
-        }
-        
-        // Pass through other errors normally
-        originalConsoleError.apply(console, args);
-      };
-      
-      // Clean up
-      return () => {
-        console.error = originalConsoleError;
-      };
-    }, []);
-  useEffect(() => {
-  const handleError = (event: ErrorEvent) => {
-      // More robust pattern matching to catch any ResizeObserver related errors
-      if (
-        event.message && 
-        (
-          event.message.includes('ResizeObserver') || 
-          event.message.includes('ResizeObserver loop')
-        )
-      ) {
-        // Prevent default error handling
-        event.preventDefault();
-        event.stopPropagation();
-        
-        // Try to remove any error overlays
-        const overlayElements = [
-          document.getElementById('webpack-dev-server-client-overlay'),
-          document.getElementById('webpack-dev-server-client-overlay-div'),
-          // Additional overlay containers that might be created
-          ...Array.from(document.querySelectorAll('[class*="overlay"]')),
-          ...Array.from(document.querySelectorAll('[id*="overlay"]'))
-        ];
-        
-        // Remove overlay elements if they exist
-        overlayElements.forEach(el => el && el.remove());
-        
-        return false;
-      }
-    };
+  // Custom hooks for managing component state and behavior
+  const { nodePositions, handleNodesChange } = useNodePositions();
+  useErrorSuppression();
 
-    // Use capture phase
-    window.addEventListener('error', handleError, true);
-    
-    return () => {
-      window.removeEventListener('error', handleError, true);
-    };
-  }, []);
+  // Transform hosts data into graph nodes and edges
+  const { nodes: hostNodes, edges: infectionEdges } = useGraphData({
+    hosts,
+    nodePositions
+  });
 
-  // Generate a unique ID for each host
-  const getHostId = (host: Host, index: number): string => {
-    if (host.hostname && host.hostname.trim()) {
-      return host.hostname;
-    }
-    if (host.ip_addresses && host.ip_addresses.length > 0) {
-      return `host-${host.ip_addresses[0].replace(/\./g, '-')}`;
-    }
-    return `host-${index}`;
-  };
-
-  // Convert hosts to ReactFlow nodes with persistent positions
-  const hostNodes = useMemo(() => {
-    if (!hosts || hosts.length === 0) return [];
-
-    return hosts.map((host, index) => {
-      const hostId = getHostId(host, index);
-    
-    const position = nodePositions.has(hostId) 
-      ? nodePositions.get(hostId)! 
-      : { x: 0, y: 0 };
-
-      return {
-        id: hostId,
-        type: 'hostNode',
-        position: position,
-        data: { ...host },
-        draggable: true,
-      } as Node<Host>;
-    });
-  }, [hosts, nodePositions]);
-
-  const handleNodesChange = useCallback((changes: NodeChange[]) => {
-    changes.forEach((change) => {
-      if (change.type === 'position' && change.position) {
-        setNodePositions(prev => new Map(prev.set(change.id, change.position!)));
-      }
-    });
-    onNodesChange(changes);
-  }, [onNodesChange]);
-
-  // Convert infection relationships to ReactFlow edges
-  const infectionEdges = useMemo(() => {
-    if (!hosts || hosts.length === 0) return [];
-
-    const edges: Edge[] = [];
-
-    hosts.forEach((targetHost, targetIndex) => {
-      if (targetHost.infected && targetHost.infected_by) {
-        const sourceHostIndex = hosts.findIndex(h =>
-          h.agents && h.agents.includes(targetHost.infected_by!)
-        );
-
-        if (sourceHostIndex !== -1) {
-          const sourceHost = hosts[sourceHostIndex];
-          const sourceHostId = getHostId(sourceHost, sourceHostIndex);
-          const targetHostId = getHostId(targetHost, targetIndex);
-
-          if (sourceHostId !== targetHostId) {
-            edges.push({
-              id: `${sourceHostId}->${targetHostId}`,
-              source: sourceHostId,
-              target: targetHostId,
-              type: 'smoothstep',
-              animated: true,
-              style: {
-                stroke: '#f44336',
-                strokeWidth: 4,
-              },
-              label: targetHost.infected_by,
-              labelStyle: {
-                fontSize: 12,
-                fontWeight: 'bold',
-                fill: '#f44336'
-              },
-              markerEnd: {
-                type: 'arrowclosed',
-                color: '#f44336',
-              },
-            } as Edge);
-          }
-        }
-      }
-    });
-
-    return edges;
-  }, [hosts]);
-
+  // Apply layout algorithm to position nodes
   const [layoutedNodes, layoutedEdges] = useMemo(() => {
     if (!hostNodes.length) return [[], []];
+
     const allLayoutedNodes = getTreeLayoutedElements(hostNodes, infectionEdges, nodePositions);
     const finalNodes = allLayoutedNodes.map(node => {
       if (nodePositions.has(node.id)) {
@@ -407,36 +59,37 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
       }
       return node;
     });
+
     return [finalNodes, infectionEdges];
   }, [hostNodes, infectionEdges, nodePositions]);
 
-  // Update nodes and edges when hosts change
+  // Update ReactFlow state when layout changes
   useEffect(() => {
     if (layoutedNodes.length > 0) {
       setNodes(layoutedNodes);
       setEdges(layoutedEdges);
-      
+
       if (!isInitialized && !loading) {
         setIsInitialized(true);
       }
     }
   }, [layoutedNodes, layoutedEdges, loading, setNodes, setEdges, isInitialized]);
 
+  // Handle edge connections
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
-  const stats = useMemo(() => {
-    const totalHosts = hosts?.length || 0;
-    const infectedHosts = hosts?.filter(h => h.infected).length || 0;
-    const cleanHosts = totalHosts - infectedHosts;
-    const totalAgents = hosts?.reduce((sum, h) => sum + (h.agents?.length || 0), 0) || 0;
+  // Handle node position changes
+  const onNodesChangeHandler = useCallback((changes) => {
+    handleNodesChange(changes, onNodesChange);
+  }, [handleNodesChange, onNodesChange]);
 
-    return { totalHosts, infectedHosts, cleanHosts, totalAgents };
-  }, [hosts]);
+  // Calculate network statistics
+  const stats = useMemo(() => calculateNetworkStats(hosts), [hosts]);
 
-  // Don't render ReactFlow until we have initial data
+  // Show loading state until initialized
   if (!isInitialized && loading) {
     return (
       <Paper sx={{ p: 3, mb: 3, height: 700 }}>
@@ -448,52 +101,48 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
   }
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
       height: '100%',
-      width: '100%' 
+      width: '100%'
     }}>
+      {/* Header with title and stats */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="h6">Network Attack Graph</Typography>
-
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Chip label={`${stats.totalHosts} Hosts`} color="default" size="small" />
-          <Chip label={`${stats.infectedHosts} Infected`} color="error" size="small" />
-          <Chip label={`${stats.cleanHosts} Clean`} color="success" size="small" />
-          <Chip label={`${stats.totalAgents} Agents`} color="primary" size="small" />
-
-          <Tooltip title="Refresh">
-            <IconButton onClick={onRefresh} disabled={loading}>
-              <Refresh />
-            </IconButton>
-          </Tooltip>
-        </Box>
+        <NetworkGraphStats
+          stats={stats}
+          loading={loading}
+          onRefresh={onRefresh}
+        />
       </Box>
 
+      {/* Error alert */}
       {error && (
         <Alert severity="error" sx={{ mb: 1 }}>
           {error}
         </Alert>
       )}
 
+      {/* Last update info */}
       {lastUpdate && (
         <Typography variant="caption" color="textSecondary" sx={{ mb: 1, display: 'block' }}>
           Last updated: {lastUpdate} • Hover over nodes for details
         </Typography>
       )}
 
-      <Box sx={{ 
-        flex: 1, // Take up remaining space
+      {/* Main graph container */}
+      <Box sx={{
+        flex: 1,
         border: '1px solid #ddd',
         borderRadius: 1,
-        overflow: 'hidden', // Prevent overflow
-        minHeight: 0 // Critical for flexbox children to scroll properly
+        overflow: 'hidden',
+        minHeight: 0
       }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={handleNodesChange}
+          onNodesChange={onNodesChangeHandler}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
@@ -506,34 +155,14 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
           <Background />
           <Controls />
 
+          {/* Legend panel */}
           <Panel position="top-left">
-            <Box sx={{
-              backgroundColor: 'rgba(255,255,255,0.9)',
-              p: 1,
-              borderRadius: 1,
-              border: '1px solid #ddd'
-            }}>
-              <Typography variant="caption" display="block" sx={{ color: 'rgba(0, 0, 0, 0.87)' }}>
-                <Security color="error" sx={{ fontSize: 12, mr: 0.5 }} />
-                Red = Compromised
-              </Typography>
-              <Typography variant="caption" display="block" sx={{ color: 'rgba(0, 0, 0, 0.87)' }}>
-                <Computer color="success" sx={{ fontSize: 12, mr: 0.5 }} />
-                Green = Clean
-              </Typography>
-              <Typography variant="caption" display="block" sx={{ color: 'rgba(0, 0, 0, 0.87)' }}>
-                <Warning color="warning" sx={{ fontSize: 12, mr: 0.5 }} />
-                Arrows = Infection Path
-              </Typography>
-              <Typography variant="caption" display="block" sx={{ color: 'rgba(0, 0, 0, 0.87)' }}>
-                <Info color="info" sx={{ fontSize: 12, mr: 0.5 }} />
-                Hover for details
-              </Typography>
-            </Box>
+            <NetworkGraphLegend />
           </Panel>
         </ReactFlow>
       </Box>
 
+      {/* Empty state */}
       {(!hosts || hosts.length === 0) && !loading && (
         <Box sx={{ textAlign: 'center', py: 2 }}>
           <Typography color="textSecondary">
