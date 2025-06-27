@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Paper, Box } from '@mui/material';
+import { Container, Paper, Box, Divider } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
@@ -10,7 +10,8 @@ import StrategyLauncher from './components/StrategyLauncher';
 import RunningStrategies from './components/RunningStrategies';
 import ConnectedAgents from './components/ConnectedAgents';
 import NetworkGraph from './components/NetworkGraph';
-import Logs from './components/Logs';
+import ActionLogs from './components/ActionLogs';
+import LLMLogs from './components/LLMLogs';
 
 const App = () => {
   const {
@@ -25,9 +26,12 @@ const App = () => {
     hostsLoading,
     hostsError,
     lastHostsUpdate,
-    logs,
-    streamConnected,
-    streamError,
+    actionLogs,
+    actionStreamConnected,
+    actionStreamError,
+    llmLogs,
+    llmStreamConnected,
+    llmStreamError,
     fetchHosts,
     deleteAgent,
     setSelectedStrategy,
@@ -138,11 +142,21 @@ const App = () => {
                 borderRadius: 2,
                 overflow: 'hidden'
               }}>
-                <Logs 
-                  logs={logs}
-                  isConnected={streamConnected}
-                  error={streamError}
-                />
+                <Box sx={{ height: '50%', overflow: 'hidden' }}>
+                  <ActionLogs 
+                    logs={actionLogs}
+                    isConnected={actionStreamConnected}
+                    error={actionStreamError}
+                  />
+                </Box>
+                <Divider />
+                <Box sx={{ height: '50%', overflow: 'hidden' }}>
+                  <LLMLogs 
+                    logs={llmLogs}
+                    isConnected={llmStreamConnected}
+                    error={llmStreamError}
+                  />
+                </Box>
               </Paper>
             </Box>
           </Box>

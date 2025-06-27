@@ -13,9 +13,9 @@ import {
   Tooltip
 } from '@mui/material';
 import { ExpandMore, ExpandLess } from '@mui/icons-material';
-import { LogsProps } from '../types';
+import { ActionLogsProps } from '../types';
 
-const Logs = ({ logs, isConnected, error }: LogsProps) => {
+const ActionLogs = ({ logs, isConnected, error }: ActionLogsProps) => {
   const logContainerRef = useRef<HTMLDivElement>(null);
   const [expandedLogs, setExpandedLogs] = useState<Record<number, boolean>>({});
 
@@ -40,7 +40,7 @@ const Logs = ({ logs, isConnected, error }: LogsProps) => {
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        <Typography variant="h6">Action Logs</Typography>
+        <Typography variant="h6">Incalmo Action Logs</Typography>
         <Chip 
           label={isConnected ? 'Connected' : 'Disconnected'} 
           color={isConnected ? 'success' : 'error'}
@@ -185,4 +185,4 @@ const Logs = ({ logs, isConnected, error }: LogsProps) => {
   );
 };
 
-export default Logs;
+export default ActionLogs;
