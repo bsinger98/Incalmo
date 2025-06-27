@@ -14,35 +14,35 @@ const LLMLogs = ({ logs, isConnected, error }: LLMLogsProps) => {
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <Box sx={{ 
-        p: 1.5, 
-        backgroundColor: 'secondary.dark', 
+      <Box sx={{
+        p: 1.5,
+        backgroundColor: 'secondary.dark',
         color: 'secondary.contrastText',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
         <Typography variant="h6">LLM Logs</Typography>
-        <Chip 
-          label={isConnected ? 'Connected' : 'Disconnected'} 
+        <Chip
+          label={isConnected ? 'Connected' : 'Disconnected'}
           color={isConnected ? 'success' : 'error'}
           size="small"
         />
       </Box>
-      
+
       <Divider />
-      
+
       {error && (
         <Alert severity="error" sx={{ m: 1 }}>{error}</Alert>
       )}
-      
-      <Box 
+
+      <Box
         ref={logContainerRef}
-        sx={{ 
-          flex: 1, 
-          overflow: 'auto',
+        sx={{
+          flex: 1,
+          overflow: 'hidden',
           p: 0.5,
-          backgroundColor: 'background.default'
+          backgroundColor: 'background.default',
         }}
       >
         {logs.length === 0 && !error ? (
@@ -51,24 +51,38 @@ const LLMLogs = ({ logs, isConnected, error }: LLMLogsProps) => {
             <Typography color="text.secondary">Waiting for LLM logs...</Typography>
           </Box>
         ) : (
-          <Box 
-            sx={{ 
+          <Box
+            sx={{
               backgroundColor: 'background.paper',
               borderRadius: 1,
               borderLeft: 4,
               borderColor: 'secondary.main',
               p: 1.5,
-              height: '100%'
+              height: '100%',
+              overflow: 'auto',
+              '&::-webkit-scrollbar': {
+                width: '8px',
+                height: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: 'transparent',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: '4px',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                },
+              },
             }}
           >
-            <pre style={{ 
-              margin: 0, 
+            <pre style={{
+              margin: 0,
               fontSize: '0.75rem',
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
               overflowWrap: 'break-word',
-              height: '100%',
-              overflowY: 'auto'
+              height: 'auto',
             }}>
               {logs.join('\n')}
             </pre>

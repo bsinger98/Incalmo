@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import ReactFlow, {
   Controls,
   Background,
@@ -8,6 +8,7 @@ import ReactFlow, {
   ConnectionLineType,
   Panel,
   Connection,
+  ReactFlowInstance,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import {
@@ -34,6 +35,8 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [previousNodeCount, setPreviousNodeCount] = useState(0);
+  const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
 
   // Custom hooks for managing component state and behavior
   const { nodePositions, handleNodesChange } = useNodePositions();
@@ -72,8 +75,17 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
       if (!isInitialized && !loading) {
         setIsInitialized(true);
       }
+
+      // Trigger fitView when new nodes are added
+      if (layoutedNodes.length > previousNodeCount && reactFlowInstance.current && isInitialized) {
+        setTimeout(() => {
+          reactFlowInstance.current?.fitView({ padding: 0.1, duration: 1000 });
+        }, 100); // Small delay to ensure nodes are rendered
+      }
+
+      setPreviousNodeCount(layoutedNodes.length);
     }
-  }, [layoutedNodes, layoutedEdges, loading, setNodes, setEdges, isInitialized]);
+  }, [layoutedNodes, layoutedEdges, loading, setNodes, setEdges, isInitialized, previousNodeCount]);
 
   // Handle edge connections
   const onConnect = useCallback(
@@ -85,6 +97,11 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
   const onNodesChangeHandler = useCallback((changes) => {
     handleNodesChange(changes, onNodesChange);
   }, [handleNodesChange, onNodesChange]);
+
+  // Handle ReactFlow initialization
+  const onInit = useCallback((instance: ReactFlowInstance) => {
+    reactFlowInstance.current = instance;
+  }, []);
 
   // Calculate network statistics
   const stats = useMemo(() => calculateNetworkStats(hosts), [hosts]);
@@ -145,10 +162,11 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
           onNodesChange={onNodesChangeHandler}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onInit={onInit}
           nodeTypes={nodeTypes}
           connectionLineType={ConnectionLineType.SmoothStep}
-          fitView={nodes.length === 0}
-          fitViewOptions={{ padding: 0.1 }}
+          fitView={true}
+          fitViewOptions={{ padding: 0.1, duration: 1000 }}
           style={{ width: '100%', height: '100%' }}
           proOptions={{ hideAttribution: true }}
         >
