@@ -9,12 +9,12 @@ const Header = ({ agentCount }: HeaderProps) => {
       <Toolbar>
         <Security sx={{ mr: 2 }} />
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Incalmo C2 Server Control Panel
+          Incalmo
         </Typography>
-        <Chip 
-          label={`${agentCount} Agents`} 
-          color="primary" 
-          variant="outlined" 
+        <Chip
+          label={`${agentCount} Agents`}
+          color="primary"
+          variant="outlined"
         />
       </Toolbar>
     </AppBar>
