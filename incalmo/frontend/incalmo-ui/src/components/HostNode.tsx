@@ -22,8 +22,9 @@ const getHostDisplayName = (host: Host): string => {
     }
     if (host.ip_addresses && host.ip_addresses.length > 0) {
         const firstIp = host.ip_addresses[0];
-        const lastOctet = firstIp.split('.').pop();
-        return `Host-${lastOctet}`;
+        const octets = firstIp.split('.');
+        const lastTwoOctets = octets.slice(-2).join('.');
+        return `Host-${lastTwoOctets}`;
     }
     return 'Unknown-Host';
 };

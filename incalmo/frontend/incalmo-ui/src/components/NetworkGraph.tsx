@@ -35,7 +35,6 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [previousNodeCount, setPreviousNodeCount] = useState(0);
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
 
   // Custom hooks for managing component state and behavior
@@ -76,16 +75,14 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
         setIsInitialized(true);
       }
 
-      // Trigger fitView when new nodes are added
-      if (layoutedNodes.length > previousNodeCount && reactFlowInstance.current && isInitialized) {
+      // Trigger fitView when nodes or edges change (after initialization)
+      if (reactFlowInstance.current && isInitialized) {
         setTimeout(() => {
           reactFlowInstance.current?.fitView({ padding: 0.1, duration: 1000 });
         }, 100); // Small delay to ensure nodes are rendered
       }
-
-      setPreviousNodeCount(layoutedNodes.length);
     }
-  }, [layoutedNodes, layoutedEdges, loading, setNodes, setEdges, isInitialized, previousNodeCount]);
+  }, [layoutedNodes, layoutedEdges, loading, setNodes, setEdges, isInitialized]);
 
   // Handle edge connections
   const onConnect = useCallback(
