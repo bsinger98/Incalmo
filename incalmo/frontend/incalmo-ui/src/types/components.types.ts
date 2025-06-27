@@ -51,6 +51,13 @@ export interface HostNodeProps {
   data: Host;
 }
 
+export interface NetworkStats {
+  totalHosts: number;
+  infectedHosts: number;
+  cleanHosts: number;
+  totalAgents: number;
+}
+
 // Logs
 export interface ActionLogsProps {
   logs: ActionLogEntry[];
