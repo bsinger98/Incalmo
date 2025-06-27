@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -18,6 +18,13 @@ import { ActionLogsProps } from '../types';
 const ActionLogs = ({ logs, isConnected, error }: ActionLogsProps) => {
   const logContainerRef = useRef<HTMLDivElement>(null);
   const [expandedLogs, setExpandedLogs] = useState<Record<number, boolean>>({});
+
+  // Auto-scroll to bottom whenever new logs are added
+  useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [logs]);
 
   const toggleExpand = (index: number) => {
     setExpandedLogs(prev => ({
