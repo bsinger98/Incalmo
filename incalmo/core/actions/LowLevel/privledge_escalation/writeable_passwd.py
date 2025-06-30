@@ -1,27 +1,19 @@
 import asyncio
-
-from plugins.deception.app.actions.LowLevelAction import LowLevelAction
-from plugins.deception.app.models.events import Event
-
-from app.objects.c_agent import Agent
-from app.service.knowledge_svc import KnowledgeService
-from app.objects.c_operation import Operation
-from app.service.planning_svc import PlanningService
+from incalmo.core.actions.low_level_action import LowLevelAction
+from incalmo.core.models.attacker.agent import Agent
+from incalmo.core.models.events import Event
+from incalmo.models.command_result import CommandResult
 
 
 class WriteablePasswdExploit(LowLevelAction):
-    ability_name: str = "deception-writable-passwd"
-
     def __init__(self, agent: Agent):
-        facts = {}
-        super().__init__(agent, facts, self.ability_name)
+        command = "./writeable_passwd.sh"
+        payloads = ["downloadAgent.sh", "writeable_passwd.sh"]
+        super().__init__(agent, command, payloads, command_delay=3)
 
     async def get_result(
         self,
-        operation: Operation,
-        planner: PlanningService,
-        knowledge_svc_handle: KnowledgeService,
-        raw_result: dict | None = None,
+        result: CommandResult,
     ) -> list[Event]:
         # sleep to allow for the agent to get to the new host
         await asyncio.sleep(10)
