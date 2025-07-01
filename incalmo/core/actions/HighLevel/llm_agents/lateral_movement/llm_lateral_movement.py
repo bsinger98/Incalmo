@@ -15,6 +15,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
+from incalmo.core.services.action_context import HighLevelContext
 
 
 class LLMLateralMove(LLMAgentAction):
@@ -33,6 +34,7 @@ class LLMLateralMove(LLMAgentAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: HighLevelContext,
     ) -> list[Event]:
         events = []
         agent = self.source_host.get_agent()
@@ -67,7 +69,7 @@ class LLMLateralMove(LLMAgentAction):
 
             try:
                 new_events = await low_level_action_orchestrator.run_action(
-                    RunBashCommand(agent, "python3 exploit.py")
+                    RunBashCommand(agent, "python3 exploit.py"), context
                 )
             except Exception as e:
                 error = e

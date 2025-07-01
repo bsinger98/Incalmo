@@ -1,9 +1,10 @@
 {
     "name": "test",
     "strategy": {
-        "llm": "haiku3_5_strategy",
+        "planning_llm": "haiku3_5_strategy",
         "abstraction": "incalmo"
     },
+    "execution_llm": "claude-3.5-haiku",
     "environment": "EquifaxLarge",
     "c2c_server": "http://host.docker.internal:8888"
 }

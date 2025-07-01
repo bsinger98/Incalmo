@@ -6,6 +6,7 @@ from incalmo.core.services import (
     ConfigService,
     IncalmoLogger,
 )
+from config.attacker_config import AttackerConfig
 from incalmo.api.server_api import C2ApiClient
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -30,23 +31,30 @@ class IncalmoStrategy(ABC):
             raise ValueError(f"Unknown strategy '{name}'") from e
 
     @classmethod
-    def build_strategy(cls, name: str, **kwargs) -> "IncalmoStrategy":
+    def build_strategy(
+        cls, name: str, config: AttackerConfig, **kwargs
+    ) -> "IncalmoStrategy":
         print("Registered strategies:", IncalmoStrategy._registry.keys())
         registry = LangChainRegistry()
         available_models = registry.list_models()
         if name in available_models:
             langchain_strategy_cls = cls._registry["langchain"]
-            return langchain_strategy_cls(llm=name)
+            print(
+                f"Building strategy: {langchain_strategy_cls.__name__} with args: {kwargs}"
+            )
+            return langchain_strategy_cls(config=config, planning_llm=name)
         strategy_cls = cls.get(name)
+        kwargs["config"] = config
         print(f"Building strategy: {strategy_cls.__name__} with args: {kwargs}")
         return strategy_cls(**kwargs)
 
     def __init__(
         self,
+        config: AttackerConfig,
         logger: str = "incalmo",
     ):
         # Load config
-        self.config = ConfigService().get_config()
+        self.config = config
         self.c2_client = C2ApiClient()
 
         # Services

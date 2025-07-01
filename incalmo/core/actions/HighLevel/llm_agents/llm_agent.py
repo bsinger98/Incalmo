@@ -1,14 +1,16 @@
-import anthropic
-
-client = anthropic.Anthropic()
+from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from incalmo.core.services.config_service import ConfigService
 
 
 class LLMAgent:
     def __init__(self, preprompt: str):
         # Initialize the conversation
         self.conversation = [
-            {"role": "user", "content": preprompt},
+            {"role": "system", "content": preprompt},
         ]
+        self._registry = LangChainRegistry()
+        self.execution_llm = ConfigService().get_config().execution_llm
 
         self.max_message_len = 30000
 
@@ -18,24 +20,34 @@ class LLMAgent:
             message = message[: self.max_message_len]
             message += "\n[Message truncated to fit within the max length]"
 
+        # Prepare the messages for the LLM
         self.conversation.append({"role": "user", "content": message})
 
-        # Get Claude's response
-        response = client.messages.create(
-            # model="claude-3-5-haiku-20241022",
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=4096,
-            temperature=0.7,
-            messages=self.conversation,  # type: ignore
+        # Get the response from the LLM
+        response = self.get_response_from_model(
+            model_name=self.execution_llm,
+            messages=self.conversation,
         )
 
-        # Extract Claude's response
-        claude_response = response.content[0].text  # type: ignore
-
         # Add Claude's response to the conversation
-        self.conversation.append({"role": "assistant", "content": claude_response})
+        self.conversation.append({"role": "assistant", "content": response})
 
-        return claude_response
+        return response
+
+    def get_response_from_model(self, model_name: str, messages: list[dict]) -> str:
+        langchain_messages = []
+
+        for msg in messages:
+            if msg["role"] == "user":
+                langchain_messages.append(HumanMessage(content=msg["content"]))
+            elif msg["role"] == "assistant":
+                langchain_messages.append(AIMessage(content=msg["content"]))
+            elif msg["role"] == "system":
+                langchain_messages.append(SystemMessage(content=msg["content"]))
+        model = self._registry.get_model(model_name)
+        response = model.invoke(langchain_messages)
+
+        return response.content
 
     def get_last_message(self) -> str:
         return self.conversation[-1]["content"]
