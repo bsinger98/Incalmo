@@ -7,7 +7,7 @@ from incalmo.core.services.config_service import ConfigService
 async def main():
     print("Starting Incalmo C2 server using configservice")
     config = ConfigService().get_config()
-    await run_incalmo_strategy(strategy_name=config.strategy.llm)
+    await run_incalmo_strategy(config)
 
 
 if __name__ == "__main__":
