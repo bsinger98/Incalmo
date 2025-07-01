@@ -21,6 +21,7 @@ from incalmo.core.services import (
 
 
 from incalmo.core.models.network import ScanResults
+from incalmo.core.services.action_context import HighLevelContext
 
 
 class LLMAgentScan(LLMAgentAction):
@@ -38,6 +39,7 @@ class LLMAgentScan(LLMAgentAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: HighLevelContext,
     ) -> list[Event]:
         events = []
         scan_agent = self.scan_host.get_agent()
@@ -54,7 +56,7 @@ class LLMAgentScan(LLMAgentAction):
                 break
 
             output = await low_level_action_orchestrator.run_action(
-                RunBashCommand(scan_agent, bash_cmd)
+                RunBashCommand(scan_agent, bash_cmd), context
             )
 
             if len(output) == 0:

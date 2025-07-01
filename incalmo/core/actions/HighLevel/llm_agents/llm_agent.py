@@ -1,6 +1,6 @@
 import anthropic
 
-client = anthropic.Anthropic()
+
 
 
 class LLMAgent:
@@ -9,6 +9,7 @@ class LLMAgent:
         self.conversation = [
             {"role": "user", "content": preprompt},
         ]
+        self.client = anthropic.Anthropic()
 
         self.max_message_len = 30000
 
@@ -21,7 +22,7 @@ class LLMAgent:
         self.conversation.append({"role": "user", "content": message})
 
         # Get Claude's response
-        response = client.messages.create(
+        response = self.client.messages.create(
             # model="claude-3-5-haiku-20241022",
             model="claude-3-5-sonnet-20241022",
             max_tokens=4096,

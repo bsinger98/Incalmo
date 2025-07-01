@@ -28,6 +28,7 @@ from incalmo.core.actions.HighLevel.llm_agents.find_information.info_report impo
     Credential,
     CriticalData,
 )
+from incalmo.core.services.action_context import HighLevelContext
 
 
 class LLMFindInformation(LLMAgentAction):
@@ -45,6 +46,7 @@ class LLMFindInformation(LLMAgentAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: HighLevelContext,
     ) -> list[Event]:
         events = []
         agent = self.host.get_agent_by_username(self.user)
@@ -60,7 +62,7 @@ class LLMFindInformation(LLMAgentAction):
                 break
 
             output = await low_level_action_orchestrator.run_action(
-                RunBashCommand(agent, bash_cmd)
+                RunBashCommand(agent, bash_cmd), context
             )
 
             if len(output) == 0:

@@ -16,6 +16,7 @@ from incalmo.core.services import (
 from incalmo.core.actions.HighLevel.llm_agents.llm_agent_action import (
     LLMAgentAction,
 )
+from incalmo.core.services.action_context import HighLevelContext
 
 
 class LLMPrivilegeEscalate(LLMAgentAction):
@@ -31,6 +32,7 @@ class LLMPrivilegeEscalate(LLMAgentAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: HighLevelContext,
     ) -> list[Event]:
         events = []
         agent = self.host.get_agent()
@@ -64,7 +66,7 @@ class LLMPrivilegeEscalate(LLMAgentAction):
             try:
                 if bash_script:
                     new_events = await low_level_action_orchestrator.run_action(
-                        RunBashCommand(agent, bash_script)
+                        RunBashCommand(agent, bash_script), context
                     )
                 elif python_script:
                     with open(
@@ -73,7 +75,7 @@ class LLMPrivilegeEscalate(LLMAgentAction):
                         exploit_file.write(python_script)
 
                     new_events = await low_level_action_orchestrator.run_action(
-                        RunBashCommand(agent, "python3 exploit.py")
+                        RunBashCommand(agent, "python3 exploit.py"), context
                     )
             except Exception as e:
                 error = e

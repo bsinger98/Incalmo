@@ -16,6 +16,7 @@ from incalmo.core.services import (
     EnvironmentStateService,
     AttackGraphService,
 )
+from incalmo.core.services.action_context import HighLevelContext
 
 
 class LLMExfiltrateData(LLMAgentAction):
@@ -29,6 +30,7 @@ class LLMExfiltrateData(LLMAgentAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
+        context: HighLevelContext,
     ) -> list[Event]:
         events = []
 
@@ -82,7 +84,7 @@ class LLMExfiltrateData(LLMAgentAction):
             error = None
             try:
                 new_events = await low_level_action_orchestrator.run_action(
-                    RunBashCommand(all_agents[agent_num], bash_cmd)
+                    RunBashCommand(all_agents[agent_num], bash_cmd), context
                 )
             except Exception as e:
                 error = e
