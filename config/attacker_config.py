@@ -49,6 +49,7 @@ def convert_to_abstraction_level(level: str) -> AbstractionLevel:
 class AttackerConfig(BaseModel):
     name: str
     strategy: LLMStrategy
+    planning_llm: str
     environment: str
     c2c_server: str
 
