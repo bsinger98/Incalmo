@@ -34,9 +34,6 @@ class LangChainRegistry:
             "claude-3.7-sonnet": lambda: ChatAnthropic(
                 model="claude-3-7-sonnet-latest", temperature=0.7
             ),
-            "claude-3.7-thinking": lambda: ChatAnthropic(
-                model="claude-3-7-thinking-latest", temperature=0.7
-            ),
             # Google Gemini models
             "gemini-1.5-pro": lambda: ChatGoogleGenerativeAI(
                 model="gemini-1.5-pro", temperature=0.7
