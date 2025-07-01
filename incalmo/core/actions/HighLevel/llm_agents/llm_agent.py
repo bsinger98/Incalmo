@@ -10,7 +10,7 @@ class LLMAgent:
             {"role": "system", "content": preprompt},
         ]
         self._registry = LangChainRegistry()
-        self.planning_llm = ConfigService().get_config().planning_llm
+        self.execution_llm = ConfigService().get_config().execution_llm
 
         self.max_message_len = 30000
 
@@ -25,7 +25,7 @@ class LLMAgent:
 
         # Get the response from the LLM
         response = self.get_response_from_model(
-            model_name=self.planning_llm,
+            model_name=self.execution_llm,
             messages=self.conversation,
         )
 

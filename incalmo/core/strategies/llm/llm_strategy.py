@@ -23,6 +23,7 @@ from incalmo.core.actions import HighLevel, LowLevel
 from incalmo.core.actions.high_level_action import HighLevelAction
 from incalmo.core.actions.low_level_action import LowLevelAction
 from incalmo.core.models.events import BashOutputEvent
+from config.attacker_config import AttackerConfig
 
 from abc import ABC, abstractmethod
 
@@ -33,8 +34,8 @@ client = anthropic.Anthropic()
 
 
 class LLMStrategy(IncalmoStrategy, ABC):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, config: AttackerConfig):
+        super().__init__(config)
         self.logger = self.logging_service.setup_logger(logger_name="llm")
 
         # Logging Start

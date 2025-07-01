@@ -542,11 +542,11 @@ def incalmo_startup():
                 {"error": "Invalid configuration", "details": str(validation_error)}
             ), 400
 
-        strategy_name = config.strategy.llm
+        strategy_name = config.strategy.planning_llm
         print(f"[FLASK] Starting Celery task for strategy: {strategy_name}")
-
+        print(f"[FLASK] Configuration: {config.model_dump()}")
         # Use the imported task function
-        task = run_incalmo_strategy_task.delay(strategy_name)
+        task = run_incalmo_strategy_task.delay(config.model_dump())
         task_id = task.id
 
         # Cancel any existing strategy with the same name

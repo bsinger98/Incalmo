@@ -1,25 +1,24 @@
 import asyncio
-import os
-from incalmo.api.server_api import C2ApiClient
 from incalmo.core.strategies import llm
 from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
 from incalmo.core.services import ConfigService
 from incalmo.core.strategies.testers.equifax_test import EquifaxStrategy
 from incalmo.core.strategies.llm.langchain_strategy import LangChainStrategy
+from config.attacker_config import AttackerConfig
 
 TIMEOUT_SECONDS = 75 * 60
 
 
-async def run_incalmo_strategy(strategy_name: str):
+async def run_incalmo_strategy(config: AttackerConfig):
     """Run incalmo with the specified strategy"""
 
-    if not strategy_name:
-        raise Exception("No strategy specified")
+    if not config.strategy.planning_llm:
+        raise Exception("No planning llm specified")
 
-    print(f"[INFO] Starting Incalmo with strategy: {strategy_name}")
+    print(f"[INFO] Starting Incalmo with strategy: {config.strategy.planning_llm}")
 
     print(f"[DEBUG] Building strategy...")
-    strategy = IncalmoStrategy.build_strategy(strategy_name)
+    strategy = IncalmoStrategy.build_strategy(config.strategy.planning_llm, config)
 
     print(f"[DEBUG] Initializing strategy...")
     await strategy.initialize()
@@ -38,4 +37,4 @@ async def run_incalmo_strategy(strategy_name: str):
             break
         await asyncio.sleep(0.5)
 
-    print(f"[INFO] Strategy {strategy_name} completed")
+    print(f"[INFO] Strategy {config.strategy.planning_llm} completed")

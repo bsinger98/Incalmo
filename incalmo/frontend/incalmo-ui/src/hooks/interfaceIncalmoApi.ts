@@ -144,9 +144,10 @@ export const useIncalmoApi = () => {
       const config = {
         name: "react-ui-session",
         strategy: {
-          llm: selectedStrategy,
+          planning_llm: selectedStrategy,
           abstraction: "incalmo"
         },
+        execution_llm: "claude-3.5-haiku",
         environment: "EquifaxLarge",
         c2c_server: "http://host.docker.internal:8888",
       };
