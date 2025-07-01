@@ -1,8 +1,6 @@
 import anthropic
 
 
-
-
 class LLMAgent:
     def __init__(self, preprompt: str):
         # Initialize the conversation
