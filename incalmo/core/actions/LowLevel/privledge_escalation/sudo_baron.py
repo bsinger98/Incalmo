@@ -1,27 +1,21 @@
 import asyncio
 
-from plugins.deception.app.actions.LowLevelAction import LowLevelAction
-from plugins.deception.app.models.events import Event
+from incalmo.models.command_result import CommandResult
+from incalmo.core.actions.low_level_action import LowLevelAction
+from incalmo.core.models.attacker.agent import Agent
 
-from app.objects.c_agent import Agent
-from app.service.knowledge_svc import KnowledgeService
-from app.objects.c_operation import Operation
-from app.service.planning_svc import PlanningService
+from incalmo.core.models.events import Event
 
 
 class SudoBaronExploit(LowLevelAction):
-    ability_name: str = "deception-sudo-baron"
-
     def __init__(self, agent: Agent):
-        facts = {}
-        super().__init__(agent, facts, self.ability_name)
+        command = "python3 sudo_baron_exploit.py"
+        payloads = ["sudo_baron_exploit.py"]
+        super().__init__(agent, command, payloads)
 
     async def get_result(
         self,
-        operation: Operation,
-        planner: PlanningService,
-        knowledge_svc_handle: KnowledgeService,
-        raw_result: dict | None = None,
+        result: CommandResult,
     ) -> list[Event]:
         # sleep to allow for the agent to get to the new host
         await asyncio.sleep(10)

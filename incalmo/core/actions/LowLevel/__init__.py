@@ -15,9 +15,9 @@ from .add_ssh_key import AddSSHKey
 from .run_bash_command import RunBashCommand
 from .write_file import WriteFile
 
-# from .privledge_escalation.get_sudo_version import GetSudoVersion
-# from .privledge_escalation.check_passwd_permissions import CheckPasswdPermissions
-# from .privledge_escalation.sudoedit_exploit import SudoeditExploit
-# from .privledge_escalation.writeable_sudoers_exploit import WriteableSudoersExploit
-# from .privledge_escalation.sudo_baron import SudoBaronExploit
-# from .privledge_escalation.writeable_passwd import WriteablePasswdExploit
+from .privledge_escalation.get_sudo_version import GetSudoVersion
+from .privledge_escalation.check_passwd_permissions import CheckPasswdPermissions
+from .privledge_escalation.sudoedit_exploit import SudoeditExploit
+from .privledge_escalation.writeable_sudoers_exploit import WriteableSudoersExploit
+from .privledge_escalation.sudo_baron import SudoBaronExploit
+from .privledge_escalation.writeable_passwd import WriteablePasswdExploit

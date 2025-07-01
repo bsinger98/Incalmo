@@ -4,7 +4,7 @@ from .attack_path_lateral_move import AttackPathLateralMove
 
 from .exfiltrate_data import ExfiltrateData
 
-# from .escelate_privledge import EscelatePrivledge
+from .escelate_privledge import EscelatePrivledge
 
 from .scan import Scan
 
