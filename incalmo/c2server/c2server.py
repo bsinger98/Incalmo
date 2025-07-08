@@ -129,17 +129,28 @@ def read_template_file(filename):
     return Template(template_path.read_text())
 
 
-def get_latest_log_path():
-    # Find the most recent log directory
+def get_latest_log_path(strategy_name=None, task_id=None):
     output_dirs = sorted(Path("output").glob("*_*-*-*"), reverse=True)
     if not output_dirs:
         raise FileNotFoundError("No log directories found")
 
-    latest_dir = output_dirs[0]
-    # Get the actions.json file path
-    actions_log_path = latest_dir / "actions.json"
+    matching_dirs = output_dirs
 
-    # Get the llm.log file path
+    if strategy_name:
+        matching_dirs = [d for d in matching_dirs if strategy_name in d.name]
+        if not matching_dirs:
+            raise FileNotFoundError(
+                f"No log directories found for strategy: {strategy_name}"
+            )
+
+    if task_id:
+        task_dirs = [d for d in matching_dirs if task_id in d.name]
+        if task_dirs:
+            matching_dirs = task_dirs
+
+    latest_dir = matching_dirs[0]
+
+    actions_log_path = latest_dir / "actions.json"
     llm_log_path = latest_dir / "llm.log"
 
     return actions_log_path, llm_log_path
@@ -428,8 +439,14 @@ def stream_action_logs():
             # Check for a newer log file every 10 seconds
             current_time = time.time()
             if current_time - last_check_time > 10 or current_log_path is None:
+                if not running_strategy_tasks:
+                    time.sleep(2)
+                    continue
                 try:
-                    latest_log_path = get_latest_log_path()[0]
+                    strategy_name = next(iter(running_strategy_tasks.keys()))
+                    task_id = running_strategy_tasks[strategy_name]
+                    latest_log_path = get_latest_log_path(strategy_name, task_id)[0]
+                    print(f"[DEBUG] Latest Action log path: {latest_log_path}")
                     if latest_log_path != current_log_path:
                         current_log_path = latest_log_path
                         position = 0  # Reset position for the new file
@@ -488,8 +505,14 @@ def stream_llm_logs():
             # Check for a newer log file every 10 seconds
             current_time = time.time()
             if current_time - last_check_time > 10 or current_log_path is None:
+                if not running_strategy_tasks:
+                    time.sleep(2)
+                    continue
                 try:
-                    latest_log_path = get_latest_log_path()[1]
+                    strategy_name = next(iter(running_strategy_tasks.keys()))
+                    task_id = running_strategy_tasks[strategy_name]
+                    latest_log_path = get_latest_log_path(strategy_name, task_id)[1]
+                    print(f"[DEBUG] Latest LLM log path: {latest_log_path}")
                     if latest_log_path != current_log_path:
                         current_log_path = latest_log_path
                         position = 0  # Reset position for the new file

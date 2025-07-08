@@ -9,7 +9,7 @@ from config.attacker_config import AttackerConfig
 TIMEOUT_SECONDS = 75 * 60
 
 
-async def run_incalmo_strategy(config: AttackerConfig):
+async def run_incalmo_strategy(config: AttackerConfig, task_id: str):
     """Run incalmo with the specified strategy"""
 
     if not config.strategy.planning_llm:
@@ -18,7 +18,9 @@ async def run_incalmo_strategy(config: AttackerConfig):
     print(f"[INFO] Starting Incalmo with strategy: {config.strategy.planning_llm}")
 
     print(f"[DEBUG] Building strategy...")
-    strategy = IncalmoStrategy.build_strategy(config.strategy.planning_llm, config)
+    strategy = IncalmoStrategy.build_strategy(
+        config.strategy.planning_llm, config, task_id
+    )
 
     print(f"[DEBUG] Initializing strategy...")
     await strategy.initialize()

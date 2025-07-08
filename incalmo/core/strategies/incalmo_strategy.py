@@ -32,7 +32,7 @@ class IncalmoStrategy(ABC):
 
     @classmethod
     def build_strategy(
-        cls, name: str, config: AttackerConfig, **kwargs
+        cls, name: str, config: AttackerConfig, task_id: str, **kwargs
     ) -> "IncalmoStrategy":
         print("Registered strategies:", IncalmoStrategy._registry.keys())
         registry = LangChainRegistry()
@@ -42,7 +42,7 @@ class IncalmoStrategy(ABC):
             print(
                 f"Building strategy: {langchain_strategy_cls.__name__} with args: {kwargs}"
             )
-            return langchain_strategy_cls(config=config, planning_llm=name)
+            return langchain_strategy_cls(config=config, planning_llm=name, id=task_id)
         strategy_cls = cls.get(name)
         kwargs["config"] = config
         print(f"Building strategy: {strategy_cls.__name__} with args: {kwargs}")
@@ -51,6 +51,7 @@ class IncalmoStrategy(ABC):
     def __init__(
         self,
         config: AttackerConfig,
+        id: str,
         logger: str = "incalmo",
     ):
         # Load config
@@ -65,7 +66,7 @@ class IncalmoStrategy(ABC):
             self.environment_state_service
         )
         self.logging_service: IncalmoLogger = IncalmoLogger(
-            datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            f"{config.strategy.planning_llm}-{id}-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
         )
         # Orchestrators
         self.low_level_action_orchestrator = LowLevelActionOrchestrator(
