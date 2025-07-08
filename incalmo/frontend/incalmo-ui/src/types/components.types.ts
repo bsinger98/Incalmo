@@ -47,6 +47,9 @@ export interface NetworkGraphProps {
   onRefresh: () => void;
 }
 
+export interface TimelineGraphProps extends NetworkGraphProps {
+}
+
 export interface HostNodeProps {
   data: Host;
 }

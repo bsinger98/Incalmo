@@ -1,5 +1,5 @@
-import React from 'react';
-import { Container, Paper, Box, Divider } from '@mui/material';
+import React, {useState} from 'react';
+import { Container, Paper, Box, Divider, Tab, Tabs, Typography } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
@@ -12,8 +12,15 @@ import ConnectedAgents from './components/ConnectedAgents';
 import NetworkGraph from './components/NetworkGraph';
 import ActionLogs from './components/ActionLogs';
 import LLMLogs from './components/LLMLogs';
+import TimelineGraph from './components/TimelineGraph';
 
 const App = () => {
+
+  const [selectedGraphTab, setSelectedGraphTab] = useState(0);
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setSelectedGraphTab(newValue);
+  };
+
   const {
     selectedStrategy,
     loading,
@@ -114,13 +121,30 @@ const App = () => {
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
-                  <NetworkGraph
-                    hosts={hosts}
-                    loading={hostsLoading}
-                    error={hostsError}
-                    lastUpdate={lastHostsUpdate}
-                    onRefresh={fetchHosts}
-                  />
+                  <Tabs
+                    value={selectedGraphTab}
+                    onChange={handleTabChange}
+                    sx={{ mb: 1 }}
+                  >
+                    <Tab label="Network Graph" />
+                    <Tab label="Timeline" />
+                  </Tabs>
+                  {selectedGraphTab === 0 ? (
+                      <NetworkGraph
+                        hosts={hosts}
+                        loading={hostsLoading}
+                        error={hostsError}
+                        lastUpdate={lastHostsUpdate}
+                        onRefresh={fetchHosts}
+                      />
+                    ) : (
+                        <TimelineGraph 
+                          hosts={hosts}
+                          loading={hostsLoading}
+                          error={hostsError}
+                          lastUpdate={lastHostsUpdate}
+                          onRefresh={fetchHosts}/>
+                    )}
                 </Box>
 
                 <Box sx={{
