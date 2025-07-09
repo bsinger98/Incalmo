@@ -34,8 +34,8 @@ client = anthropic.Anthropic()
 
 
 class LLMStrategy(IncalmoStrategy, ABC):
-    def __init__(self, config: AttackerConfig, id: str):
-        super().__init__(config, id)
+    def __init__(self, config: AttackerConfig):
+        super().__init__(config)
         self.logger = self.logging_service.setup_logger(logger_name="llm")
 
         # Logging Start

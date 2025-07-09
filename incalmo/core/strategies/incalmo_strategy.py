@@ -32,7 +32,7 @@ class IncalmoStrategy(ABC):
 
     @classmethod
     def build_strategy(
-        cls, name: str, config: AttackerConfig, task_id: str, **kwargs
+        cls, name: str, config: AttackerConfig, **kwargs
     ) -> "IncalmoStrategy":
         print("Registered strategies:", IncalmoStrategy._registry.keys())
         registry = LangChainRegistry()
@@ -42,7 +42,7 @@ class IncalmoStrategy(ABC):
             print(
                 f"Building strategy: {langchain_strategy_cls.__name__} with args: {kwargs}"
             )
-            return langchain_strategy_cls(config=config, planning_llm=name, id=task_id)
+            return langchain_strategy_cls(config=config, planning_llm=name)
         strategy_cls = cls.get(name)
         kwargs["config"] = config
         print(f"Building strategy: {strategy_cls.__name__} with args: {kwargs}")
@@ -51,7 +51,6 @@ class IncalmoStrategy(ABC):
     def __init__(
         self,
         config: AttackerConfig,
-        id: str,
         logger: str = "incalmo",
     ):
         # Load config
@@ -65,9 +64,7 @@ class IncalmoStrategy(ABC):
         self.attack_graph_service: AttackGraphService = AttackGraphService(
             self.environment_state_service
         )
-        self.logging_service: IncalmoLogger = IncalmoLogger(
-            f"{config.strategy.planning_llm}-{id}-{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
-        )
+        self.logging_service: IncalmoLogger = IncalmoLogger()
         # Orchestrators
         self.low_level_action_orchestrator = LowLevelActionOrchestrator(
             self.logging_service,
@@ -80,11 +77,13 @@ class IncalmoStrategy(ABC):
             self.logging_service,
         )
 
-    async def initialize(self):
+    async def initialize(self, task_id: str = ""):
         agents = self.c2_client.get_agents()
         if len(agents) == 0:
             raise Exception("No trusted agents found")
-
+        self.logging_service.create_logger_dir(
+            operation_id=f"{self.config.strategy.planning_llm}_{task_id}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+        )
         self.environment_state_service.update_host_agents(agents)
         self.initial_hosts = self.environment_state_service.get_hosts_with_agents()
         self.environment_state_service.set_initial_hosts(self.initial_hosts)

@@ -130,7 +130,7 @@ def read_template_file(filename):
 
 
 def get_latest_log_path(strategy_name=None, task_id=None):
-    output_dirs = sorted(Path("output").glob("*_*-*-*"), reverse=True)
+    output_dirs = sorted(Path("output").glob("*_*_*-*-*-*-*-*"), reverse=True)
     if not output_dirs:
         raise FileNotFoundError("No log directories found")
 
