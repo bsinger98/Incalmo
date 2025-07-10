@@ -530,9 +530,11 @@ def stream_llm_logs():
 # Incalmo startup
 @app.route("/startup", methods=["POST"])
 def incalmo_startup():
+    global hosts
     try:
         data = request.get_data()
         json_data = json.loads(data)
+        hosts = []
 
         # Validate using AttackerConfig schema
         try:
