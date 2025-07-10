@@ -49,6 +49,7 @@ class LowLevelActionOrchestrator:
         )
 
         events = await low_level_action.get_result(command_result)
+        events += agent_check_result
         self.logger.info(
             "LowLevelAction executed",
             type="LowLevelAction",
@@ -65,7 +66,7 @@ class LowLevelActionOrchestrator:
                 },
             },
         )
-        return events + agent_check_result
+        return events
 
     def check_new_agents(
         self, ability_agent: Agent, prior_agents: list[Agent], post_agents: list[Agent]
