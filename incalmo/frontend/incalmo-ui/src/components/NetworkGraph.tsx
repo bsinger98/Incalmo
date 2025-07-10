@@ -18,7 +18,7 @@ import {
   Alert,
 } from '@mui/material';
 
-import { NetworkGraphProps } from '../types';
+import { NetworkGraphProps } from '../types/components.types';
 import HostNode from './HostNode';
 import NetworkGraphStats from './NetworkGraphStats';
 import NetworkGraphLegend from './NetworkGraphLegend';

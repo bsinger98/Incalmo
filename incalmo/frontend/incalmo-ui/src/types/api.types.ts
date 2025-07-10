@@ -22,15 +22,20 @@ export interface Strategy {
   name: string;
 }
 
-export interface ActionLogEntry {
+export interface LowLevelLogEntry {
   type: string;
   timestamp: string;
+  high_level_action_id: string;
+  low_level_action_id: string;
   action_name: string;
   action_params?: {
     agent?: {
       paw?: string;
       username?: string;
       privilege?: string;
+      pid?: string;            
+      host_ip_addrs?: string[];
+      hostname?: string;
     };
     [key: string]: any;
   };
@@ -40,4 +45,19 @@ export interface ActionLogEntry {
     results?: any;
   };
 }
+
+export interface HighLevelLogEntry {
+  type: string;
+  timestamp: string;
+  high_level_action_id: string;
+  low_level_action_ids: string[];
+  action_name: string;
+  action_params?: Record<string, any>;
+  action_results?: {
+    [eventClassName: string]: {
+      [eventProperty: string]: any;
+    }
+  };
+}
+
 export type MessageType = 'info' | 'error' | 'success' | 'warning';

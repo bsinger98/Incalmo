@@ -446,12 +446,7 @@ def stream_action_logs():
                     with open(current_log_path, "r") as f:
                         f.seek(position)
                         for line in f:
-                            try:
-                                log_entry = json.loads(line)
-                                if log_entry.get("type") == "LowLevelAction":
-                                    yield f"data: {line.strip()}\n\n"
-                            except json.JSONDecodeError:
-                                continue
+                            yield f"data: {line.strip()}\n\n"
                         position = f.tell()
                 except FileNotFoundError:
                     yield f"data: {json.dumps({'error': 'Log file not found, waiting...'})}\n\n"

@@ -6,62 +6,56 @@ import ReactFlow, {
   useEdgesState,
   ReactFlowInstance,
   Panel,
-  Handle,
-  Position
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import {
   Typography,
   Box,
   Alert,
-  Chip,
+  CircularProgress,
 } from '@mui/material';
 
-import { TimelineGraphProps } from '../types';
-import { useErrorSuppression } from '../hooks/useErrorSuppression';
-import { useEventTimestamps } from '../hooks/useEventTimestamps';
-import { useTimelineData } from '../hooks/useTimelineData';
-import { DiscoveryNode, InfectionNode } from './TimelineNode';
+import { TimelineGraphProps } from '../types/components.types';
+import { createTimelineFromLogs } from '../hooks/useTimelineData';
+import { HighLevelActionNode, LowLevelActionNode, EventsGeneratedNode, EventNode } from './TimelineNode';
 
 const nodeTypes = {
-  discoveryNode: DiscoveryNode,
-  infectionNode: InfectionNode,
+  highLevelActionNode: HighLevelActionNode,
+  lowLevelActionNode: LowLevelActionNode,
+  eventsGeneratedNode: EventsGeneratedNode,
+  eventNode: EventNode,
 };
 
-const TimelineGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: TimelineGraphProps) => {
+const TimelineGraph = ({ highLevelLogs, lowLevelLogs }: TimelineGraphProps) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [isInitialized, setIsInitialized] = useState(false);
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
+  const [loading, setLoading] = useState(true);
   
-  const { eventTimestamps, recordEventTime } = useEventTimestamps();
-  useErrorSuppression();
-  
-  // Generate timeline data
-  const { nodes: timelineNodes, edges: timelineEdges } = useTimelineData({
-    hosts,
-    eventTimestamps,
-    recordEventTime
-  });
-  
-  // Update ReactFlow state when timeline data changes
+  // Generate timeline data when logs change
   useEffect(() => {
-    if (timelineNodes.length > 0) {
-      setNodes(timelineNodes);
-      setEdges(timelineEdges);
-      
-      if (!isInitialized && !loading) {
-        setIsInitialized(true);
+    if ((highLevelLogs && highLevelLogs.length > 0) || (lowLevelLogs && lowLevelLogs.length > 0)) {
+      setLoading(true);
+      try {
+        const { nodes: timelineNodes, edges: timelineEdges } = createTimelineFromLogs(highLevelLogs, lowLevelLogs);
+        setNodes(timelineNodes);
+        setEdges(timelineEdges);
+        
+        // Fit view when nodes change
+        if (reactFlowInstance.current) {
+          setTimeout(() => {
+            reactFlowInstance.current?.fitView({ padding: 0.2, duration: 800 });
+          }, 100);
+        }
+      } catch (error) {
+        console.error('Error creating timeline:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      // Fit view when nodes change
-      if (reactFlowInstance.current && isInitialized) {
-        setTimeout(() => {
-          reactFlowInstance.current?.fitView({ padding: 0.2, duration: 1000 });
-        }, 100);
-      }
+    } else {
+      setLoading(false);
     }
-  }, [timelineNodes, timelineEdges, loading, setNodes, setEdges, isInitialized]);
+  }, [highLevelLogs, lowLevelLogs, setNodes, setEdges]);
   
   // Handle ReactFlow initialization
   const onInit = useCallback((instance: ReactFlowInstance) => {
@@ -70,19 +64,23 @@ const TimelineGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: Timelin
     // Fit view on initialization
     setTimeout(() => {
       instance.fitView({ padding: 0.2 });
+      setLoading(false);
     }, 100);
   }, []);
   
-  // Loading state
-  if (!isInitialized && loading) {
+  if (loading) {
     return (
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100%'
-      }}>
-        <Typography>Loading timeline data...</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Building timeline...</Typography>
+      </Box>
+    );
+  }
+
+  if ((!highLevelLogs || highLevelLogs.length === 0) && (!lowLevelLogs || lowLevelLogs.length === 0)) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <Typography>No timeline data available yet. Start a strategy to see the attack timeline.</Typography>
       </Box>
     );
   }
@@ -94,22 +92,6 @@ const TimelineGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: Timelin
       height: '100%',
       width: '100%'
     }}>
-
-      {/* Error alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 1 }}>
-          {error}
-        </Alert>
-      )}
-
-      {/* Last update info */}
-      {lastUpdate && (
-        <Typography variant="caption" color="textSecondary" sx={{ mb: 1, display: 'block' }}>
-          Last updated: {lastUpdate} • Scroll horizontally to view entire timeline
-        </Typography>
-      )}
-
-      {/* Timeline container */}
       <Box sx={{
         flex: 1,
         border: '1px solid #444',
@@ -124,12 +106,12 @@ const TimelineGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: Timelin
           onInit={onInit}
           nodeTypes={nodeTypes}
           fitView={true}
-          fitViewOptions={{ padding: 0.2, duration: 800 }}
+          fitViewOptions={{ padding: 0.2, duration: 1000 }}
           style={{ width: '100%', height: '100%' }}
           proOptions={{ hideAttribution: true }}
-          nodesDraggable={false}
+          nodesDraggable={true}
           nodesConnectable={false}
-          elementsSelectable={false}
+          elementsSelectable={true}
           minZoom={0.5}
           maxZoom={1.5}
         >
@@ -137,15 +119,6 @@ const TimelineGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: Timelin
           <Controls />
         </ReactFlow>
       </Box>
-
-      {/* Empty state */}
-      {(!hosts || hosts.length === 0) && !loading && (
-        <Box sx={{ textAlign: 'center', py: 2 }}>
-          <Typography color="textSecondary">
-            No timeline data available. Start a strategy to see the attack timeline.
-          </Typography>
-        </Box>
-      )}
     </Box>
   );
 };
