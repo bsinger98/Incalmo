@@ -1,4 +1,4 @@
-import { Agents, Strategy, MessageType, StrategyInfo, ActionLogEntry } from './api.types';
+import { Agents, Strategy, MessageType, StrategyInfo, ActionLogEntry, CommandResult } from './api.types';
 
 // Header
 export interface HeaderProps {
@@ -9,6 +9,7 @@ export interface HeaderProps {
 export interface ConnectedAgentsProps {
   agents: Agents;
   deleteAgent: (paw: string) => Promise<void>;
+  sendCommandToAgent: (paw: string, command: string) => Promise<CommandResult>;
 }
 
 // Strategy Launcher

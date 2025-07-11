@@ -41,6 +41,7 @@ const App = () => {
     llmStreamError,
     fetchHosts,
     deleteAgent,
+    sendCommandToAgent,
     setSelectedStrategy,
     startStrategy,
     stopStrategy,
@@ -153,7 +154,7 @@ const App = () => {
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
-                  <ConnectedAgents agents={agents} deleteAgent={deleteAgent} />
+                  <ConnectedAgents agents={agents} deleteAgent={deleteAgent} sendCommandToAgent={sendCommandToAgent} />
                 </Box>
               </Paper>
             </Box>

@@ -40,4 +40,14 @@ export interface ActionLogEntry {
     results?: any;
   };
 }
+
+export interface CommandResult {
+  exit_code: string;
+  id: string;
+  output: string;
+  pid: number;
+  status: string;
+  stderr: string;
+}
+
 export type MessageType = 'info' | 'error' | 'success' | 'warning';

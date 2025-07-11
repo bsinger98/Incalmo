@@ -7,7 +7,8 @@ import {
   Agents,
   Strategy,
   ActionLogEntry,
-  MessageType
+  MessageType,
+  CommandResult
 } from '../types'
 
 
@@ -107,6 +108,16 @@ export const useIncalmoApi = () => {
       await fetchAgents();
       } catch (error) {
       console.error('Failed to fetch agents:', error);
+    }
+  };
+
+  const sendCommandToAgent = async (paw: string, command: string): Promise<CommandResult> => {
+    try {
+      const response = await api.post(`/send_manual_command`, { agent: paw, command });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to send command to agent:', error);
+      throw error;
     }
   };
 
@@ -346,6 +357,7 @@ const fetchHosts = async () => {
     stopStrategy,
     fetchAgents,
     deleteAgent,
+    sendCommandToAgent,
     fetchRunningStrategies,
     fetchStrategies,
     fetchHosts,
