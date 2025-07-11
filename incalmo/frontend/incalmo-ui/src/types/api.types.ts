@@ -42,7 +42,14 @@ export interface LowLevelLogEntry {
   action_results?: {
     stdout?: string;
     stderr?: string;
-    results?: any;
+    results?: Record<string, any>;
+  };
+}
+
+export interface Event{
+  event_name: string;
+  event_properties: {
+    [key: string]: any;
   };
 }
 
@@ -53,11 +60,7 @@ export interface HighLevelLogEntry {
   low_level_action_ids: string[];
   action_name: string;
   action_params?: Record<string, any>;
-  action_results?: {
-    [eventClassName: string]: {
-      [eventProperty: string]: any;
-    }
-  };
+  action_results?: Record<string, any>;
 }
 
 export type MessageType = 'info' | 'error' | 'success' | 'warning';

@@ -1,4 +1,4 @@
-import { Agents, Strategy, MessageType, StrategyInfo, LowLevelLogEntry, HighLevelLogEntry } from './api.types';
+import { Agents, Strategy, MessageType, StrategyInfo, LowLevelLogEntry, HighLevelLogEntry, Event } from './api.types';
 
 // Header
 export interface HeaderProps {
@@ -54,6 +54,18 @@ export interface TimelineGraphProps {
 
 export interface HostNodeProps {
   data: Host;
+}
+
+export interface HighLevelActionNodeProps {
+  data: HighLevelLogEntry;
+}
+
+export interface LowLevelActionNodeProps {
+  data: LowLevelLogEntry; 
+}
+
+export interface EventsGeneratedNodeProps {
+  data: Event;
 }
 
 export interface NetworkStats {

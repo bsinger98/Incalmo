@@ -1,5 +1,5 @@
 import { Node, Edge } from 'reactflow';
-import { HighLevelLogEntry, LowLevelLogEntry } from '../types';
+import { HighLevelLogEntry, LowLevelLogEntry, Event } from '../types';
 
 interface TimelineData {
   nodes: Node[];
@@ -43,12 +43,7 @@ export const createTimelineFromLogs = (highLevelLogs: HighLevelLogEntry[], lowLe
       id: actionId,
       type: 'lowLevelActionNode',
       position: { x: xPosLow, y: yPosLow },
-      data: { 
-        label: log.action_name,
-        time: timeString,
-        params: log.action_params,
-        results: log.action_results.results || {}
-      }
+      data: {...log}
     });
     
     xPosLow += xGapLow;
@@ -63,15 +58,12 @@ export const createTimelineFromLogs = (highLevelLogs: HighLevelLogEntry[], lowLe
     const timeString = new Date(log.timestamp).toLocaleTimeString();
     
     // Add the high-level action node
+    console.log('Adding High Level Log Node:', log);
     nodes.push({
       id: actionId,
       type: 'highLevelActionNode',
       position: { x: xPosHigh, y: yPosHigh },
-      data: { 
-        label: log.action_name,
-        time: timeString,
-        params: log.action_params
-      }
+      data: { ...log }
     });
     
     // Add the "Events generated" node below it
@@ -79,10 +71,7 @@ export const createTimelineFromLogs = (highLevelLogs: HighLevelLogEntry[], lowLe
       id: eventsNodeId,
       type: 'eventsGeneratedNode',
       position: { x: xPosHigh, y: 100 + yPosHigh + yGapEvents },
-      data: { 
-        label: 'Events Generated',
-        actionName: log.action_name
-      }
+      data: {}
     });
     
     // Connect action node to events node
@@ -126,8 +115,14 @@ export const createTimelineFromLogs = (highLevelLogs: HighLevelLogEntry[], lowLe
     if (log.action_results) {
       let eventXOffset = -100;
       const eventXGap = 200;
+
+      // Convert action_results object to array of events
+      const events: Event[] = Object.entries(log.action_results).map(([eventName, eventData]) => ({
+        event_name: eventName,
+        event_properties: eventData
+      }));
       
-      Object.entries(log.action_results).forEach(([eventName, eventData], eventIndex) => {
+      events.forEach((event, eventIndex) => {
         const eventId = `event-${log.high_level_action_id}-${eventIndex}`;
         
         // Add event node
@@ -135,10 +130,7 @@ export const createTimelineFromLogs = (highLevelLogs: HighLevelLogEntry[], lowLe
           id: eventId,
           type: 'eventNode',
           position: { x: xPosHigh + eventXOffset, y: yPosHigh + yGapEvents * 2 },
-          data: { 
-            label: eventName,
-            details: eventData
-          }
+          data: {...event}
         });
         
         // Connect events node to this event

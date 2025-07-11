@@ -1,9 +1,20 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 import { Box, Typography, Tooltip } from '@mui/material';
+import { HighLevelActionNodeProps, LowLevelActionNodeProps, EventsGeneratedNodeProps } from '../types';
+
+const formatTimeTo12Hour = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true
+  });
+};
 
 // Node for high-level actions
-export const HighLevelActionNode = ({ data }) => (
+export const HighLevelActionNode = ({ data }: HighLevelActionNodeProps) => (
   <Box sx={{
     padding: '10px',
     borderRadius: '4px',
@@ -16,31 +27,31 @@ export const HighLevelActionNode = ({ data }) => (
     <Typography variant="subtitle2" sx={{ 
         color: '#0d47a1',
         fontWeight: 'bold',
-    }}>{data.label}</Typography>
+    }}>{data.action_name}</Typography>
     <Typography variant="caption" sx={{ 
         color: '#0d47a1',
         fontWeight: 'normal',
         display: 'block'
-    }}>Completed at {data.time}</Typography>
+    }}>Completed at {formatTimeTo12Hour(data.timestamp)}</Typography>
     <Handle type="source" position={Position.Right} id = "right"/>
     <Handle type="source" position={Position.Bottom} id="events" />
   </Box>
 );
 
 // Node for Low-level actions
-export const LowLevelActionNode = ({ data }) => (
+export const LowLevelActionNode = ({ data }: LowLevelActionNodeProps) => (
   <Tooltip 
   title={
     <Box>
       <Typography variant="subtitle2">Parameters:</Typography>
       <pre style={{ maxHeight: '200px', overflow: 'auto' }}>
-        {JSON.stringify(data.params, null, 2)}
+        {JSON.stringify(data.action_params, null, 2)}
       </pre>
-      {data.results && (
+      {data.action_results.results && (
         <>
           <Typography variant="subtitle2">Results:</Typography>
           <pre style={{ maxHeight: '200px', overflow: 'auto' }}>
-            {JSON.stringify(data.results, null, 2)}
+            {JSON.stringify(data.action_results.results, null, 2)}
           </pre>
         </>
       )}
@@ -59,19 +70,19 @@ export const LowLevelActionNode = ({ data }) => (
           color: '#2e7d32',
           fontWeight: 'bold',
           fontSize: '0.8rem'
-      }}>{data.label}</Typography>
+      }}>{data.action_name}</Typography>
       <Typography variant="caption" sx={{ 
           color: '#2e7d32',
           fontSize: '0.7rem',
           display: 'block'
-      }}>{data.time}</Typography>
+      }}>{formatTimeTo12Hour(data.timestamp)}</Typography>
       <Handle type="source" position={Position.Bottom} />
     </Box>
   </Tooltip>
 );
 
 // Node for "Events Generated" connector
-export const EventsGeneratedNode = ({ data }) => (
+export const EventsGeneratedNode = () => (
   <Box sx={{
     padding: '10px',
     borderRadius: '4px',
@@ -83,14 +94,14 @@ export const EventsGeneratedNode = ({ data }) => (
     <Typography variant="subtitle2" sx={{ 
         color: '#4a148c',
         fontWeight: 'bold',
-    }}>{data.label}</Typography>
+    }}>"Events Generated"</Typography>
     <Handle type="source" position={Position.Bottom} />
   </Box>
 );
 
 // Node for individual events
-export const EventNode = ({ data }) => (
-  <Tooltip title={<pre>{JSON.stringify(data.details, null, 2)}</pre>} placement="bottom">
+export const EventNode = ({ data }: EventsGeneratedNodeProps) => (
+  <Tooltip title={<pre>{JSON.stringify(data.event_properties, null, 2)}</pre>} placement="bottom">
     <Box sx={{
       padding: '10px',
       borderRadius: '4px',
@@ -102,7 +113,7 @@ export const EventNode = ({ data }) => (
       <Typography variant="subtitle2" sx={{ 
           color: '#ff6f00',
           fontWeight: 'bold',
-      }}>{data.label}</Typography>
+      }}>{data.event_name}</Typography>
       <Typography variant="caption" sx={{ 
           color: '#ff6f00',
           fontWeight: 'normal',
