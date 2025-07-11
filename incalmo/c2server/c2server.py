@@ -27,6 +27,9 @@ from typing import Dict
 from incalmo.c2server.celery.celery_app import make_celery
 from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
 from incalmo.c2server.celery.celery_worker import celery_worker
+from incalmo.api.server_api import C2ApiClient
+from incalmo.core.actions.LowLevel.run_bash_command import RunBashCommand
+from incalmo.core.models.attacker.agent import Agent
 
 from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
 from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
@@ -296,6 +299,32 @@ def delete_agent(paw):
     agent_deletion_queue.add(paw)
 
     return jsonify({"message": f"Agent {paw} deleted successfully"}), 200
+
+
+# Send manual command
+@app.route("/send_manual_command", methods=["POST"])
+def send_manual_command():
+    try:
+        data = request.data
+        json_data = json.loads(data)
+        agent_paw = json_data.get("agent")
+        command = json_data.get("command")
+
+        if not agent_paw or not command:
+            return jsonify({"error": "Missing agent or command"}), 400
+
+        if agent_paw not in agents:
+            return jsonify({"error": "Agent not found"}), 404
+
+        client = C2ApiClient()
+        agent = client.get_agent(agent_paw)
+        action = RunBashCommand(agent=agent, command=command)
+        result = client.send_command(action)
+        return jsonify(result.model_dump())
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON data"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
 # Send command to a specific agent

@@ -14,6 +14,28 @@ class C2ApiClient:
     def __init__(self):
         self.server_url = settings.c2_server
 
+    def get_agent(self, paw: str) -> Agent:
+        """Fetch a specific agent by its unique identifier (PAW)"""
+        response = requests.get(f"{self.server_url}/agents")
+        if response.ok:
+            agent_data = response.json()
+            for agent_paw, info in agent_data.items():
+                if paw == agent_paw:
+                    agent = Agent(
+                        paw=agent_paw,
+                        username=info.get("username", ""),
+                        privilege=info.get("privilege", ""),
+                        pid=str(info.get("pid", "")),
+                        host_ip_addrs=info.get("host_ip_addrs", []),
+                        hostname=info.get("hostname", ""),
+                    )
+                    break
+            return agent
+        else:
+            raise Exception(
+                f"Failed to get agent {paw}: {response.status_code} {response.text}"
+            )
+
     def get_agents(self) -> list[Agent]:
         """Fetch a list of agent information"""
         agent_list = []
