@@ -18,10 +18,12 @@ async def run_incalmo_strategy(config: AttackerConfig, task_id: str):
     print(f"[INFO] Starting Incalmo with strategy: {config.strategy.planning_llm}")
 
     print(f"[DEBUG] Building strategy...")
-    strategy = IncalmoStrategy.build_strategy(config.strategy.planning_llm, config)
+    strategy = IncalmoStrategy.build_strategy(
+        config.strategy.planning_llm, config, task_id
+    )
 
     print(f"[DEBUG] Initializing strategy task...")
-    await strategy.initialize(task_id)
+    await strategy.initialize()
 
     print(f"[DEBUG] Strategy initialized, starting main loop...")
     start_time = asyncio.get_event_loop().time()

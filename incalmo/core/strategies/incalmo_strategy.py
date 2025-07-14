@@ -32,17 +32,18 @@ class IncalmoStrategy(ABC):
 
     @classmethod
     def build_strategy(
-        cls, name: str, config: AttackerConfig, **kwargs
+        cls, name: str, config: AttackerConfig, task_id: str = "", **kwargs
     ) -> "IncalmoStrategy":
         print("Registered strategies:", IncalmoStrategy._registry.keys())
         registry = LangChainRegistry()
         available_models = registry.list_models()
+        kwargs["task_id"] = task_id
         if name in available_models:
             langchain_strategy_cls = cls._registry["langchain"]
             print(
                 f"Building strategy: {langchain_strategy_cls.__name__} with args: {kwargs}"
             )
-            return langchain_strategy_cls(config=config, planning_llm=name)
+            return langchain_strategy_cls(config=config, planning_llm=name, **kwargs)
         strategy_cls = cls.get(name)
         kwargs["config"] = config
         print(f"Building strategy: {strategy_cls.__name__} with args: {kwargs}")
@@ -52,7 +53,9 @@ class IncalmoStrategy(ABC):
         self,
         config: AttackerConfig,
         logger: str = "incalmo",
+        **kwargs,
     ):
+        task_id = kwargs.pop("task_id", "")
         # Load config
         self.config = config
         self.c2_client = C2ApiClient()
@@ -64,7 +67,9 @@ class IncalmoStrategy(ABC):
         self.attack_graph_service: AttackGraphService = AttackGraphService(
             self.environment_state_service
         )
-        self.logging_service: IncalmoLogger = IncalmoLogger()
+        self.logging_service: IncalmoLogger = IncalmoLogger(
+            operation_id=f"{self.config.strategy.planning_llm}_{task_id}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+        )
         # Orchestrators
         self.low_level_action_orchestrator = LowLevelActionOrchestrator(
             self.logging_service,
@@ -81,9 +86,13 @@ class IncalmoStrategy(ABC):
         agents = self.c2_client.get_agents()
         if len(agents) == 0:
             raise Exception("No trusted agents found")
-        self.logging_service.create_logger_dir(
-            operation_id=f"{self.config.strategy.planning_llm}_{task_id}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
-        )
+        # self.logging_service.create_logger_dir(
+        #     operation_id=f"{self.config.strategy.planning_llm}_{task_id}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+        # )
+        # if hasattr(self, "logger"):
+        #     self.logger = self.logging_service.setup_logger(logger_name="llm")
+        # self.low_level_action_orchestrator.start_logger()
+        # self.high_level_action_orchestrator.start_logger()
         self.environment_state_service.update_host_agents(agents)
         self.initial_hosts = self.environment_state_service.get_hosts_with_agents()
         self.environment_state_service.set_initial_hosts(self.initial_hosts)

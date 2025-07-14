@@ -8,8 +8,16 @@ import json
 
 
 class IncalmoLogger:
-    def __init__(self):
-        self.logger_dir_path = None
+    def __init__(self, operation_id: str):
+        self.logger_dir_path = f"output/{operation_id}"
+
+        if not os.path.exists("output"):
+            os.mkdir("output")
+
+        if not os.path.exists(f"output/{operation_id}"):
+            os.mkdir(f"output/{operation_id}")
+
+        self._configure_file_only_logging()
 
     def create_logger_dir(self, operation_id: str):
         # Create timestamp log directory
