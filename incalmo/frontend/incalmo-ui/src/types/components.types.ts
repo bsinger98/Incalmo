@@ -9,6 +9,7 @@ export interface HeaderProps {
 export interface ConnectedAgentsProps {
   agents: Agents;
   deleteAgent: (paw: string) => Promise<void>;
+  sendCommandToAgent: (paw: string, command: string) => Promise<CommandResult>;
 }
 
 // Strategy Launcher

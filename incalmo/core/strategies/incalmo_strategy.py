@@ -64,9 +64,7 @@ class IncalmoStrategy(ABC):
         self.attack_graph_service: AttackGraphService = AttackGraphService(
             self.environment_state_service
         )
-        self.logging_service: IncalmoLogger = IncalmoLogger(
-            datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        )
+        self.logging_service: IncalmoLogger = IncalmoLogger()
         # Orchestrators
         self.low_level_action_orchestrator = LowLevelActionOrchestrator(
             self.logging_service,
@@ -79,11 +77,13 @@ class IncalmoStrategy(ABC):
             self.logging_service,
         )
 
-    async def initialize(self):
+    async def initialize(self, task_id: str = ""):
         agents = self.c2_client.get_agents()
         if len(agents) == 0:
             raise Exception("No trusted agents found")
-
+        self.logging_service.create_logger_dir(
+            operation_id=f"{self.config.strategy.planning_llm}_{task_id}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+        )
         self.environment_state_service.update_host_agents(agents)
         self.initial_hosts = self.environment_state_service.get_hosts_with_agents()
         self.environment_state_service.set_initial_hosts(self.initial_hosts)

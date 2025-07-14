@@ -46,6 +46,7 @@ export interface LowLevelLogEntry {
   };
 }
 
+
 export interface Event{
   event_name: string;
   event_properties: {
@@ -61,6 +62,14 @@ export interface HighLevelLogEntry {
   action_name: string;
   action_params?: Record<string, any>;
   action_results?: Record<string, any>;
+
+export interface CommandResult {
+  exit_code: string;
+  id: string;
+  output: string;
+  pid: number;
+  status: string;
+  stderr: string;
 }
 
 export type MessageType = 'info' | 'error' | 'success' | 'warning';

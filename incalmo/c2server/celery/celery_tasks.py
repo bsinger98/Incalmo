@@ -17,6 +17,7 @@ def run_incalmo_strategy_task(self, config_dict):
         config = AttackerConfig(**config_dict)
         planning_llm = config.strategy.planning_llm
         print(f"[CELERY_TASK] Starting strategy: {planning_llm}")
+        task_id = self.request.id
         self.update_state(
             state="PROGRESS",
             meta={
@@ -27,7 +28,9 @@ def run_incalmo_strategy_task(self, config_dict):
             },
         )
 
-        print(f"[CELERY_TASK] About to run strategy: {planning_llm}")
+        print(
+            f"[CELERY_TASK] About to run strategy: {planning_llm} with task ID: {task_id}"
+        )
 
         self.update_state(
             state="PROGRESS",
@@ -40,7 +43,7 @@ def run_incalmo_strategy_task(self, config_dict):
         )
 
         # Run the strategy
-        result = asyncio.run(run_incalmo_strategy(config))
+        result = asyncio.run(run_incalmo_strategy(config, task_id))
 
         self.update_state(
             state="PROGRESS",
