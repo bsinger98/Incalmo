@@ -86,13 +86,6 @@ class IncalmoStrategy(ABC):
         agents = self.c2_client.get_agents()
         if len(agents) == 0:
             raise Exception("No trusted agents found")
-        # self.logging_service.create_logger_dir(
-        #     operation_id=f"{self.config.strategy.planning_llm}_{task_id}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
-        # )
-        # if hasattr(self, "logger"):
-        #     self.logger = self.logging_service.setup_logger(logger_name="llm")
-        # self.low_level_action_orchestrator.start_logger()
-        # self.high_level_action_orchestrator.start_logger()
         self.environment_state_service.update_host_agents(agents)
         self.initial_hosts = self.environment_state_service.get_hosts_with_agents()
         self.environment_state_service.set_initial_hosts(self.initial_hosts)
