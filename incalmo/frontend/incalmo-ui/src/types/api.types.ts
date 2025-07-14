@@ -62,6 +62,7 @@ export interface HighLevelLogEntry {
   action_name: string;
   action_params?: Record<string, any>;
   action_results?: Record<string, any>;
+}
 
 export interface CommandResult {
   exit_code: string;

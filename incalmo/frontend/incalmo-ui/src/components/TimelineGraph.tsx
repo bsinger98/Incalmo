@@ -109,7 +109,7 @@ const TimelineGraph = ({ highLevelLogs, lowLevelLogs }: TimelineGraphProps) => {
           fitViewOptions={{ padding: 0.2, duration: 1000 }}
           style={{ width: '100%', height: '100%' }}
           proOptions={{ hideAttribution: true }}
-          nodesDraggable={true}
+          nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable={true}
           minZoom={0.5}

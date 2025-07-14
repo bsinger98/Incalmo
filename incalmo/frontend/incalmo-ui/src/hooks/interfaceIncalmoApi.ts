@@ -7,7 +7,6 @@ import {
   Agents,
   Strategy,
   LowLevelLogEntry,
-  MessageType,
   HighLevelLogEntry,
   MessageType,
   CommandResult

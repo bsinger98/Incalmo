@@ -1,4 +1,4 @@
-import { Agents, Strategy, MessageType, StrategyInfo, LowLevelLogEntry, HighLevelLogEntry, Event } from './api.types';
+import { Agents, Strategy, MessageType, StrategyInfo, LowLevelLogEntry, CommandResult, HighLevelLogEntry, Event } from './api.types';
 
 // Header
 export interface HeaderProps {
