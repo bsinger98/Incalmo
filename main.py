@@ -1,5 +1,4 @@
 import asyncio
-from incalmo.api.server_api import C2ApiClient
 from incalmo.incalmo_runner import run_incalmo_strategy
 from incalmo.core.services.config_service import ConfigService
 
