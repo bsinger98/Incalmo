@@ -1,6 +1,6 @@
 from incalmo.core.actions.low_level_action import LowLevelAction
 from incalmo.core.models.attacker.agent import Agent
-from config.settings import settings
+from incalmo.core.services.config_service import ConfigService
 from config.attacker_config import AttackerConfig
 import requests
 import json
@@ -12,7 +12,7 @@ from incalmo.core.models.network import Network
 
 class C2ApiClient:
     def __init__(self):
-        self.server_url = settings.c2_server
+        self.server_url = ConfigService().get_config().c2c_server
 
     def get_agent(self, paw: str) -> Agent:
         """Fetch a specific agent by its unique identifier (PAW)"""
