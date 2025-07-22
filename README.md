@@ -63,7 +63,7 @@ Follow Steps 1 through 3 in the [Setup Instructions](#setup-instructions).
 Install Node dependencies:
 
    ```bash
-   cd frontend/incalmo-ui
+   cd incalmo/frontend/incalmo-ui
    npm install
    ```
 
