@@ -6,7 +6,7 @@ const Header = ({ agentCount }: HeaderProps) => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontFamily: 'Poppins' }}>
+        <Typography variant="h4" component="div" sx={{ flexGrow: 1, fontFamily: 'Poppins' }}>
           Incalmo
         </Typography>
         <Chip 
