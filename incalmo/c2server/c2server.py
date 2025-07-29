@@ -24,6 +24,8 @@ from pathlib import Path
 import os
 from typing import Dict
 
+from werkzeug.exceptions import BadRequest, NotFound, InternalServerError
+from pydantic import ValidationError
 
 from incalmo.c2server.celery.celery_app import make_celery
 from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
@@ -163,6 +165,75 @@ def get_latest_log_path(strategy_name=None, task_id=None):
     return actions_log_path, llm_log_path, llm_agent_log_path
 
 
+@app.errorhandler(ValidationError)
+def handle_validation_error(exc):
+    return jsonify({"error": "Invalid configuration", "details": exc.errors()}), 400
+
+
+@app.errorhandler(BadRequest)
+def handle_bad_request(exc):
+    return jsonify({"error": "Invalid JSON payload"}), 400
+
+
+@app.errorhandler(json.JSONDecodeError)
+def handle_json_decode_error(exc):
+    return jsonify(
+        {
+            "error": "Invalid JSON data",
+            "message": "The request body contains malformed JSON",
+            "details": str(exc),
+        }
+    ), 400
+
+
+@app.errorhandler(binascii.Error)
+def handle_binascii_error(exc):
+    return jsonify(
+        {
+            "error": "Invalid base64 data",
+            "message": "The provided data is not valid base64 encoding",
+            "details": str(exc),
+        }
+    ), 400
+
+
+@app.errorhandler(UnicodeDecodeError)
+def handle_unicode_decode_error(exc):
+    return jsonify(
+        {
+            "error": "Unicode decode error",
+            "message": "Failed to decode data to valid UTF-8",
+            "details": str(exc),
+        }
+    ), 400
+
+
+@app.errorhandler(FileNotFoundError)
+def handle_file_not_found(exc):
+    return jsonify({"error": "File not found", "message": str(exc)}), 404
+
+
+@app.errorhandler(ValueError)
+def handle_value_error(exc):
+    return jsonify({"error": "Invalid value", "message": str(exc)}), 400
+
+
+@app.errorhandler(KeyError)
+def handle_key_error(exc):
+    return jsonify(
+        {
+            "error": "Missing required field",
+            "message": f"Required field {exc} is missing",
+        }
+    ), 400
+
+
+@app.errorhandler(Exception)
+def handle_unexpected_error(exc):
+    app.logger.exception(exc)
+    return jsonify({"error": "Internal server error"}), 500
+
+
 # Agent check-in
 @app.route("/beacon", methods=["POST"])
 def beacon():
@@ -229,21 +300,16 @@ def beacon():
 def get_agents():
     agents_list = {}
     for paw, data in agents.items():
-        try:
-            decoded_info = decode_base64(data["info"])
-            parsed_info = json.loads(decoded_info)
+        decoded_info = decode_base64(data["info"])
+        parsed_info = json.loads(decoded_info)
 
-            agents_list[paw] = {
-                "paw": paw,
-                "username": parsed_info.get("username"),
-                "privilege": parsed_info.get("privilege"),
-                "pid": parsed_info.get("pid"),
-                "host_ip_addrs": parsed_info.get("host_ip_addrs"),
-            }
-        except (binascii.Error, UnicodeDecodeError) as exc:
-            raise ValueError(f"Invalid base64 data: {exc!r}")
-        except json.JSONDecodeError as exc:
-            raise ValueError(f"Malformed JSON: {exc!r}")
+        agents_list[paw] = {
+            "paw": paw,
+            "username": parsed_info.get("username"),
+            "privilege": parsed_info.get("privilege"),
+            "pid": parsed_info.get("pid"),
+            "host_ip_addrs": parsed_info.get("host_ip_addrs"),
+        }
 
     return jsonify(agents_list)
 
@@ -252,17 +318,11 @@ def get_agents():
 @app.route("/update_environment_state", methods=["POST"])
 def update_environment_state():
     global hosts
-    try:
-        data = request.data
-        json_data = json.loads(data)
+    data = request.data
+    json_data = json.loads(data)
 
-        hosts = json_data.get("hosts", [])
-        return jsonify(
-            {"status": "success", "message": "Infection source reported"}
-        ), 200
-
-    except json.JSONDecodeError:
-        return jsonify({"error": "Invalid JSON data"}), 400
+    hosts = json_data.get("hosts", [])
+    return jsonify({"status": "success", "message": "Infection source reported"}), 200
 
 
 # Get hosts
@@ -299,22 +359,16 @@ def get_initial_environment():
 # Add LLM Agent Action to queue
 @app.route("/start_llm_agent_action", methods=["POST"])
 def add_llm_agent_action():
-    try:
-        data = request.data
-        json_data = json.loads(data)
-        if not json_data or "action" not in json_data:
-            return jsonify({"error": "Invalid request data"}), 400
+    data = request.data
+    json_data = json.loads(data)
+    if not json_data or "action" not in json_data:
+        return jsonify({"error": "Invalid request data"}), 400
 
-        llm_agent_actions.append(json_data)
+    llm_agent_actions.append(json_data)
 
-        return jsonify(
-            {"status": "success", "message": f"Action {json_data['action']} added"}
-        ), 200
-
-    except json.JSONDecodeError:
-        return jsonify({"error": "Invalid JSON data"}), 400
-    except Exception as e:
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    return jsonify(
+        {"status": "success", "message": f"Action {json_data['action']} added"}
+    ), 200
 
 
 # Get LLM Agent Action from queue
@@ -371,78 +425,67 @@ def delete_agent(paw):
 # Send manual command
 @app.route("/send_manual_command", methods=["POST"])
 def send_manual_command():
-    try:
-        data = request.data
-        json_data = json.loads(data)
-        agent_paw = json_data.get("agent")
-        command = json_data.get("command")
+    data = request.data
+    json_data = json.loads(data)
+    agent_paw = json_data.get("agent")
+    command = json_data.get("command")
 
-        if not agent_paw or not command:
-            return jsonify({"error": "Missing agent or command"}), 400
+    if not agent_paw or not command:
+        return jsonify({"error": "Missing agent or command"}), 400
 
-        if agent_paw not in agents:
-            return jsonify({"error": "Agent not found"}), 404
+    if agent_paw not in agents:
+        return jsonify({"error": "Agent not found"}), 404
 
-        client = C2ApiClient()
-        agent = client.get_agent(agent_paw)
-        action = RunBashCommand(agent=agent, command=command)
-        result = client.send_command(action)
-        return jsonify(result.model_dump())
-    except json.JSONDecodeError:
-        return jsonify({"error": "Invalid JSON data"}), 400
-    except Exception as e:
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    client = C2ApiClient()
+    agent = client.get_agent(agent_paw)
+    action = RunBashCommand(agent=agent, command=command)
+    result = client.send_command(action)
+    return jsonify(result.model_dump())
 
 
 # Send command to a specific agent
 @app.route("/send_command", methods=["POST"])
 def send_command():
-    try:
-        data = request.data
-        json_data = json.loads(data)
-        agent = json_data.get("agent")
-        command = json_data.get("command")
-        payloads = json_data.get("payloads", [])
+    data = request.data
+    json_data = json.loads(data)
+    agent = json_data.get("agent")
+    command = json_data.get("command")
+    payloads = json_data.get("payloads", [])
 
-        if not agent or not command:
-            return jsonify({"error": "Missing agent or command"}), 400
+    if not agent or not command:
+        return jsonify({"error": "Missing agent or command"}), 400
 
-        if agent not in agents:
-            return jsonify({"error": "Agent not found"}), 404
+    if agent not in agents:
+        return jsonify({"error": "Agent not found"}), 404
 
-        exec_template = read_template_file("Exec_Bash_Template.sh")
-        executor_script_content = exec_template.safe_substitute(command=command)
-        executor_script_path = PAYLOADS_DIR / "dynamic_payload.sh"
-        executor_script_path.write_text(executor_script_content)
-        payloads.append("dynamic_payload.sh")
+    exec_template = read_template_file("Exec_Bash_Template.sh")
+    executor_script_content = exec_template.safe_substitute(command=command)
+    executor_script_path = PAYLOADS_DIR / "dynamic_payload.sh"
+    executor_script_path.write_text(executor_script_content)
+    payloads.append("dynamic_payload.sh")
 
-        command_id = str(uuid.uuid4())
-        instruction = Instruction(
-            id=command_id,
-            command=encode_base64("./dynamic_payload.sh"),
-            executor="sh",
-            timeout=60,
-            payloads=payloads,
-            uploads=[],
-            delete_payload=True,
-        )
-        command = Command(
-            id=command_id,
-            instructions=instruction,
-            status=CommandStatus.PENDING,
-            result=None,
-        )
+    command_id = str(uuid.uuid4())
+    instruction = Instruction(
+        id=command_id,
+        command=encode_base64("./dynamic_payload.sh"),
+        executor="sh",
+        timeout=60,
+        payloads=payloads,
+        uploads=[],
+        delete_payload=True,
+    )
+    command = Command(
+        id=command_id,
+        instructions=instruction,
+        status=CommandStatus.PENDING,
+        result=None,
+    )
 
-        # Add command to queue and create result tracking
-        command_queues[agent].append(instruction)
-        command_results[command_id] = command
+    # Add command to queue and create result tracking
+    command_queues[agent].append(instruction)
+    command_results[command_id] = command
 
-        return jsonify(command.model_dump())
-
-    except json.JSONDecodeError:
-        return jsonify({"error": "Invalid JSON data"}), 400
-    except Exception as e:
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    return jsonify(command.model_dump())
 
 
 # Check command status
@@ -458,54 +501,46 @@ def check_command_status(command_id):
 # Download file
 @app.route("/file/download", methods=["POST"])
 def download():
-    try:
-        file_name = request.headers.get("File")
+    file_name = request.headers.get("File")
 
-        if not file_name:
-            return jsonify({"error": "Missing file name"}), 400
+    if not file_name:
+        return jsonify({"error": "Missing file name"}), 400
 
-        # Try both payload directories
-        file_path = BASE_DIR / "payloads" / file_name
-        if not file_path.exists():
-            return jsonify({"error": "File not found"}), 404
+    # Try both payload directories
+    file_path = BASE_DIR / "payloads" / file_name
+    if not file_path.exists():
+        return jsonify({"error": "File not found"}), 404
 
-        file_data = file_path.read_bytes()
+    file_data = file_path.read_bytes()
 
-        headers = {
-            "Content-Disposition": f'attachment; filename="{file_name}"',
-            "FILENAME": file_name,
-        }
+    headers = {
+        "Content-Disposition": f'attachment; filename="{file_name}"',
+        "FILENAME": file_name,
+    }
 
-        return file_data, 200, headers
-
-    except Exception as e:
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    return file_data, 200, headers
 
 
 # Download file
 @app.route("/agent/download", methods=["POST"])
 def agent_download():
-    try:
-        file_name = request.headers.get("File")
+    file_name = request.headers.get("File")
 
-        if not file_name:
-            return jsonify({"error": "Missing file name"}), 400
+    if not file_name:
+        return jsonify({"error": "Missing file name"}), 400
 
-        file_path = AGENTS_DIR / file_name
-        if not file_path.exists():
-            return jsonify({"error": "File not found"}), 404
+    file_path = AGENTS_DIR / file_name
+    if not file_path.exists():
+        return jsonify({"error": "File not found"}), 404
 
-        file_data = file_path.read_bytes()
+    file_data = file_path.read_bytes()
 
-        headers = {
-            "Content-Disposition": f'attachment; filename="{file_name}"',
-            "FILENAME": file_name,
-        }
+    headers = {
+        "Content-Disposition": f'attachment; filename="{file_name}"',
+        "FILENAME": file_name,
+    }
 
-        return file_data, 200, headers
-
-    except Exception as e:
-        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
+    return file_data, 200, headers
 
 
 # Stream action logs
@@ -544,14 +579,11 @@ def stream_action_logs():
 
             # Stream from current log file
             if current_log_path:
-                try:
-                    with open(current_log_path, "r") as f:
-                        f.seek(position)
-                        for line in f:
-                            yield f"data: {line.strip()}\n\n"
-                        position = f.tell()
-                except FileNotFoundError:
-                    yield f"data: {json.dumps({'error': 'Log file not found, waiting...'})}\n\n"
+                with open(current_log_path, "r") as f:
+                    f.seek(position)
+                    for line in f:
+                        yield f"data: {line.strip()}\n\n"
+                    position = f.tell()
             else:
                 yield f"data: {json.dumps({'status': 'No log file available yet'})}\n\n"
 
@@ -605,14 +637,11 @@ def stream_llm_logs():
 
             # Stream from current log file
             if current_log_path:
-                try:
-                    with open(current_log_path, "r") as f:
-                        f.seek(position)
-                        for line in f:
-                            yield f"data: {line.strip()}\n\n"
-                        position = f.tell()
-                except FileNotFoundError:
-                    yield f"data: {json.dumps({'error': 'Log file not found, waiting...'})}\n\n"
+                with open(current_log_path, "r") as f:
+                    f.seek(position)
+                    for line in f:
+                        yield f"data: {line.strip()}\n\n"
+                    position = f.tell()
             else:
                 yield f"data: {json.dumps({'status': 'No log file available yet'})}\n\n"
 
@@ -666,14 +695,11 @@ def stream_llm_agent_logs():
 
             # Stream from current log file
             if current_log_path:
-                try:
-                    with open(current_log_path, "r") as f:
-                        f.seek(position)
-                        for line in f:
-                            yield f"data: {line.strip()}\n\n"
-                        position = f.tell()
-                except FileNotFoundError:
-                    yield f"data: {json.dumps({'error': 'Log file not found, waiting...'})}\n\n"
+                with open(current_log_path, "r") as f:
+                    f.seek(position)
+                    for line in f:
+                        yield f"data: {line.strip()}\n\n"
+                    position = f.tell()
             else:
                 yield f"data: {json.dumps({'status': 'No log file available yet'})}\n\n"
 
@@ -695,54 +721,39 @@ def stream_llm_agent_logs():
 @app.route("/startup", methods=["POST"])
 def incalmo_startup():
     global hosts
-    try:
-        data = request.get_data()
-        json_data = json.loads(data)
-        hosts = []
+    data = request.get_data()
+    json_data = json.loads(data)
+    hosts = []
 
-        # Validate using AttackerConfig schema
-        try:
-            config = AttackerConfig(**json_data)
-        except Exception as validation_error:
-            return jsonify(
-                {"error": "Invalid configuration", "details": str(validation_error)}
-            ), 400
+    # Validate using AttackerConfig schema
+    config = AttackerConfig(**json_data)
 
-        strategy_name = config.strategy.planning_llm
-        print(f"[FLASK] Starting Celery task for strategy: {strategy_name}")
-        print(f"[FLASK] Configuration: {config.model_dump()}")
-        # Use the imported task function
-        task = run_incalmo_strategy_task.delay(config.model_dump())
-        task_id = task.id
+    strategy_name = config.strategy.planning_llm
+    print(f"[FLASK] Starting Celery task for strategy: {strategy_name}")
+    print(f"[FLASK] Configuration: {config.model_dump()}")
+    # Use the imported task function
+    task = run_incalmo_strategy_task.delay(config.model_dump())
+    task_id = task.id
 
-        # Cancel any existing strategy with the same name
-        if strategy_name in running_strategy_tasks:
-            old_task_id = running_strategy_tasks[strategy_name]
-            print(f"[FLASK] Cancelling existing task: {old_task_id}")
-            celery.control.revoke(old_task_id, terminate=True)
+    # Cancel any existing strategy with the same name
+    if strategy_name in running_strategy_tasks:
+        old_task_id = running_strategy_tasks[strategy_name]
+        print(f"[FLASK] Cancelling existing task: {old_task_id}")
+        celery.control.revoke(old_task_id, terminate=True)
 
-        # Store the task ID
-        running_strategy_tasks[strategy_name] = task_id
+    # Store the task ID
+    running_strategy_tasks[strategy_name] = task_id
 
-        response = {
-            "status": "success",
-            "message": f"Incalmo strategy {strategy_name} started as background task",
-            "config": config.model_dump(),
-            "task_id": task_id,
-            "strategy": strategy_name,
-        }
+    response = {
+        "status": "success",
+        "message": f"Incalmo strategy {strategy_name} started as background task",
+        "config": config.model_dump(),
+        "task_id": task_id,
+        "strategy": strategy_name,
+    }
 
-        print(f"[FLASK] Strategy {strategy_name} queued with task ID: {task_id}")
-        return jsonify(response), 202  # 202 Accepted for async operation
-
-    except json.JSONDecodeError:
-        return jsonify({"error": "Invalid JSON data"}), 400
-    except Exception as e:
-        print(f"[FLASK] Error starting strategy: {e}")
-        import traceback
-
-        traceback.print_exc()
-        return jsonify({"error": f"Failed to start Incalmo server: {str(e)}"}), 500
+    print(f"[FLASK] Strategy {strategy_name} queued with task ID: {task_id}")
+    return jsonify(response), 202  # 202 Accepted for async operation
 
 
 # Check strategy status
@@ -833,29 +844,21 @@ def cancel_strategy(strategy_name):
         return jsonify({"error": "Strategy not found"}), 404
 
     task_id = running_strategy_tasks[strategy_name]
+    # Revoke the task with terminate=True and signal='SIGKILL'
+    celery_worker.control.revoke(task_id, terminate=True, signal="SIGTERM")
 
-    try:
-        # Revoke the task with terminate=True and signal='SIGKILL'
-        celery_worker.control.revoke(task_id, terminate=True, signal="SIGTERM")
+    # Remove from tracking immediately
+    del running_strategy_tasks[strategy_name]
 
-        # Remove from tracking immediately
-        del running_strategy_tasks[strategy_name]
+    print(f"[FLASK] Strategy {strategy_name} cancelled and removed from tracking")
 
-        print(f"[FLASK] Strategy {strategy_name} cancelled and removed from tracking")
-
-        return jsonify(
-            {
-                "message": f"Strategy {strategy_name} cancelled successfully",
-                "task_id": task_id,
-                "status": str(TaskState.REVOKED),
-            }
-        ), 200
-
-    except Exception as e:
-        print(f"[FLASK] Error cancelling strategy {strategy_name}: {e}")
-        return jsonify(
-            {"error": f"Failed to cancel strategy: {str(e)}", "task_id": task_id}
-        ), 500
+    return jsonify(
+        {
+            "message": f"Strategy {strategy_name} cancelled successfully",
+            "task_id": task_id,
+            "status": str(TaskState.REVOKED),
+        }
+    ), 200
 
 
 # List all running strategies
@@ -940,29 +943,25 @@ def health_check():
 @app.route("/available_strategies", methods=["GET"])
 def get_available_strategies():
     """Get all available strategies from the registry"""
-    try:
-        strategies = []
-        for strategy_name, strategy_class in IncalmoStrategy._registry.items():
-            if strategy_name not in ["langchain", "llmstrategy"]:
+    strategies = []
+    for strategy_name, strategy_class in IncalmoStrategy._registry.items():
+        if strategy_name not in ["langchain", "llmstrategy"]:
+            strategies.append(
+                {
+                    "name": strategy_name,
+                }
+            )
+        elif strategy_name == "langchain":
+            models = LangChainRegistry().list_models()
+            for model in models:
                 strategies.append(
                     {
-                        "name": strategy_name,
+                        "name": model,
                     }
                 )
-            elif strategy_name == "langchain":
-                models = LangChainRegistry().list_models()
-                for model in models:
-                    strategies.append(
-                        {
-                            "name": model,
-                        }
-                    )
 
-        strategies.sort(key=lambda x: x["name"])
-        return jsonify({"strategies": strategies}), 200
-
-    except Exception as e:
-        return jsonify({"error": f"Failed to get strategies: {str(e)}"}), 500
+    strategies.sort(key=lambda x: x["name"])
+    return jsonify({"strategies": strategies}), 200
 
 
 @app.route("/", methods=["GET"])

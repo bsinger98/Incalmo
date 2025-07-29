@@ -99,7 +99,7 @@ export const useIncalmoApi = () => {
         llmEventSourceRef.current = null;
       }
     };
-  }, []);
+  }, [environmentInitialized]);
 
   const fetchAgents = async (): Promise<void> => {
     try {
@@ -115,7 +115,8 @@ export const useIncalmoApi = () => {
       await api.delete(`/agent/delete/${paw}`);
       await fetchAgents();
       } catch (error) {
-      console.error('Failed to fetch agents:', error);
+      console.error('Failed to delete agent:', error);
+      throw error;
     }
   };
 
@@ -189,6 +190,7 @@ export const useIncalmoApi = () => {
       setMessage(`Error: ${errorMsg}`);
       setMessageType('error');
       console.error('Strategy start error:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -204,6 +206,7 @@ export const useIncalmoApi = () => {
       const errorMsg = error.response?.data?.error || error.message || 'Failed to stop strategy';
       setMessage(`Error stopping strategy: ${errorMsg}`);
       setMessageType('error');
+      throw error;
     }
   };
 

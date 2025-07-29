@@ -64,7 +64,7 @@ const LLMLogs = ({ logs, isConnected, error }: LLMLogsProps) => {
         clearInterval(typewriterRef.current);
       }
     };
-  }, [logs.length, fullyDisplayedCount]);
+  }, [logs, fullyDisplayedCount]);
 
   // Reset when logs are cleared
   useEffect(() => {
@@ -73,7 +73,7 @@ const LLMLogs = ({ logs, isConnected, error }: LLMLogsProps) => {
       setCurrentLogText('');
       setIsTyping(false);
     }
-  }, [logs.length]);
+  }, [logs]);
 
   // Get the text to display
   const getDisplayText = () => {
