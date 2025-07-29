@@ -1,3 +1,5 @@
+//DEPRECIATED
+// This file is part of the Incalmo project.
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { Security, Computer, Warning, Info } from '@mui/icons-material';

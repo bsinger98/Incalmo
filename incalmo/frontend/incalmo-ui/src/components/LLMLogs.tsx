@@ -123,7 +123,6 @@ const LLMLogs = ({ logs, isConnected, error }: LLMLogsProps) => {
       >
         {logs.length === 0 && !error ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <CircularProgress size={20} sx={{ mr: 1 }} />
             <Typography color="text.secondary">Waiting for LLM logs...</Typography>
           </Box>
         ) : (

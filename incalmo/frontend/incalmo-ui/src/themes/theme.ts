@@ -14,4 +14,7 @@ export const darkTheme: Theme = createTheme({
       paper: '#1e1e1e',
     },
   },
+  typography: {
+    fontFamily: 'Inter',
+  },
 });

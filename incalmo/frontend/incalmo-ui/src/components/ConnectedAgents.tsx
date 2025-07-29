@@ -254,7 +254,6 @@ const ConnectedAgents = ({ agents, deleteAgent, sendCommandToAgent } : Connected
                   sx={{ 
                     backgroundColor: 'black',
                     color: '#00FF00',
-                    fontFamily: 'monospace',
                     p: 1,
                     borderRadius: 1,
                     height: '300px',

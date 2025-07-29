@@ -6,7 +6,6 @@ import ReactFlow, {
   useEdgesState,
   addEdge,
   ConnectionLineType,
-  Panel,
   Connection,
   ReactFlowInstance,
 } from 'reactflow';
@@ -169,11 +168,6 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
         >
           <Background />
           <Controls />
-
-          {/* Legend panel */}
-          <Panel position="top-left">
-            <NetworkGraphLegend />
-          </Panel>
         </ReactFlow>
       </Box>
 
