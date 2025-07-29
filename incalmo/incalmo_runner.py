@@ -8,6 +8,7 @@ from config.attacker_config import AttackerConfig
 
 TIMEOUT_SECONDS = 75 * 60
 
+
 async def run_incalmo_strategy(config: AttackerConfig, task_id: str):
     """Run incalmo with the specified strategy"""
 
