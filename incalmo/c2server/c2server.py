@@ -37,7 +37,6 @@ from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
 
 from incalmo.models.command import Command, CommandStatus
 from incalmo.models.command_result import CommandResult
-from incalmo.incalmo_runner import run_incalmo_strategy
 from config.attacker_config import AttackerConfig
 
 from string import Template
@@ -274,6 +273,27 @@ def get_hosts():
             "hosts": hosts,
         }
     ), 200
+
+
+# Initialize environment
+@app.route("/get_initial_environment", methods=["POST"])
+def get_initial_environment():
+    try:
+        data = request.get_data()
+        json_data = json.loads(data)
+        # Validate using AttackerConfig schema
+        try:
+            config = AttackerConfig(**json_data)
+        except Exception as validation_error:
+            return jsonify(
+                {"error": "Invalid configuration", "details": str(validation_error)}
+            ), 400
+        IncalmoStrategy.initialize_base_environment(config)
+        return jsonify({"status": "success"}), 200
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON data"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 
 # Add LLM Agent Action to queue

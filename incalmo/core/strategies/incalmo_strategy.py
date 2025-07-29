@@ -82,6 +82,16 @@ class IncalmoStrategy(ABC):
             self.logging_service,
         )
 
+    @classmethod
+    def initialize_base_environment(cls, config: AttackerConfig):
+        """Initialize base environment and return initial hosts without running strategy"""
+        c2_client = C2ApiClient()
+        env_service = EnvironmentStateService(c2_client, config)
+
+        agents = c2_client.get_agents()
+        env_service.update_host_agents(agents)
+        c2_client.report_environment_state(env_service.network)
+
     async def initialize(self, task_id: str = ""):
         agents = self.c2_client.get_agents()
         if len(agents) == 0:

@@ -57,6 +57,7 @@ export const useIncalmoApi = () => {
   const [hostsLoading, setHostsLoading] = useState<boolean>(false);
   const [hostsError, setHostsError] = useState<string>('');
   const [lastHostsUpdate, setLastHostsUpdate] = useState<string>('');
+  const [environmentInitialized, setEnvironmentInitialized] = useState<boolean>(false);
 
   const [lowLevelLogs, setLowLevelLogs] = useState<LowLevelLogEntry[]>([]);
   const [highLevelLogs, setHighLevelLogs] = useState<HighLevelLogEntry[]>([]);
@@ -82,6 +83,9 @@ export const useIncalmoApi = () => {
       fetchRunningStrategies();
       fetchStrategies();
       fetchHosts();
+      if (!environmentInitialized) {
+        initializeEnvironment();
+      }
     }, 10000);
 
     return () => {
@@ -204,32 +208,55 @@ export const useIncalmoApi = () => {
   };
 
   const getStatusColor = (state: string): 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-  switch (state) {
-    case 'SUCCESS': return 'success';
-    case 'FAILURE': return 'error';
-    case 'PENDING': return 'warning';
-    case 'PROGRESS': return 'info';
-    default: return 'primary';
-  }
-};
+    switch (state) {
+      case 'SUCCESS': return 'success';
+      case 'FAILURE': return 'error';
+      case 'PENDING': return 'warning';
+      case 'PROGRESS': return 'info';
+      default: return 'primary';
+    }
+  };
 
-const fetchHosts = async () => {
-  setHostsLoading(true);
-  setHostsError('');
-  
-  try {
-    const response = await api.get('/hosts');
-    const data = response.data;
+  const fetchHosts = async () => {
+    setHostsLoading(true);
+    setHostsError('');
     
-    setHosts(data.hosts || []);
-    setLastHostsUpdate(new Date().toLocaleTimeString());
-  } catch (err) {
-    setHostsError(`Network error: ${err.message}`);
-    console.error('[API] Error fetching hosts:', err);
-  } finally {
-    setHostsLoading(false);
-  }
-};
+    try {
+      const response = await api.get('/hosts');
+      const data = response.data;
+      
+      setHosts(data.hosts || []);
+      setLastHostsUpdate(new Date().toLocaleTimeString());
+    } catch (err) {
+      setHostsError(`Network error: ${err.message}`);
+      console.error('[API] Error fetching hosts:', err);
+    } finally {
+      setHostsLoading(false);
+    }
+  };
+
+  const initializeEnvironment = async (): Promise<void> => {
+    try {
+      const defaultConfig = {
+        name: "environment-init",
+        strategy: {
+          planning_llm: "gemini-1.5-flash", // Use a default strategy
+          abstraction: "incalmo"
+        },
+        execution_llm: "claude-3.5-haiku",
+        environment: "EquifaxLarge",
+        c2c_server: "http://host.docker.internal:8888",
+      };
+
+      const response = await api.post('/get_initial_environment', defaultConfig);
+      
+      if (response.status === 200) {
+        setEnvironmentInitialized(true);
+      }
+    } catch (error) {
+      console.error('Failed to initialize environment:', error);
+    }
+  };
 
   const connectToActionLogStream = () => {
     if (actionEventSourceRef.current) {
