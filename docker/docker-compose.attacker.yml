@@ -1,0 +1,25 @@
+services:
+  attacker:
+    build:
+      context: ../
+      dockerfile: docker/attacker/incalmo.Dockerfile
+    env_file:
+      - ../.env
+    environment:
+      - SERVER_IP=localhost
+      - MODE=remote
+    volumes:
+      - ../:/incalmo
+      - frontend-ignore:/incalmo/incalmo/frontend
+      - venv-volume:/incalmo/.venv
+    ports:
+      - "8888:8888"
+      - "6379:6379"
+      - "5678:5678"
+    # Uses the default network only; no test/web/db networks attached
+
+volumes:
+  venv-volume:
+  frontend-ignore:
+
+
