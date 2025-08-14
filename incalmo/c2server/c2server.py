@@ -32,13 +32,6 @@ app.config.update(
 celery = make_celery(app)
 app.extensions["celery"] = celery
 
-print(f"[DEBUG] Flask app broker_url: {app.config.get('broker_url')}")
-print(f"[DEBUG] Flask app result_backend: {app.config.get('result_backend')}")
-print(f"[DEBUG] Environment broker_url: {os.environ.get('broker_url')}")
-print(f"[DEBUG] Environment result_backend: {os.environ.get('result_backend')}")
-print(f"[DEBUG] Celery broker URL: {celery.conf.broker_url}")
-print(f"[DEBUG] Celery result backend: {celery.conf.result_backend}")
-
 # Disable Flask's default request logging
 log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
