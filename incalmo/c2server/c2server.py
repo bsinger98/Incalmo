@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from flask import Flask, jsonify, request
-=======
-from flask import Flask, jsonify
->>>>>>> main
 from flask_cors import CORS
 import json
 import binascii
