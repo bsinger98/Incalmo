@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import json
 import binascii
@@ -125,6 +125,12 @@ def handle_key_error(exc):
 def handle_unexpected_error(exc):
     app.logger.exception(exc)
     return jsonify({"error": "Internal server error"}), 500
+
+
+@app.errorhandler(404)
+def not_found_error(e):
+    app.logger.warning(f"404 Not Found: {request.method} {request.url}")
+    return "Not Found", 404
 
 
 # Health check

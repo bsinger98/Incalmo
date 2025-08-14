@@ -12,10 +12,10 @@ from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
 from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
 from incalmo.c2server.celery.celery_worker import celery_worker
 from incalmo.c2server.shared import (
-    hosts,
     running_strategy_tasks,
     TaskState,
 )
+from incalmo.c2server.state_store import StateStore
 
 # Create blueprint
 strategy_bp = Blueprint("strategy", __name__)
@@ -24,10 +24,10 @@ strategy_bp = Blueprint("strategy", __name__)
 @strategy_bp.route("/startup", methods=["POST"])
 def incalmo_startup():
     """Start an Incalmo strategy as a background task."""
-    global hosts
     data = request.get_data()
     json_data = json.loads(data)
-    hosts = []
+    # Clear existing environment hosts when starting a new strategy
+    StateStore.set_hosts([])
 
     # Validate using AttackerConfig schema
     config = AttackerConfig(**json_data)

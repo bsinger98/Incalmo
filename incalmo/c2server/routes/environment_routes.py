@@ -8,7 +8,7 @@ from flask import Blueprint, request, jsonify
 
 from config.attacker_config import AttackerConfig
 from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
-from incalmo.c2server.shared import hosts
+from incalmo.c2server.state_store import StateStore
 
 # Create blueprint
 environment_bp = Blueprint("environment", __name__)
@@ -17,22 +17,22 @@ environment_bp = Blueprint("environment", __name__)
 @environment_bp.route("/update_environment_state", methods=["POST"])
 def update_environment_state():
     """Update the environment state with host information."""
-    global hosts
-    data = request.data
+    data = request.get_data()
     json_data = json.loads(data)
 
     hosts = json_data.get("hosts", [])
-    return jsonify({"status": "success", "message": "Infection source reported"}), 200
+    if not isinstance(hosts, list):
+        return jsonify({"error": "Invalid hosts payload"}), 400
+
+    StateStore.set_hosts(hosts)
+    return jsonify({"status": "success", "message": "Environment state updated"}), 200
 
 
 @environment_bp.route("/hosts", methods=["GET"])
 def get_hosts():
     """Get the current list of hosts in the environment."""
-    return jsonify(
-        {
-            "hosts": hosts,
-        }
-    ), 200
+    current_hosts = StateStore.get_hosts()
+    return jsonify({"hosts": current_hosts}), 200
 
 
 @environment_bp.route("/get_initial_environment", methods=["POST"])
