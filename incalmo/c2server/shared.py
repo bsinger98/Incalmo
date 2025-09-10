@@ -5,13 +5,13 @@ Contains common code used across multiple route modules.
 
 import base64
 import json
-import time
 from collections import defaultdict
 from enum import Enum
 from pathlib import Path
 from string import Template
 from typing import Dict
 
+from config.attacker_config import AttackerConfig
 from incalmo.models.command import Command
 
 
@@ -34,7 +34,7 @@ hosts = []
 llm_agent_actions = []
 
 # Store running strategy tasks
-running_strategy_tasks: Dict[str, str] = {}  # strategy_name -> task_id
+running_strategy_tasks: Dict[str, AttackerConfig] = {}
 
 
 # Enums

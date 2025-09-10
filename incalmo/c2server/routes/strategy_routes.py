@@ -5,7 +5,7 @@ Handles strategy execution, monitoring, and management.
 
 import json
 import uuid
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 
 from config.attacker_config import AttackerConfig
 from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
@@ -36,19 +36,17 @@ def incalmo_startup():
     if not config.id:
         config.id = str(uuid.uuid4())[:8]
 
-    strategy_name = config.strategy.planning_llm
+    strategy_name = config.name
+
+    if config.id in running_strategy_tasks:
+        return jsonify({"error": "Strategy already running"}), 400
 
     # Use the imported task function
     task = run_incalmo_strategy_task.delay(config.model_dump())
     task_id = task.id
 
-    # Cancel any existing strategy with the same name
-    if strategy_name in running_strategy_tasks:
-        old_task_id = running_strategy_tasks[strategy_name]
-        current_app.extensions["celery"].control.revoke(old_task_id, terminate=True)
-
     # Store the task ID
-    running_strategy_tasks[strategy_name] = task_id
+    running_strategy_tasks[task_id] = config
 
     response = {
         "status": "success",
@@ -58,18 +56,17 @@ def incalmo_startup():
         "strategy": strategy_name,
     }
 
-    print(f"[FLASK] Strategy {strategy_name} queued with task ID: {task_id}")
     return jsonify(response), 202  # 202 Accepted for async operation
 
 
-@strategy_bp.route("/strategy_status/<strategy_name>", methods=["GET"])
-def strategy_status(strategy_name):
+@strategy_bp.route("/strategy_status/<strategy_id>", methods=["GET"])
+def strategy_status(strategy_id: str):
     """Check the status of a running strategy."""
-    if strategy_name not in running_strategy_tasks:
+    if strategy_id not in running_strategy_tasks:
         return jsonify({"error": "Strategy not found"}), 404
 
-    task_id = running_strategy_tasks[strategy_name]
-    task = run_incalmo_strategy_task.AsyncResult(task_id)
+    config = running_strategy_tasks[strategy_id]
+    task = run_incalmo_strategy_task.AsyncResult(strategy_id)
     task_state = TaskState.from_string(task.state)
 
     # Safely handle task.info
@@ -86,8 +83,8 @@ def strategy_status(strategy_name):
             task_info = {"serialization_error": str(e)}
 
     response = {
-        "strategy": strategy_name,
-        "task_id": task_id,
+        "strategy": config.name,
+        "task_id": strategy_id,
         "state": str(task_state),
         "info": task_info,
     }
@@ -143,25 +140,23 @@ def task_status(task_id):
     return jsonify(response), 200
 
 
-@strategy_bp.route("/cancel_strategy/<strategy_name>", methods=["POST"])
-def cancel_strategy(strategy_name):
+@strategy_bp.route("/cancel_strategy/<strategy_id>", methods=["POST"])
+def cancel_strategy(strategy_id: str):
     """Cancel a running strategy."""
-    if strategy_name not in running_strategy_tasks:
+    if strategy_id not in running_strategy_tasks:
         return jsonify({"error": "Strategy not found"}), 404
 
-    task_id = running_strategy_tasks[strategy_name]
+    config = running_strategy_tasks[strategy_id]
     # Revoke the task with terminate=True and signal='SIGKILL'
-    celery_worker.control.revoke(task_id, terminate=True, signal="SIGTERM")
+    celery_worker.control.revoke(strategy_id, terminate=True, signal="SIGTERM")
 
     # Remove from tracking immediately
-    del running_strategy_tasks[strategy_name]
-
-    print(f"[FLASK] Strategy {strategy_name} cancelled and removed from tracking")
+    del running_strategy_tasks[strategy_id]
 
     return jsonify(
         {
-            "message": f"Strategy {strategy_name} cancelled successfully",
-            "task_id": task_id,
+            "message": f"Strategy {config.name} cancelled successfully",
+            "task_id": strategy_id,
             "status": str(TaskState.REVOKED),
         }
     ), 200
@@ -173,8 +168,8 @@ def list_strategies():
     strategies = {}
     completed_strategies = []
 
-    for strategy_name, task_id in running_strategy_tasks.items():
-        task = run_incalmo_strategy_task.AsyncResult(task_id)
+    for strategy_id, config in running_strategy_tasks.items():
+        task = run_incalmo_strategy_task.AsyncResult(strategy_id)
 
         task_state = TaskState.from_string(task.state)
         task_info = {}
@@ -210,20 +205,19 @@ def list_strategies():
                 "message": f"Task is in {task_state} state",
             }
 
-        strategies[strategy_name] = {
-            "task_id": task_id,
+        strategies[config.name] = {
+            "task_id": strategy_id,
             "state": task.state,
             "info": task_info,
         }
 
         # Mark completed/failed/revoked strategies for cleanup
         if task.state in [TaskState.SUCCESS, TaskState.FAILURE, TaskState.REVOKED]:
-            completed_strategies.append(strategy_name)
+            completed_strategies.append(strategy_id)
 
     # Clean up completed strategies
-    for strategy_name in completed_strategies:
-        print(f"[FLASK] Cleaning up completed strategy: {strategy_name}")
-        del running_strategy_tasks[strategy_name]
+    for strategy_id in completed_strategies:
+        del running_strategy_tasks[strategy_id]
 
     return jsonify(strategies), 200
 
