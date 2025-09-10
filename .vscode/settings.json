@@ -3,7 +3,11 @@
     "python.analysis.autoSearchPaths": false,
     "python.analysis.extraPaths": [],
     "python.analysis.typeCheckingMode": "basic",
+<<<<<<< Updated upstream
     "python.languageServer": "Default",
+=======
+    "python.languageServer": "None",
+>>>>>>> Stashed changes
     "[python]": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "charliermarsh.ruff"

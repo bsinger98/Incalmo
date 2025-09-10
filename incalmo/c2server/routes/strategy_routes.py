@@ -41,8 +41,10 @@ def incalmo_startup():
     if config.id in running_strategy_tasks:
         return jsonify({"error": "Strategy already running"}), 400
 
-    # Use the imported task function
-    task = run_incalmo_strategy_task.delay(config.model_dump())
+    # Use the imported task function with custom task ID
+    task = run_incalmo_strategy_task.apply_async(
+        args=[config.model_dump()], task_id=config.id
+    )
     task_id = task.id
 
     # Store the task ID
