@@ -5,7 +5,7 @@ Handles streaming of various log files.
 
 import json
 import time
-from flask import Blueprint, Response, stream_with_context
+from flask import Blueprint, Response, stream_with_context, jsonify
 
 from incalmo.c2server.shared import (
     running_strategy_tasks,
@@ -14,6 +14,31 @@ from incalmo.c2server.shared import (
 
 # Create blueprint
 logging_bp = Blueprint("logging", __name__)
+
+
+@logging_bp.route("/get_latest_logs", methods=["GET"])
+def get_latest_logs():
+    """Get the latest logs for all log files."""
+    log_path = get_latest_log_path()
+
+    actions_log_path = log_path[0]
+    llm_log_path = log_path[1]
+    llm_agent_log_path = log_path[2]
+
+    with open(actions_log_path, "r") as f:
+        actions_log = f.read()
+
+    with open(llm_log_path, "r") as f:
+        llm_log = f.read()
+
+    with open(llm_agent_log_path, "r") as f:
+        llm_agent_log = f.read()
+
+    logs = {}
+    logs["actions"] = actions_log
+    logs["llm"] = llm_log
+    logs["llm_agent"] = llm_agent_log
+    return jsonify(logs), 200
 
 
 def _generate_log_stream(log_index):
@@ -42,10 +67,7 @@ def _generate_log_stream(log_index):
                 strategy_name = next(iter(running_strategy_tasks.keys()))
                 task_id = running_strategy_tasks[strategy_name]
                 latest_log_path = get_latest_log_path(strategy_name, task_id)[log_index]
-                log_names = ["Action", "LLM", "LLM Agent"]
-                print(
-                    f"[DEBUG] Latest {log_names[log_index]} log path: {latest_log_path}"
-                )
+
                 if latest_log_path != current_log_path:
                     current_log_path = latest_log_path
                     position = 0  # Reset position for the new file
