@@ -4,6 +4,7 @@ Handles strategy execution, monitoring, and management.
 """
 
 import json
+import uuid
 from flask import Blueprint, request, jsonify, current_app
 
 from config.attacker_config import AttackerConfig
@@ -32,9 +33,10 @@ def incalmo_startup():
     # Validate using AttackerConfig schema
     config = AttackerConfig(**json_data)
 
+    if not config.id:
+        config.id = str(uuid.uuid4())[:8]
+
     strategy_name = config.strategy.planning_llm
-    print(f"[FLASK] Starting Celery task for strategy: {strategy_name}")
-    print(f"[FLASK] Configuration: {config.model_dump()}")
 
     # Use the imported task function
     task = run_incalmo_strategy_task.delay(config.model_dump())
@@ -43,7 +45,6 @@ def incalmo_startup():
     # Cancel any existing strategy with the same name
     if strategy_name in running_strategy_tasks:
         old_task_id = running_strategy_tasks[strategy_name]
-        print(f"[FLASK] Cancelling existing task: {old_task_id}")
         current_app.extensions["celery"].control.revoke(old_task_id, terminate=True)
 
     # Store the task ID

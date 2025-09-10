@@ -1,23 +1,21 @@
-from celery import current_task
-from celery.exceptions import Ignore
 from incalmo.incalmo_runner import run_incalmo_strategy
 from config.attacker_config import AttackerConfig
 import asyncio
 import traceback
 import os
-import sys
-import psutil
 
 from incalmo.c2server.celery.celery_worker import celery_worker
 
 
 @celery_worker.task(bind=True, name="run_incalmo_strategy_task")
-def run_incalmo_strategy_task(self, config_dict):
+def run_incalmo_strategy_task(self, config_dict: dict):
+    config = AttackerConfig(**config_dict)
+    if not config.id:
+        raise Exception("No task ID specified")
+
     try:
-        config = AttackerConfig(**config_dict)
         planning_llm = config.strategy.planning_llm
-        print(f"[CELERY_TASK] Starting strategy: {planning_llm}")
-        task_id = self.request.id
+        task_id = config.id
         self.update_state(
             state="PROGRESS",
             meta={
@@ -26,10 +24,6 @@ def run_incalmo_strategy_task(self, config_dict):
                 "status": f"Starting {planning_llm}...",
                 "pid": os.getpid(),
             },
-        )
-
-        print(
-            f"[CELERY_TASK] About to run strategy: {planning_llm} with task ID: {task_id}"
         )
 
         self.update_state(
@@ -54,7 +48,6 @@ def run_incalmo_strategy_task(self, config_dict):
             },
         )
 
-        print(f"[CELERY_TASK] Strategy {planning_llm} completed successfully")
         return {
             "status": "success",
             "result": result,
