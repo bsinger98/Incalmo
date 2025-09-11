@@ -158,10 +158,8 @@ def api_root():
 
 
 if __name__ == "__main__":
-    if DEBUG:
-        print(f"[DEBUG] Starting debug server on port {DEBUG_PORT}")
-        debugpy.listen(("0.0.0.0", DEBUG_PORT))
-        print(f"[DEBUG] Waiting for debugger to attach on port {DEBUG_PORT}...")
-        debugpy.wait_for_client()
-        print("[DEBUG] Debugger attached!")
-    app.run(host="0.0.0.0", port=8888, debug=True if not DEBUG else False)
+    # if DEBUG:
+    #     debugpy.listen(("0.0.0.0", DEBUG_PORT))
+    #     debugpy.wait_for_client()
+
+    app.run(host="0.0.0.0", port=8888, debug=DEBUG)

@@ -152,9 +152,6 @@ def cancel_strategy(strategy_id: str):
     # Revoke the task with terminate=True and signal='SIGKILL'
     celery_worker.control.revoke(strategy_id, terminate=True, signal="SIGTERM")
 
-    # Remove from tracking immediately
-    del running_strategy_tasks[strategy_id]
-
     return jsonify(
         {
             "message": f"Strategy {config.name} cancelled successfully",
@@ -216,10 +213,6 @@ def list_strategies():
         # Mark completed/failed/revoked strategies for cleanup
         if task.state in [TaskState.SUCCESS, TaskState.FAILURE, TaskState.REVOKED]:
             completed_strategies.append(strategy_id)
-
-    # Clean up completed strategies
-    for strategy_id in completed_strategies:
-        del running_strategy_tasks[strategy_id]
 
     return jsonify(strategies), 200
 

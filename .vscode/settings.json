@@ -1,6 +1,6 @@
 // In settings.json
 {
-    "python.languageServer": "Default",
+    "python.languageServer": "None",
     "[python]": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "charliermarsh.ruff"

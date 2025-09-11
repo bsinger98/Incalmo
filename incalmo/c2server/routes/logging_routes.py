@@ -10,6 +10,7 @@ from flask import Blueprint, Response, stream_with_context, jsonify
 from incalmo.c2server.shared import (
     running_strategy_tasks,
     get_latest_log_path,
+    get_log_path,
 )
 
 # Create blueprint
@@ -38,6 +39,32 @@ def get_latest_logs():
     logs["actions"] = actions_log
     logs["llm"] = llm_log
     logs["llm_agent"] = llm_agent_log
+    return jsonify(logs), 200
+
+
+@logging_bp.route("/get_logs/<strategy_id>", methods=["GET"])
+def get_logs(strategy_id: str):
+    """Get the logs for a strategy."""
+    strategy_log_path = get_log_path(strategy_id)
+
+    actions_log_path = strategy_log_path / "actions.json"
+    llm_log_path = strategy_log_path / "llm.log"
+    llm_agent_log_path = strategy_log_path / "llm_agent.log"
+
+    with open(actions_log_path, "r") as f:
+        actions_log = f.read()
+
+    with open(llm_log_path, "r") as f:
+        llm_log = f.read()
+
+    with open(llm_agent_log_path, "r") as f:
+        llm_agent_log = f.read()
+
+    logs = {}
+    logs["actions"] = actions_log
+    logs["llm"] = llm_log
+    logs["llm_agent"] = llm_agent_log
+
     return jsonify(logs), 200
 
 

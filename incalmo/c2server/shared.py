@@ -110,3 +110,16 @@ def get_latest_log_path(strategy_name=None, task_id=None):
     llm_agent_log_path = latest_dir / "llm_agent.log"
 
     return actions_log_path, llm_log_path, llm_agent_log_path
+
+
+def get_log_path(strategy_id: str):
+    # Get all directories in the output directory
+    output_dirs = sorted(Path("output").glob("*_*_*-*-*_*-*-*"), reverse=True)
+    if not output_dirs:
+        raise FileNotFoundError("No log directories found")
+
+    for dir in output_dirs:
+        if strategy_id in dir.name:
+            return dir
+
+    raise FileNotFoundError(f"No log directory found for strategy: {strategy_id}")

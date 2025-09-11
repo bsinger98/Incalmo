@@ -8,6 +8,7 @@ services:
     environment:
       - SERVER_IP=localhost
       - MODE=remote
+      - DEBUG=false
     volumes:
       - ../:/incalmo
       - frontend-ignore:/incalmo/incalmo/frontend
