@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Dict
+from typing import Dict, Any
 from datetime import datetime
 import os
 
@@ -9,7 +9,7 @@ from enum import Enum
 from datetime import datetime
 
 
-def serialize(self):
+def serialize(obj: Any):
     from incalmo.core.strategies.llm.interfaces.llm_agent_interface import (
         LLMAgentInterface,
     )
@@ -17,8 +17,11 @@ def serialize(self):
     IGNORE_OBJECTS = [logging.Logger, LLMAgentInterface]
 
     dict_format = dict()
-    if hasattr(self, "__dict__"):
-        for key, value in self.__dict__.items():
+    dict_format["class_name"] = obj.__class__.__name__
+
+    if hasattr(obj, "__dict__"):
+        # Add class name to the serialized object
+        for key, value in obj.__dict__.items():
             if type(value) in IGNORE_OBJECTS:
                 continue
             elif isinstance(value, Enum):
@@ -36,7 +39,7 @@ def serialize(self):
                 dict_format[key] = serialize(value)
         return dict_format
     else:
-        return self
+        return obj
 
 
 class HighLevelActionLog(BaseModel):

@@ -58,13 +58,9 @@ class LowLevelActionOrchestrator:
             low_level_action_id=action_ll_id,
             action_name=low_level_action.__class__.__name__,
             action_params=serialize(low_level_action),
-            action_results={
-                "stderr": command_result.stderr,
-                "stdout": command_result.output,
-                "results": {
-                    event.__class__.__name__: serialize(event) for event in events
-                },
-            },
+            events=[serialize(event) for event in events],
+            stderr=command_result.stderr,
+            stdout=command_result.output,
         )
         return events
 

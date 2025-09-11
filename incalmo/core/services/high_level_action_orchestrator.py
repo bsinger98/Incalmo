@@ -46,9 +46,7 @@ class HighLevelActionOrchestrator:
             low_level_action_ids=context.ll_id,
             action_name=action.__class__.__name__,
             action_params=serialize(action),
-            action_results={
-                event.__class__.__name__: serialize(event) for event in events
-            },
+            events=[serialize(event) for event in events],
         )
         await self.environment_state_service.parse_events(events)
 
