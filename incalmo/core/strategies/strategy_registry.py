@@ -3,6 +3,9 @@ Strategy Registry for automatically registering IncalmoStrategy subclasses.
 """
 
 from typing import Dict, Type, List
+import types
+import pkgutil
+import importlib
 
 
 class StrategyRegistry:
@@ -60,6 +63,21 @@ class StrategyRegistry:
     def __repr__(self) -> str:
         """Return a string representation of the registry."""
         return f"StrategyRegistry({list(self._strategies.keys())})"
+
+    def discover(self, package: types.ModuleType) -> None:
+        """
+        Import all submodules in a package so subclass definitions run,
+        which triggers registration.
+        """
+        if not hasattr(package, "__path__"):
+            return  # not a package
+        prefix = package.__name__ + "."
+        for modinfo in pkgutil.walk_packages(package.__path__, prefix):
+            try:
+                importlib.import_module(modinfo.name)
+            except ImportError as e:
+                # Log but don't fail - some modules might have missing dependencies
+                print(f"Warning: Could not import {modinfo.name}: {e}")
 
 
 # Global registry instance

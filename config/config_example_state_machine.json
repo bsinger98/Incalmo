@@ -1,8 +1,7 @@
 {
     "name": "test",
     "strategy": {
-        "planning_llm": "claude-3.5-haiku",
-        "abstraction": "incalmo"
+        "name": "EquifaxStrategy"
     },
     "execution_llm": "claude-3.5-haiku",
     "environment": "EquifaxLarge",

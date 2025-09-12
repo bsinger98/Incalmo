@@ -6,12 +6,15 @@ from config.attacker_config import (
     StateMachineStrategy,
 )
 from incalmo.core.strategies.llm.langchain_strategy import LangChainStrategy
+import incalmo.core.strategies
 
 
 class StrategyFactory:
     def __init__(self):
         # Use the global strategy registry
         self.registry = STRATEGY_REGISTRY
+        # Discover and register all strategies in the strategies package
+        self.registry.discover(incalmo.core.strategies)
 
     def register_strategy(self, name: str, strategy: type["IncalmoStrategy"]):
         """Manually register a strategy with a given name"""
