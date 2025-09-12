@@ -1,7 +1,7 @@
 from incalmo.core.strategies.llm.interfaces.llm_interface import LLMInterface
 from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
-from config.attacker_config import AttackerConfig
+from config.attacker_config import AttackerConfig, LLMStrategyConfig
 from incalmo.core.services import EnvironmentStateService
 
 
@@ -11,11 +11,13 @@ class LangChainInterface(LLMInterface):
         logger,
         environment_state_service: EnvironmentStateService,
         config: AttackerConfig,
-        model_name: str,
     ):
         super().__init__(logger, environment_state_service, config)
 
-        self.model_name = model_name
+        if not isinstance(config.strategy, LLMStrategyConfig):
+            raise ValueError("Strategy must be an instance of LLMStrategy")
+        self.model_name = config.strategy.planning_llm
+
         self._registry = LangChainRegistry()
         self.conversation = [
             {"role": "system", "content": self.pre_prompt},

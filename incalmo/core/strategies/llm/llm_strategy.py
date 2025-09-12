@@ -25,7 +25,7 @@ from incalmo.core.actions import HighLevel, LowLevel
 from incalmo.core.actions.high_level_action import HighLevelAction
 from incalmo.core.actions.low_level_action import LowLevelAction
 from incalmo.core.models.events import BashOutputEvent
-from config.attacker_config import AttackerConfig
+from config.attacker_config import AttackerConfig, LLMStrategyConfig
 
 from abc import ABC, abstractmethod
 
@@ -41,7 +41,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
         self.logger = self.logging_service.setup_logger(logger_name="llm")
         self.agent_logger = self.logging_service.setup_logger(logger_name="llm_agent")
 
-        if not isinstance(self.config.strategy, LLMStrategy):
+        if not isinstance(self.config.strategy, LLMStrategyConfig):
             raise ValueError("Strategy must be an instance of LLMStrategy")
 
         self.abstraction = self.config.strategy.abstraction

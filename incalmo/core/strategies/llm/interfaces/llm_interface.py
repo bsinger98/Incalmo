@@ -2,13 +2,13 @@ import os
 
 from abc import ABC, abstractmethod
 
-from config.attacker_config import AbstractionLevel, AttackerConfig
+from config.attacker_config import AbstractionLevel, AttackerConfig, LLMStrategyConfig
 
 from incalmo.core.strategies.llm.llm_response import (
     LLMResponse,
     LLMResponseType,
 )
-from incalmo.core.strategies.llm.llm_strategy import LLMStrategy
+
 from incalmo.core.services import (
     EnvironmentStateService,
 )
@@ -69,7 +69,7 @@ class LLMInterface(ABC):
     ):
         self.logger = logger
 
-        if not isinstance(config.strategy, LLMStrategy):
+        if not isinstance(config.strategy, LLMStrategyConfig):
             raise ValueError("Strategy must be an instance of LLMStrategy")
 
         self.abstraction = config.strategy.abstraction

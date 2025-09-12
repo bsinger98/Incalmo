@@ -12,6 +12,19 @@ from datetime import datetime
 
 
 class IncalmoStrategy(ABC):
+    """Base strategy class that auto-registers subclasses."""
+
+    def __init_subclass__(
+        cls, *, name: str | None = None, register: bool = True, **kwargs
+    ):
+        """Inherit from this to auto-register subclasses."""
+        super().__init_subclass__(**kwargs)
+        if register:
+            # Import here to avoid circular imports
+            from incalmo.core.strategies.strategy_registry import STRATEGY_REGISTRY
+
+            STRATEGY_REGISTRY.register(cls, name=name)
+
     def __init__(
         self,
         config: AttackerConfig,
