@@ -27,7 +27,7 @@ class AbstractionLevel(str, Enum):
     AGENT_ALL = "agent_all"
 
 
-class LLMStrategy(BaseModel):
+class LLMStrategyConfig(BaseModel):
     planning_llm: str
     abstraction: AbstractionLevel
 
@@ -53,7 +53,7 @@ def convert_to_abstraction_level(level: str) -> AbstractionLevel:
 class AttackerConfig(BaseModel):
     name: str
     id: Optional[str] = None
-    strategy: LLMStrategy | StateMachineStrategy
+    strategy: LLMStrategyConfig | StateMachineStrategy
     execution_llm: str
     environment: str
     c2c_server: str

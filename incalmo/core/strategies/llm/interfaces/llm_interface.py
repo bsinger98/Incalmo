@@ -8,7 +8,7 @@ from incalmo.core.strategies.llm.llm_response import (
     LLMResponse,
     LLMResponseType,
 )
-
+from incalmo.core.strategies.llm.llm_strategy import LLMStrategy
 from incalmo.core.services import (
     EnvironmentStateService,
 )
@@ -68,6 +68,11 @@ class LLMInterface(ABC):
         config: AttackerConfig,
     ):
         self.logger = logger
+
+        if not isinstance(config.strategy, LLMStrategy):
+            raise ValueError("Strategy must be an instance of LLMStrategy")
+
+        self.abstraction = config.strategy.abstraction
 
         # Path of current file
         current_file = os.path.abspath(__file__)

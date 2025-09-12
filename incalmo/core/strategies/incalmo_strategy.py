@@ -9,50 +9,19 @@ from config.attacker_config import AttackerConfig
 from incalmo.api.server_api import C2ApiClient
 from abc import ABC, abstractmethod
 from datetime import datetime
-from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
 
 
 class IncalmoStrategy(ABC):
-    _registry: dict[str, type["IncalmoStrategy"]] = {}
-
-    def __init_subclass__(cls, *, name: str | None = None, **kwargs):
-        super().__init_subclass__(**kwargs)
-        if name is None:
-            name = cls.__name__.lower()
-        cls._registry[name] = cls
-
-    @classmethod
-    def get(cls, name: str) -> type["IncalmoStrategy"]:
-        try:
-            print(f"Retrieving strategy: {name.lower()}")
-            return cls._registry[name.lower()]
-        except KeyError as e:
-            raise ValueError(f"Unknown strategy '{name}'") from e
-
-    @classmethod
-    def build_strategy(
-        cls, name: str, config: AttackerConfig, task_id: str = "", **kwargs
-    ) -> "IncalmoStrategy":
-        registry = LangChainRegistry()
-        available_models = registry.list_models()
-        kwargs["task_id"] = task_id
-        if name in available_models:
-            langchain_strategy_cls = cls._registry["langchain"]
-            return langchain_strategy_cls(config=config, planning_llm=name, **kwargs)
-        strategy_cls = cls.get(name)
-        kwargs["config"] = config
-        return strategy_cls(**kwargs)
-
     def __init__(
         self,
         config: AttackerConfig,
         logger: str = "incalmo",
-        **kwargs,
+        task_id: str = "",
     ):
-        task_id = kwargs.pop("task_id", "")
         # Load config
         self.config = config
         self.c2_client = C2ApiClient()
+        self.task_id = task_id
 
         # Services
         self.environment_state_service: EnvironmentStateService = (
@@ -62,7 +31,7 @@ class IncalmoStrategy(ABC):
             self.environment_state_service
         )
         self.logging_service: IncalmoLogger = IncalmoLogger(
-            operation_id=f"{self.config.strategy.planning_llm}_{task_id}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+            operation_id=f"{self.config.name}_{task_id}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
         )
         # Orchestrators
         self.low_level_action_orchestrator = LowLevelActionOrchestrator(

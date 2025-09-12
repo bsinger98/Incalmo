@@ -9,7 +9,7 @@ from incalmo.core.actions.HighLevel import (
 from incalmo.core.models.network import Host, Subnet
 
 
-class MHBenchEquifaxStrategy(IncalmoStrategy, name="mhbench_equifax_strategy"):
+class MHBenchEquifaxStrategy(IncalmoStrategy):
     async def step(self) -> bool:
         agents = self.environment_state_service.get_agents()
         hosts = self.environment_state_service.network.get_all_hosts()

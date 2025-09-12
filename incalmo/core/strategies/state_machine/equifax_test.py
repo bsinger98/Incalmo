@@ -9,7 +9,7 @@ from incalmo.core.actions.HighLevel import (
 from incalmo.core.models.network import Host, Subnet
 
 
-class EquifaxStrategy(IncalmoStrategy, name="equifax_strategy"):
+class EquifaxStrategy(IncalmoStrategy):
     async def step(self) -> bool:
         agents = self.environment_state_service.get_agents()
         hosts = self.environment_state_service.network.get_all_hosts()
