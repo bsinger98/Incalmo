@@ -32,6 +32,10 @@ class LLMStrategy(BaseModel):
     abstraction: AbstractionLevel
 
 
+class StateMachineStrategy(BaseModel):
+    name: str
+
+
 def convert_to_environment(env: str) -> Environment:
     try:
         return Environment(env)
@@ -49,7 +53,7 @@ def convert_to_abstraction_level(level: str) -> AbstractionLevel:
 class AttackerConfig(BaseModel):
     name: str
     id: Optional[str] = None
-    strategy: LLMStrategy
+    strategy: LLMStrategy | StateMachineStrategy
     execution_llm: str
     environment: str
     c2c_server: str

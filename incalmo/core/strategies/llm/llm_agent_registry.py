@@ -23,7 +23,6 @@ class LLMAgentRegistry:
         """
         Retrieves an LLM agent action class by its name.
         """
-        print(f"Retrieving LLM agent action: {action_data}")
         if action_data.action in self.agent_registry:
             return self.agent_registry[action_data.action]
         else:

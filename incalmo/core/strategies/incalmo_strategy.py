@@ -33,19 +33,14 @@ class IncalmoStrategy(ABC):
     def build_strategy(
         cls, name: str, config: AttackerConfig, task_id: str = "", **kwargs
     ) -> "IncalmoStrategy":
-        print("Registered strategies:", IncalmoStrategy._registry.keys())
         registry = LangChainRegistry()
         available_models = registry.list_models()
         kwargs["task_id"] = task_id
         if name in available_models:
             langchain_strategy_cls = cls._registry["langchain"]
-            print(
-                f"Building strategy: {langchain_strategy_cls.__name__} with args: {kwargs}"
-            )
             return langchain_strategy_cls(config=config, planning_llm=name, **kwargs)
         strategy_cls = cls.get(name)
         kwargs["config"] = config
-        print(f"Building strategy: {strategy_cls.__name__} with args: {kwargs}")
         return strategy_cls(**kwargs)
 
     def __init__(

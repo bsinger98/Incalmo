@@ -27,10 +27,12 @@ class LowLevelActionOrchestrator:
         self.logger = logging_service.action_logger()
 
     async def run_action(
-        self, low_level_action: LowLevelAction, context: HighLevelContext
+        self, low_level_action: LowLevelAction, context: HighLevelContext | None = None
     ) -> list[Event]:
         action_ll_id = str(uuid4())
-        context.ll_id.append(action_ll_id)
+        if context:
+            context.ll_id.append(action_ll_id)
+
         c2client = C2ApiClient()
         # Get prior agents
         prior_agents = c2client.get_agents()
@@ -54,7 +56,7 @@ class LowLevelActionOrchestrator:
             "LowLevelAction executed",
             type="LowLevelAction",
             timestamp=datetime.now().isoformat(),
-            high_level_action_id=context.hl_id,
+            high_level_action_id=context.hl_id if context else "",
             low_level_action_id=action_ll_id,
             action_name=low_level_action.__class__.__name__,
             action_params=serialize(low_level_action),

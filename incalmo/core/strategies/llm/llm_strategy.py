@@ -41,6 +41,11 @@ class LLMStrategy(IncalmoStrategy, ABC):
         self.logger = self.logging_service.setup_logger(logger_name="llm")
         self.agent_logger = self.logging_service.setup_logger(logger_name="llm_agent")
 
+        if not isinstance(self.config.strategy, LLMStrategy):
+            raise ValueError("Strategy must be an instance of LLMStrategy")
+
+        self.abstraction = self.config.strategy.abstraction
+
         # LLM Agent Interface and registry
         self.agent_interface = LLMAgentInterface(
             logger=self.agent_logger,
@@ -67,7 +72,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
 
     async def finished_cb(self):
         # Log exfiltrated data for non high level abstractions
-        if self.config.strategy.abstraction != AbstractionLevel.INCALMO:
+        if self.abstraction != AbstractionLevel.INCALMO:
             for host in self.initial_hosts:
                 agent = host.get_agent()
                 if agent:
@@ -118,7 +123,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
 
         new_perr_reponse = ""
         if llm_action is None:
-            if self.config.strategy.abstraction == AbstractionLevel.SHELL:
+            if self.abstraction == AbstractionLevel.SHELL:
                 new_perr_reponse = (
                     "No <shell> tag found. Please try again and include a tag."
                 )
@@ -171,7 +176,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
                     )
 
                 current_response += get_infection_summary_str(
-                    self.environment_state_service, self.config.strategy.abstraction
+                    self.environment_state_service, self.abstraction
                 )
 
                 current_response += "\nThe actions had the following events: \n"

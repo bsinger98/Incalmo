@@ -2,7 +2,7 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_deepseek import ChatDeepSeek
-from typing import Dict, Callable, Any
+from typing import Dict, Any
 
 
 class LangChainRegistry:
@@ -17,22 +17,40 @@ class LangChainRegistry:
             "gpt-o1": lambda: ChatOpenAI(model="o1-preview", temperature=0.7),
             # Anthropic models
             "claude-3-opus": lambda: ChatAnthropic(
-                model="claude-3-opus-latest", temperature=0.7
+                model_name="claude-3-opus-latest",
+                temperature=0.7,
+                timeout=None,
+                stop=None,
             ),
             "claude-3-sonnet": lambda: ChatAnthropic(
-                model="claude-3-sonnet-latest", temperature=0.7
+                model_name="claude-3-sonnet-latest",
+                temperature=0.7,
+                timeout=None,
+                stop=None,
             ),
             "claude-3-haiku": lambda: ChatAnthropic(
-                model="claude-3-haiku-latest", temperature=0.7
+                model_name="claude-3-haiku-latest",
+                temperature=0.7,
+                timeout=None,
+                stop=None,
             ),
             "claude-3.5-sonnet": lambda: ChatAnthropic(
-                model="claude-3-5-sonnet-latest", temperature=0.7
+                model_name="claude-3-5-sonnet-latest",
+                temperature=0.7,
+                timeout=None,
+                stop=None,
             ),
             "claude-3.5-haiku": lambda: ChatAnthropic(
-                model="claude-3-5-haiku-latest", temperature=0.7
+                model_name="claude-3-5-haiku-latest",
+                temperature=0.7,
+                timeout=None,
+                stop=None,
             ),
             "claude-3.7-sonnet": lambda: ChatAnthropic(
-                model="claude-3-7-sonnet-latest", temperature=0.7
+                model_name="claude-3-7-sonnet-latest",
+                temperature=0.7,
+                timeout=None,
+                stop=None,
             ),
             # Google Gemini models
             "gemini-1.5-pro": lambda: ChatGoogleGenerativeAI(
