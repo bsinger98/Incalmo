@@ -8,8 +8,8 @@ from celery import Celery
 import os
 
 # Configure Celery for worker
-broker = os.environ.get("broker_url", "redis://localhost:6379/0")
-backend = os.environ.get("result_backend", "redis://localhost:6379/0")
+broker = os.environ.get("broker_url", "pyamqp://guest:guest@rabbitmq:5672//")
+backend = os.environ.get("result_backend", "rpc://")
 
 print(f"[CELERY_WORKER] Using broker: {broker}")
 print(f"[CELERY_WORKER] Using backend: {backend}")
@@ -26,7 +26,6 @@ celery_worker = Celery(
 celery_worker.conf.update(
     broker_url=broker,
     result_backend=backend,
-    broker_transport="redis",
     broker_connection_retry_on_startup=True,
     task_serializer="json",
     accept_content=["json"],

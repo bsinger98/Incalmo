@@ -1,15 +1,12 @@
 #!/bin/bash
 set -e
 
-redis-server --daemonize yes --port 6379 --bind 0.0.0.0
-
-# Wait for Redis to be ready
-echo "Waiting for Redis to be ready..."
-until redis-cli ping > /dev/null 2>&1; do
-    echo "Redis not ready yet, waiting..."
-    sleep 1
+echo "Waiting for RabbitMQ to be ready..."
+until curl -s -u guest:guest http://rabbitmq:15672/api/aliveness-test/%2F > /dev/null 2>&1; do
+    echo "RabbitMQ not ready yet, waiting..."
+    sleep 5
 done
-echo "Redis is ready!"
+echo "RabbitMQ is ready!"
 
 if [ "$MODE" == "docker" ]; then
   cd /agents

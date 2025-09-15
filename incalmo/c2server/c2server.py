@@ -26,8 +26,8 @@ CORS(app)
 
 # Configure Flask for Celery
 app.config.update(
-    broker_url=os.environ.get("broker_url", "redis://localhost:6379/0"),
-    result_backend=os.environ.get("result_backend", "redis://localhost:6379/0"),
+    broker_url=os.environ.get("broker_url", "pyamqp://guest:guest@rabbitmq:5672//"),
+    result_backend=os.environ.get("result_backend", "rpc://"),
 )
 celery = make_celery(app)
 app.extensions["celery"] = celery

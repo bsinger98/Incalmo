@@ -6,16 +6,15 @@ import os
 def make_celery(app: Flask):
     # Configure Celery
     broker = app.config.get("broker_url") or os.environ.get(
-        "broker_url", "redis://localhost:6379/0"
+        "broker_url", "pyamqp://guest:guest@rabbitmq:5672//"
     )
     backend = app.config.get("result_backend") or os.environ.get(
-        "result_backend", "redis://localhost:6379/0"
+        "result_backend", "rpc://"
     )
 
     print(f"[CELERY_APP] Using broker: {broker}")
     print(f"[CELERY_APP] Using backend: {backend}")
 
-    # Configure Celery with explicit Redis transport
     celery = Celery(
         app.import_name,
         broker=broker,
@@ -26,7 +25,6 @@ def make_celery(app: Flask):
     celery.conf.update(
         broker_url=broker,
         result_backend=backend,
-        broker_transport="redis",  # Force Redis transport
         broker_connection_retry_on_startup=True,  # Retry connection on startup
         task_serializer="json",
         accept_content=["json"],
