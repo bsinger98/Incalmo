@@ -50,6 +50,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
         self.agent_interface = LLMAgentInterface(
             logger=self.agent_logger,
             environment_state_service=self.environment_state_service,
+            strategy=self.config.strategy,
         )
         self.agent_registry = LLMAgentRegistry()
         # Logging Start

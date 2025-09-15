@@ -29,6 +29,7 @@ class AbstractionLevel(str, Enum):
 
 class LLMStrategyConfig(BaseModel):
     planning_llm: str
+    execution_llm: str
     abstraction: AbstractionLevel
 
 
@@ -54,7 +55,6 @@ class AttackerConfig(BaseModel):
     name: str
     id: Optional[str] = None
     strategy: LLMStrategyConfig | StateMachineStrategy
-    execution_llm: str
     environment: str
     c2c_server: str
 

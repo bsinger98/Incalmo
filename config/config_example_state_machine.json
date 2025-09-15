@@ -3,7 +3,6 @@
     "strategy": {
         "name": "EquifaxStrategy"
     },
-    "execution_llm": "claude-3.5-haiku",
     "environment": "EquifaxLarge",
     "c2c_server": "http://host.docker.internal:8888"
 }

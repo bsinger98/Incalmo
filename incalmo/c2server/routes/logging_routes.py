@@ -26,14 +26,22 @@ def get_latest_logs():
     llm_log_path = log_path[1]
     llm_agent_log_path = log_path[2]
 
-    with open(actions_log_path, "r") as f:
-        actions_log = f.read()
+    actions_log = ""
+    llm_log = ""
+    llm_agent_log = ""
 
-    with open(llm_log_path, "r") as f:
-        llm_log = f.read()
+    # If the log file does not exist, return an empty string
+    if actions_log_path.exists():
+        with open(actions_log_path, "r") as f:
+            actions_log = f.read()
 
-    with open(llm_agent_log_path, "r") as f:
-        llm_agent_log = f.read()
+    if llm_log_path.exists():
+        with open(llm_log_path, "r") as f:
+            llm_log = f.read()
+
+    if llm_agent_log_path.exists():
+        with open(llm_agent_log_path, "r") as f:
+            llm_agent_log = f.read()
 
     logs = {}
     logs["actions"] = actions_log
@@ -50,15 +58,21 @@ def get_logs(strategy_id: str):
     actions_log_path = strategy_log_path / "actions.json"
     llm_log_path = strategy_log_path / "llm.log"
     llm_agent_log_path = strategy_log_path / "llm_agent.log"
+    actions_log = ""
+    llm_log = ""
+    llm_agent_log = ""
 
-    with open(actions_log_path, "r") as f:
-        actions_log = f.read()
+    if actions_log_path.exists():
+        with open(actions_log_path, "r") as f:
+            actions_log = f.read()
 
-    with open(llm_log_path, "r") as f:
-        llm_log = f.read()
+    if llm_log_path.exists():
+        with open(llm_log_path, "r") as f:
+            llm_log = f.read()
 
-    with open(llm_agent_log_path, "r") as f:
-        llm_agent_log = f.read()
+    if llm_agent_log_path.exists():
+        with open(llm_agent_log_path, "r") as f:
+            llm_agent_log = f.read()
 
     logs = {}
     logs["actions"] = actions_log
