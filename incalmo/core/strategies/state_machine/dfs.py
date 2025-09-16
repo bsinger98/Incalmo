@@ -5,7 +5,7 @@ from incalmo.core.strategies.state_machine.graph_search import (
 from config.attacker_config import AttackerConfig
 
 
-class NetWorkDFS(GraphSearch):
+class NetworkDFS(GraphSearch):
     def __init__(
         self,
         config: AttackerConfig,
