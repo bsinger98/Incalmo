@@ -1,5 +1,5 @@
 from incalmo.core.actions.low_level_action import LowLevelAction
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 from incalmo.core.services.config_service import ConfigService
 from config.attacker_config import AttackerConfig
 import requests
@@ -15,23 +15,16 @@ class C2ApiClient:
     def __init__(self):
         self.server_url = ConfigService().get_config().c2c_server
 
-    def get_agent(self, paw: str) -> Agent:
+    def get_agent(self, paw: str) -> Agent | None:
         """Fetch a specific agent by its unique identifier (PAW)"""
         response = requests.get(f"{self.server_url}/agents")
         if response.ok:
             agent_data = response.json()
-            for agent_paw, info in agent_data.items():
-                if paw == agent_paw:
-                    agent = Agent(
-                        paw=agent_paw,
-                        username=info.get("username", ""),
-                        privilege=info.get("privilege", ""),
-                        pid=str(info.get("pid", "")),
-                        host_ip_addrs=info.get("host_ip_addrs", []),
-                        hostname=info.get("hostname", ""),
-                    )
-                    break
-            return agent
+            for agent_data in agent_data:
+                agent = Agent.model_validate_json(agent_data)
+                if paw == agent.paw:
+                    return agent
+            return None
         else:
             raise Exception(
                 f"Failed to get agent {paw}: {response.status_code} {response.text}"
@@ -44,7 +37,7 @@ class C2ApiClient:
         if response.ok:
             agents = response.json()
             for agent_data in agents:
-                agent = Agent(**agent_data)
+                agent = Agent.model_validate_json(agent_data)
                 agent_list.append(agent)
             return agent_list
         else:

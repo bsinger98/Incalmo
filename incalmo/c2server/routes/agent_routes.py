@@ -97,7 +97,7 @@ def get_agents():
     """Get list of all connected agents."""
     agents_list = []
     for paw, agent in agents.items():
-        agents_list.append(agent.model_dump())
+        agents_list.append(agent.model_dump_json())
 
     return jsonify(agents_list)
 

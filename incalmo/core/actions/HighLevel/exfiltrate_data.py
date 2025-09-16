@@ -1,5 +1,5 @@
 import os
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 
 from incalmo.core.actions.high_level_action import HighLevelAction
 from incalmo.core.actions.LowLevel import (

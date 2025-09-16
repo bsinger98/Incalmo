@@ -1,4 +1,4 @@
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 import traceback
 
 from incalmo.core.actions.HighLevel.llm_agents.llm_agent_action import (

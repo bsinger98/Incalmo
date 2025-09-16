@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from incalmo.core.models.events import Event
     from incalmo.models.command_result import CommandResult
-    from incalmo.core.models.attacker.agent import Agent
+    from incalmo.models.agent import Agent
 
 
 class LowLevelAction(ABC):

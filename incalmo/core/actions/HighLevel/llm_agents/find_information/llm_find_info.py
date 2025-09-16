@@ -4,7 +4,7 @@ from incalmo.core.strategies.llm.interfaces.llm_agent_interface import LLMAgentI
 from pydantic import ValidationError
 import json
 
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 from incalmo.core.actions.HighLevel.llm_agents.llm_agent_action import (
     LLMAgentAction,
 )

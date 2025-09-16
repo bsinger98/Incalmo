@@ -1,5 +1,5 @@
 from incalmo.core.actions.low_level_action import LowLevelAction
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 from incalmo.api.server_api import C2ApiClient
 from incalmo.core.models.events import Event
 
@@ -14,7 +14,6 @@ from incalmo.models.logging_schema import serialize
 from datetime import datetime
 import time
 from uuid import uuid4
-from dataclasses import replace
 
 
 class LowLevelActionOrchestrator:

@@ -1,5 +1,5 @@
 from typing import Any, Dict
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 import os
 from string import Template
 

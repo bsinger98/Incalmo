@@ -1,5 +1,5 @@
 from ..low_level_action import LowLevelAction
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 
 
 class WriteFile(LowLevelAction):

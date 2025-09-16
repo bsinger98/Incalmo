@@ -1,7 +1,8 @@
 from incalmo.core.models.events import Event
 from incalmo.core.models.network import Host
 
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.core.models.events import Event
+from incalmo.models.agent import Agent
 
 
 class CriticalDataFound(Event):

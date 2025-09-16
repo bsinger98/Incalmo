@@ -10,3 +10,8 @@ class Agent(BaseModel):
     host_ip_addrs: list[str]
     hostname: str
     last_beacon: datetime = Field(default_factory=datetime.now)
+
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Agent):
+            return False
+        return self.paw == __value.paw

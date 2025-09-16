@@ -1,6 +1,6 @@
 from incalmo.core.models.events import Event
 from incalmo.core.models.network import SSHCredential
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 
 
 class CredentialFound(Event):

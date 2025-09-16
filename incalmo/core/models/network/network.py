@@ -1,6 +1,6 @@
 from .host import Host
 from .subnet import Subnet
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 
 
 class Network:

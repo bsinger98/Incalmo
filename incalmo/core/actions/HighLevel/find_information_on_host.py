@@ -10,7 +10,7 @@ from incalmo.core.services import (
     AttackGraphService,
 )
 from incalmo.core.services.action_context import HighLevelContext
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 
 
 class FindInformationOnAHost(HighLevelAction):

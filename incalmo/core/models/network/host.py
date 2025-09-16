@@ -1,5 +1,5 @@
 from .credential import SSHCredential
-from incalmo.core.models.attacker.agent import Agent
+from incalmo.models.agent import Agent
 import random
 
 from incalmo.core.models.network.open_port import OpenPort
