@@ -42,16 +42,9 @@ class C2ApiClient:
         agent_list = []
         response = requests.get(f"{self.server_url}/agents")
         if response.ok:
-            agent_data = response.json()
-            for paw, info in agent_data.items():
-                agent = Agent(
-                    paw=paw,
-                    username=info.get("username", ""),
-                    privilege=info.get("privilege", ""),
-                    pid=str(info.get("pid", "")),
-                    host_ip_addrs=info.get("host_ip_addrs", []),
-                    hostname=info.get("hostname", ""),
-                )
+            agents = response.json()
+            for agent_data in agents:
+                agent = Agent(**agent_data)
                 agent_list.append(agent)
             return agent_list
         else:
@@ -59,7 +52,7 @@ class C2ApiClient:
                 f"Failed to get agents: {response.status_code} {response.text}"
             )
 
-    def get_llm_agent_action(self) -> LLMAgentActionData:
+    def get_llm_agent_action(self) -> LLMAgentActionData | None:
         """Fetch the next LLM Agent action from the queue"""
         response = requests.get(f"{self.server_url}/get_llm_agent_action")
         if response.ok:
@@ -144,11 +137,9 @@ class C2ApiClient:
         """Start incalmo with full AttackerConfig"""
         url = f"{self.server_url}/startup"
 
-        config = config.model_dump()
-
         response = requests.post(
             url,
-            json=config,
+            json=config.model_dump(),
             headers={"Content-Type": "application/json"},
         )
 
