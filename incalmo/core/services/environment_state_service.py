@@ -55,6 +55,9 @@ class EnvironmentStateService:
     def get_agents(self) -> list[Agent]:
         return self.c2api_client.get_agents()
 
+    def get_agent_by_paw(self, paw: str) -> Agent:
+        return self.c2api_client.get_agent(paw)
+
     def get_hosts_with_agents(self) -> list[Host]:
         hosts = []
         for host in self.network.get_all_hosts():
