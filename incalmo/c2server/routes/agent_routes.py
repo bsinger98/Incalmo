@@ -5,7 +5,7 @@ Handles agent registration, management, and deletion.
 
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify
 
 from incalmo.models.instruction import Instruction
@@ -22,7 +22,7 @@ from incalmo.c2server.shared import (
     PAYLOADS_DIR,
 )
 from incalmo.models.agent import Agent
-from incalmo.c2server.celery.celery_tasks import cleanup_stale_agents
+from incalmo.c2server.shared import AGENT_TIMEOUT_SECONDS
 
 # Create blueprint
 agent_bp = Blueprint("agent", __name__)
@@ -145,12 +145,23 @@ def delete_agent(paw):
 
 @agent_bp.route("/agents/cleanup", methods=["POST"])
 def cleanup_stale_agents_manual():
-    """Manually trigger cleanup of stale agents."""
-    try:
-        # Execute the cleanup task synchronously for immediate results
-        result = cleanup_stale_agents.apply()
-        return jsonify(result.result), 200
-    except Exception as e:
-        return jsonify(
-            {"error": str(e), "message": "Failed to cleanup stale agents"}
-        ), 500
+    """Remove agents that haven't beaconed within the timeout period (in-process)."""
+    current_time = datetime.now()
+    cutoff_time = current_time - timedelta(seconds=AGENT_TIMEOUT_SECONDS)
+
+    stale_agents: list[str] = []
+
+    for paw, agent_data in agents.items():
+        last_beacon = agent_data.last_beacon
+        if last_beacon < cutoff_time:
+            stale_agents.append(paw)
+
+    for paw in stale_agents:
+        if paw in agents:
+            del agents[paw]
+        if paw in command_queues:
+            del command_queues[paw]
+        if paw in agent_deletion_queue:
+            agent_deletion_queue.remove(paw)
+
+    return jsonify({"message": "Stale agents cleaned up successfully"}), 200

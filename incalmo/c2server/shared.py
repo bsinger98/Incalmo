@@ -14,6 +14,7 @@ from typing import Dict
 from config.attacker_config import AttackerConfig
 from incalmo.models.command import Command
 from incalmo.models.agent import Agent
+from datetime import datetime, timedelta
 
 
 # Define base directories
@@ -38,7 +39,7 @@ llm_agent_actions = []
 running_strategy_tasks: Dict[str, AttackerConfig] = {}
 
 # Agent timeout configuration (in seconds)
-AGENT_TIMEOUT_SECONDS = 15  # Default: 60 seconds without beacon = considered dead
+AGENT_TIMEOUT_SECONDS = 60  # Default: 60 seconds without beacon = considered dead
 
 
 # Enums
@@ -60,7 +61,7 @@ class TaskState(Enum):
                 return cls.PENDING
             return cls(state_str)
 
-        except (ValueError, KeyError, AttributeError, TypeError) as e:
+        except (ValueError, KeyError, AttributeError, TypeError):
             # Return default state when conversion fails
             return cls.PENDING
 
