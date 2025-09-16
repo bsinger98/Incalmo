@@ -1,4 +1,4 @@
-from plugins.deception.app.models.events.Event import Event
+from incalmo.core.models.events import Event
 
 
 def any_events_are_type(events: list[Event], event_type: type[Event]) -> bool:

@@ -19,5 +19,6 @@ fi
 
 cd /incalmo
 uv run celery -A incalmo.c2server.celery.celery_worker worker --concurrency=1 &
+uv run celery -A incalmo.c2server.celery.celery_worker beat &
 sleep 3
 uv run ./incalmo/c2server/c2server.py

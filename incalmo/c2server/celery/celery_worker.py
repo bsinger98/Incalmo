@@ -35,6 +35,13 @@ celery_worker.conf.update(
     task_soft_time_limit=25 * 60,
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=1000,
+    # Add periodic task schedule directly in configuration
+    # beat_schedule={
+    #     "cleanup-stale-agents": {
+    #         "task": "cleanup_stale_agents",
+    #         "schedule": 20.0,  # Every 20 seconds
+    #     },
+    # },
 )
 
 if __name__ == "__main__":

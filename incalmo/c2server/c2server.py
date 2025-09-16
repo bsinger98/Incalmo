@@ -4,7 +4,6 @@ import json
 import binascii
 import logging
 import os
-import debugpy
 
 from werkzeug.exceptions import BadRequest
 from pydantic import ValidationError
