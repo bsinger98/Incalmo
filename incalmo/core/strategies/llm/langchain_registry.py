@@ -10,11 +10,12 @@ class LangChainRegistry:
         # Store factory functions, not instances
         self._model_factories = {
             # OpenAI models
-            "gpt-4": lambda: ChatOpenAI(model="gpt-4", temperature=0.7),
-            "gpt-4o": lambda: ChatOpenAI(model="gpt-4o", temperature=0.7),
-            "gpt-4o-mini": lambda: ChatOpenAI(model="gpt-4o-mini", temperature=0.7),
-            "gpt-3.5-turbo": lambda: ChatOpenAI(model="gpt-3.5-turbo", temperature=0.7),
-            "gpt-o1": lambda: ChatOpenAI(model="o1-preview", temperature=0.7),
+            "gpt-5": lambda: ChatOpenAI(model="gpt-5"),
+            "gpt-4": lambda: ChatOpenAI(model="gpt-4"),
+            "gpt-4o": lambda: ChatOpenAI(model="gpt-4o"),
+            "gpt-4o-mini": lambda: ChatOpenAI(model="gpt-4o-mini"),
+            "gpt-3.5-turbo": lambda: ChatOpenAI(model="gpt-3.5-turbo"),
+            "gpt-o1": lambda: ChatOpenAI(model="o1-preview"),
             # Anthropic models
             "claude-3-opus": lambda: ChatAnthropic(
                 model_name="claude-3-opus-latest",
