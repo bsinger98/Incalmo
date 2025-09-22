@@ -78,7 +78,7 @@ class C2ApiClient:
             raise Exception("No command ID received from server")
 
         # Poll for results
-        max_attempts = 45  # 30 seconds timeout
+        max_attempts = 45  # 45 seconds timeout
         poll_interval = 1  # 1 second between polls
 
         for _ in range(max_attempts):
@@ -97,7 +97,15 @@ class C2ApiClient:
 
             time.sleep(poll_interval)
 
-        raise Exception("Command polling timed out")
+        # Return a timeout result instead of raising an exception
+        return CommandResult(
+            exit_code="timeout",
+            id=command.id,
+            output="",
+            pid=0,
+            status="timeout",
+            stderr=f"Command polling timed out after {max_attempts} seconds",
+        )
 
     def report_environment_state(self, network: Network):
         """Report the environment state."""
