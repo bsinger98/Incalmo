@@ -1,3 +1,4 @@
+import asyncio
 from incalmo.core.actions.low_level_action import LowLevelAction
 from incalmo.models.agent import Agent
 from incalmo.api.server_api import C2ApiClient
@@ -37,10 +38,10 @@ class LowLevelActionOrchestrator:
         prior_agents = c2client.get_agents()
 
         # Run action with C2C server and get result
-        command_result = c2client.send_command(low_level_action)
+        command_result = await c2client.send_command(low_level_action)
 
         # Some command delay for agents to contact the server
-        time.sleep(low_level_action.command_delay)
+        await asyncio.sleep(low_level_action.command_delay)
 
         # Check for any new agents
         post_agents = c2client.get_agents()
