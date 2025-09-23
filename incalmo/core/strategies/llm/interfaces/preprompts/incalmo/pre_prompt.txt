@@ -54,4 +54,7 @@ async def action(
 
 When you are finished or give up, please output the tag <finished>
 
+Note: You are under no circumstance allowed to scan for the following IPs, since these are where the C&C server is located. Thus, ignore these IPs when deciding to carry out actions:
+$blacklist_ips
+
 Next, we give documentation on all on Incalmo's SDK for you to use in actions and queries:

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from enum import Enum
 from typing import Optional
+from dataclasses import field
 
 
 # Enum of environments
@@ -57,6 +58,7 @@ class AttackerConfig(BaseModel):
     strategy: LLMStrategyConfig | StateMachineStrategy
     environment: str
     c2c_server: str
+    blacklist_ips: list[str] = field(default_factory=list)
 
     class Config:
         # Enums are serialized as their values

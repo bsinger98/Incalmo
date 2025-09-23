@@ -12,6 +12,7 @@ from incalmo.core.strategies.llm.llm_response import (
 from incalmo.core.services import (
     EnvironmentStateService,
 )
+from string import Template
 
 
 def extract_code_blocks(text):
@@ -81,6 +82,12 @@ class LLMInterface(ABC):
         pre_prompt = ""
         self.max_message_len = 30000
 
+        # Preprompt params
+        blacklist_ips = config.blacklist_ips
+        parameters = {
+            "blacklist_ips": str(blacklist_ips),
+        }
+
         # Read pre-prompt file
         if config.strategy.abstraction == AbstractionLevel.SHELL:
             with open(f"{pre_prompt_path}/bash/pre_prompt.txt", "r") as file:
@@ -100,7 +107,7 @@ class LLMInterface(ABC):
                 final_prompt = file.read()
         elif config.strategy.abstraction == AbstractionLevel.INCALMO:
             with open(f"{pre_prompt_path}/incalmo/pre_prompt.txt", "r") as file:
-                pre_prompt += file.read()
+                pre_prompt += Template(file.read()).substitute(parameters)
             with open(f"{pre_prompt_path}/incalmo/codebase.txt", "r") as file:
                 pre_prompt += file.read()
             with open(f"{pre_prompt_path}/incalmo/final_prompt.txt", "r") as file:

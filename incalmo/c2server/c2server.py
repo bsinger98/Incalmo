@@ -21,7 +21,7 @@ from incalmo.c2server.routes import (
 
 # Create Flask app
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Configure Flask for Celery
 app.config.update(

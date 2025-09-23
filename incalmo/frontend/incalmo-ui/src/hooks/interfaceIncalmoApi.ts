@@ -171,6 +171,7 @@ export const useIncalmoApi = () => {
         execution_llm: "claude-3.5-haiku",
         environment: "EquifaxLarge",
         c2c_server: "http://host.docker.internal:8888",
+        blacklist_ips: ["192.168.199.10", "192.168.200.10"]
       };
 
       const response = await api.post('/startup', config);
@@ -249,6 +250,7 @@ export const useIncalmoApi = () => {
         execution_llm: "claude-3.5-haiku",
         environment: "EquifaxLarge",
         c2c_server: "http://host.docker.internal:8888",
+        blacklist_ips: ["192.168.199.10", "192.168.200.10"]
       };
 
       const response = await api.post('/get_initial_environment', defaultConfig);
