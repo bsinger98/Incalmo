@@ -38,7 +38,7 @@ class LowLevelActionOrchestrator:
         prior_agents = c2client.get_agents()
 
         # Run action with C2C server and get result
-        command_result = await c2client.send_command(low_level_action)
+        command_result = c2client.send_command(low_level_action)
 
         # Some command delay for agents to contact the server
         await asyncio.sleep(low_level_action.command_delay)

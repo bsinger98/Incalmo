@@ -31,8 +31,8 @@ celery_worker.conf.update(
     timezone="UTC",
     enable_utc=True,
     task_track_started=True,
-    task_time_limit=30 * 60,
-    task_soft_time_limit=25 * 60,
+    task_time_limit=85 * 60,
+    task_soft_time_limit=85 * 60,
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=1000,
     # Add periodic task schedule directly in configuration

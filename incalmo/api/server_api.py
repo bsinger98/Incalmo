@@ -4,7 +4,7 @@ from incalmo.core.services.config_service import ConfigService
 from config.attacker_config import AttackerConfig
 import requests
 import json
-import asyncio
+import time
 from incalmo.models.command_result import CommandResult
 from incalmo.models.command import Command, CommandStatus
 from incalmo.core.models.network import Network
@@ -54,7 +54,7 @@ class C2ApiClient:
         else:
             return None
 
-    async def send_command(self, low_level_action: LowLevelAction) -> CommandResult:
+    def send_command(self, low_level_action: LowLevelAction) -> CommandResult:
         """Send a command to an agent and poll for results."""
         # Send the command
         payload = {
@@ -95,7 +95,7 @@ class C2ApiClient:
             if command.status == CommandStatus.COMPLETED and command.result:
                 return command.result
 
-            await asyncio.sleep(poll_interval)
+            time.sleep(poll_interval)
 
         # Return a timeout result instead of raising an exception
         return CommandResult(
