@@ -6,10 +6,10 @@ import os
 def make_celery(app: Flask):
     # Configure Celery
     broker = app.config.get("broker_url") or os.environ.get(
-        "broker_url", "pyamqp://guest:guest@rabbitmq:5672//"
+        "broker_url", "sqlalchemy+sqlite:///celery.db"
     )
     backend = app.config.get("result_backend") or os.environ.get(
-        "result_backend", "rpc://"
+        "result_backend", "db+sqlite:///celery_results.db"
     )
 
     print(f"[CELERY_APP] Using broker: {broker}")

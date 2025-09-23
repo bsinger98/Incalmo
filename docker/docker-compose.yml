@@ -63,17 +63,6 @@ services:
       db_network:
         ipv4_address: 192.168.201.100
 
-  rabbitmq:
-    image: "rabbitmq:3-management"
-    container_name: rabbitmq_container
-    restart: always
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    networks:
-      attacker_network:
-        ipv4_address: 192.168.199.100
-
 volumes:
   venv-volume:
   frontend-ignore:

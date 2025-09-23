@@ -8,8 +8,8 @@ from celery import Celery
 import os
 
 # Configure Celery for worker
-broker = os.environ.get("broker_url", "pyamqp://guest:guest@rabbitmq:5672//")
-backend = os.environ.get("result_backend", "rpc://")
+broker = os.environ.get("broker_url", "sqlalchemy+sqlite:///celery.db")
+backend = os.environ.get("result_backend", "sqlalchemy+sqlite:///celery_results.db")
 
 print(f"[CELERY_WORKER] Using broker: {broker}")
 print(f"[CELERY_WORKER] Using backend: {backend}")

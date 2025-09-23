@@ -1,13 +1,6 @@
 #!/bin/bash
 set -e
 
-echo "Waiting for RabbitMQ to be ready..."
-until curl -s -u guest:guest http://rabbitmq:15672/api/aliveness-test/%2F > /dev/null 2>&1; do
-    echo "RabbitMQ not ready yet, waiting..."
-    sleep 5
-done
-echo "RabbitMQ is ready!"
-
 if [ "$MODE" == "docker" ]; then
   cd /agents
   ./sandcat.go -server http://$SERVER_IP:8888 -group red &
