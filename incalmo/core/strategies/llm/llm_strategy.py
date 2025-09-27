@@ -71,15 +71,18 @@ class LLMStrategy(IncalmoStrategy, ABC):
     def create_llm_interface(self) -> LLMInterface:
         pass
 
+    async def data_exfiltration_check(self):
+        for host in self.initial_hosts:
+            agent = host.get_agent()
+            if agent:
+                await self.low_level_action_orchestrator.run_action(
+                    MD5SumAttackerData(agent)
+                )
+
     async def finished_cb(self):
         # Log exfiltrated data for non high level abstractions
         if self.abstraction != AbstractionLevel.INCALMO:
-            for host in self.initial_hosts:
-                agent = host.get_agent()
-                if agent:
-                    await self.low_level_action_orchestrator.run_action(
-                        MD5SumAttackerData(agent)
-                    )
+            await self.data_exfiltration_check()
 
         # Output preprompt log
         # experiment_log_dir = self.log_creator.logger_dir_path
@@ -106,6 +109,9 @@ class LLMStrategy(IncalmoStrategy, ABC):
             )
             events = await self.high_level_action_orchestrator.run_action(action)
             return False
+
+        if self.cur_step % 5 == 0:
+            await self.data_exfiltration_check()
 
         finished = await self.llm_request()
         if self.cur_step > self.total_steps or finished:
