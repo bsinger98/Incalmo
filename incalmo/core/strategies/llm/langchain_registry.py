@@ -53,8 +53,14 @@ class LangChainRegistry:
                 timeout=None,
                 stop=None,
             ),
-            "claude-opus-4-1": lambda: ChatAnthropic(
-                model_name="claude-opus-4-1",
+            "claude-4.0-sonnet": lambda: ChatAnthropic(
+                model_name="claude-sonnet-4-0",
+                temperature=0.7,
+                timeout=None,
+                stop=None,
+            ),
+            "claude-4.5-sonnet": lambda: ChatAnthropic(
+                model_name="claude-sonnet-4-5",
                 temperature=0.7,
                 timeout=None,
                 stop=None,
