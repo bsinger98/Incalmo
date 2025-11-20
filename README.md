@@ -5,6 +5,7 @@
 # Incalmo: An Autonomous LLM-Based Multi-Stage Attacker
 
 <div align="center">
+
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 ![GitHub issues](https://img.shields.io/github/issues/bsinger98/Incalmo?style=flat-square)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/bsinger98/Incalmo?style=flat-square)
