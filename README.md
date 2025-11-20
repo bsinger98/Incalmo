@@ -1,7 +1,4 @@
-
 ![Logo](docs/image.png)
-
-
 # Incalmo: An Autonomous LLM-Based Multi-Stage Attacker
 
 <div align="center">
@@ -14,9 +11,11 @@
 ![GitHub stars](https://img.shields.io/github/stars/bsinger98/Incalmo?style=flat-square)
 ![GitHub forks](https://img.shields.io/github/forks/bsinger98/Incalmo?style=flat-square)
 
+**Incalmo** is an autonomous AI-driven network penetration testing tool that automatically conducts intelligent red-teaming activities with the aim to enhance and assist operator abilities when performing complex network attack tasks.
+
 **Research Paper**: [On the Feasibility of Using LLMs to Execute Multistage Network Attacks](https://arxiv.org/abs/2501.16466)
 
-**Incalmo** is an autonomous AI-driven network penetration testing tool that automatically conducts intelligent red-teaming activities with the aim to enhance and assist operator abilities when performing complex network attack tasks.
+**Website**: Visit our [website](https://www.incalmo.ai/) for more information! 
 </div>
 
 ---
@@ -27,12 +26,51 @@
 
 Insert gif or link to demo
 
+## Features
 
+### Core Capabilities
+- **Autonomous Multi-Stage Attacks** - LLM-driven decision making for complex attack chains
+- **Multiple Attack Strategies** - Support for both LLM-based and rule-based (state machine) strategies
+- **Network Reconnaissance** - Automated host discovery and service enumeration
+- **Lateral Movement** - Lateral movement planning with multi-hop path capabilities
+- **Privilege Escalation** - Automated priviledge escalation logic
+- **Data Exfiltration** - Intelligent discovery and extraction of sensitive information
+
+
+### LLM Integration
+- **Multi-Model Support** - Compatible with OpenAI, Anthropic Claude, Google Gemini, and DeepSeek with the ability to expand to other models
+- **Adaptive Actions** - LLM agents for scanning, privilege escalation, lateral movement, and data exfiltration
+- **Configurable Abstraction Levels** - Adjust between high-level and low-level execution
+
+### Command & Control
+- **RESTful API** - Full-featured C2 server with agent management
+- **Agents** - Beacon agents for systems
+- **Async Task Execution** - Celery-powered distributed task queue
+- **Real-Time Monitoring** - Live agent status and command execution tracking
+- **Web UI** - Optional React-based interface for visualization and control
+
+### Attack Planning
+- **Dynamic Attack Paths** - Automatic generation of multi-hop attack routes
+- **State Management** - Event-driven architecture for tracking environment state
+- **Network Topology Mapping** - Comprehensive host, subnet, and service tracking
+- **Vulnerability Detection** - Identification of exploitable services and misconfigurations
+
+### Testing
+- **Containerized Environment** - Docker-based isolated testing infrastructure
+- **Equifax Simulation** - Pre-configured vulnerable environment for testing
+- **Structured Logging** - Detailed action traces and LLM interaction logs
+- **Configurable Targets** - Support for multiple environment types and scenarios
 ## Prerequisites
 
-- **[Docker Desktop](https://www.docker.com/)**
-- **[Node.js](https://nodejs.org/en)** (Optional: only needed for [UI Interface](#ui-interface-optional))
-
+- **[Docker Desktop](https://www.docker.com/)** - Required for containerized environment
+- **[Python 3.13+](https://www.python.org/downloads/)** - Required for local development
+- **[uv](https://github.com/astral-sh/uv)** - Fast Python package installer (recommended) or pip
+- **LLM API Keys** - At least one of the following:
+  - [OpenAI API Key](https://platform.openai.com/api-keys) - For GPT models
+  - [Anthropic API Key](https://console.anthropic.com/) - For Claude models
+  - [Google API Key](https://makersuite.google.com/app/apikey) - For Gemini models
+  - [DeepSeek API Key](https://platform.deepseek.com/) - For DeepSeek models
+- **[Node.js](https://nodejs.org/en)** (Optional) - Only needed for [UI Interface](#ui-interface-optional)
 ## Installation
 
 #### 1. Setup configuration
@@ -101,19 +139,13 @@ Once dependencies are installed, run the react server:
 
 This will lauch the frontend at [http://localhost:3000](http://localhost:3000)
 
-    
-## Usage/Examples
+    ## Tech Stack
 
-```
-
-```
-
-
-## Tech Stack
-
-**Server:** Node, Express
-
-
+**Backend:** Python 3.13, Flask, Celery, SQLite \
+**LLM Integration:** LangChain, OpenAI, Anthropic, Google Gemini, DeepSeek \
+**Frontend:** React, TypeScript, Node.js \
+**Containerization:** Docker, Docker Compose \
+**Package Management:** uv 
 ## Project Structure
 
 ```
@@ -347,6 +379,27 @@ Incalmo/
 └── output/                    # Execution logs and results
 
 ```
+## Usage/Examples
+
+```
+
+```
+
+
+## Contributing
+
+Contributions are always welcome! Please raise issues or make PR's if you have ideas on how to improve this project
+
+
 ## License
 
-This project is licensed under the [MIT](https://choosealicense.com/licenses/mit/) License
+This project is licensed under the [MIT](LICENSE) License
+## Acknowledgements
+
+To cite this project or paper, check out the [Citation](CITATION.cff) specifications
+
+
+## Support
+
+For support, email hello@incalmo.ai
+
