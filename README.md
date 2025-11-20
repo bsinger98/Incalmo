@@ -4,6 +4,7 @@
 
 # Incalmo: An Autonomous LLM-Based Multi-Stage Attacker
 
+<div align="center">
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 ![GitHub issues](https://img.shields.io/github/issues/bsinger98/Incalmo?style=flat-square)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/bsinger98/Incalmo?style=flat-square)
@@ -15,6 +16,7 @@
 **Research Paper**: [On the Feasibility of Using LLMs to Execute Multistage Network Attacks](https://arxiv.org/abs/2501.16466)
 
 **Incalmo** is an autonomous AI-driven network penetration testing tool that automatically conducts intelligent red-teaming activities with the aim to enhance and assist operator abilities when performing complex network attack tasks.
+</div>
 
 ---
 
