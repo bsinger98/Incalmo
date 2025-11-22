@@ -1,5 +1,5 @@
-![Logo](docs/image.png)
-# Incalmo: An Autonomous LLM-Based Multi-Stage Attacker
+
+# Incalmo: An Autonomous LLM-assisted System for Red Teaming Multi-Host Networks
 
 <div align="center">
 
@@ -22,10 +22,17 @@
 
 
 ## Table Of Contents
-## Demo
 
-Insert gif or link to demo
-
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
+- [Support](#support)
 ## Features
 
 ### Core Capabilities
@@ -139,7 +146,8 @@ Once dependencies are installed, run the react server:
 
 This will lauch the frontend at [http://localhost:3000](http://localhost:3000)
 
-    ## Tech Stack
+    
+## Tech Stack
 
 **Backend:** Python 3.13, Flask, Celery, SQLite \
 **LLM Integration:** LangChain, OpenAI, Anthropic, Google Gemini, DeepSeek \
@@ -379,11 +387,42 @@ Incalmo/
 └── output/                    # Execution logs and results
 
 ```
-## Usage/Examples
+## Usage
+
+To use an your choice of an LLM-based attack:
+
+- Follow the [setup](#installation) and then:
+
+- Specify in ```config/config.json``` what LLM's to use (list is available in the [registry](incalmo/core/strategies/llm/langchain_registry.py)). Use the ```config_example.json``` as a template
+
+- Run ```main.py``` as described in the setup
+
+- Observe the status of the attack through the logs in the output directory. Your attack will be timestamped and used to name the logs folder
+
+This is the most stable way to test attack.
+
+To use a custom strategy for attacks:
+
+-  Follow the [setup](#installation) and then:
+
+- Specify in ```config/config.json``` what manual strategy to use (list is available in the [state machine registry](incalmo/core/strategies/state_machine)). Use the ```config_example_state_machine.json``` as a template
+
+- Run ```main.py``` as described in the setup
+
+- Observe the status of the attack through the logs in the output directory. Your attack will be timestamped and used to name the logs folder
+
+- To use your own strategy, create a file in the state machine registry as follows:
 
 ```
-
+class YourStrategyName(IncalmoStrategy):
+    async def step(self) -> bool:
+    # Your attack/strategy logic
 ```
+It may be easier to look at examples of existing strategies to understand formatting and strategy abilities
+
+To use the UI:
+
+- Instead of running ```main.py```, launch the frontend and use the UI to start and stop attacks and observe logs. This is the cleanest/easiest way to observe the attacks in real time 
 
 
 ## Contributing
