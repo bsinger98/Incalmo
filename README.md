@@ -11,7 +11,7 @@
 ![GitHub stars](https://img.shields.io/github/stars/bsinger98/Incalmo?style=flat-square)
 ![GitHub forks](https://img.shields.io/github/forks/bsinger98/Incalmo?style=flat-square)
 
-**Incalmo** is an autonomous AI-driven network penetration testing tool that automatically conducts intelligent red-teaming activities with the aim to enhance and assist operator abilities when performing complex network attack tasks.
+Incalmo is an autonomous AI-driven network penetration testing tool that automatically conducts intelligent red-teaming activities with the aim to enhance and assist operator abilities when performing complex network attack tasks.
 
 **Research Paper**: [On the Feasibility of Using LLMs to Execute Multistage Network Attacks](https://arxiv.org/abs/2501.16466)
 
@@ -23,50 +23,16 @@
 
 ## Table Of Contents
 
-- [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
+- [Usage](#usage)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
-- [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
 - [Support](#support)
-## Features
 
-### Core Capabilities
-- **Autonomous Multi-Stage Attacks** - LLM-driven decision making for complex attack chains
-- **Multiple Attack Strategies** - Support for both LLM-based and rule-based (state machine) strategies
-- **Network Reconnaissance** - Automated host discovery and service enumeration
-- **Lateral Movement** - Lateral movement planning with multi-hop path capabilities
-- **Privilege Escalation** - Automated priviledge escalation logic
-- **Data Exfiltration** - Intelligent discovery and extraction of sensitive information
-
-
-### LLM Integration
-- **Multi-Model Support** - Compatible with OpenAI, Anthropic Claude, Google Gemini, and DeepSeek with the ability to expand to other models
-- **Adaptive Actions** - LLM agents for scanning, privilege escalation, lateral movement, and data exfiltration
-- **Configurable Abstraction Levels** - Adjust between high-level and low-level execution
-
-### Command & Control
-- **RESTful API** - Full-featured C2 server with agent management
-- **Agents** - Beacon agents for systems
-- **Async Task Execution** - Celery-powered distributed task queue
-- **Real-Time Monitoring** - Live agent status and command execution tracking
-- **Web UI** - Optional React-based interface for visualization and control
-
-### Attack Planning
-- **Dynamic Attack Paths** - Automatic generation of multi-hop attack routes
-- **State Management** - Event-driven architecture for tracking environment state
-- **Network Topology Mapping** - Comprehensive host, subnet, and service tracking
-- **Vulnerability Detection** - Identification of exploitable services and misconfigurations
-
-### Testing
-- **Containerized Environment** - Docker-based isolated testing infrastructure
-- **Equifax Simulation** - Pre-configured vulnerable environment for testing
-- **Structured Logging** - Detailed action traces and LLM interaction logs
-- **Configurable Targets** - Support for multiple environment types and scenarios
 ## Prerequisites
 
 - **[Docker Desktop](https://www.docker.com/)** - Required for containerized environment
@@ -146,247 +112,6 @@ Once dependencies are installed, run the react server:
 
 This will lauch the frontend at [http://localhost:3000](http://localhost:3000)
 
-    
-## Tech Stack
-
-**Backend:** Python 3.13, Flask, Celery, SQLite \
-**LLM Integration:** LangChain, OpenAI, Anthropic, Google Gemini, DeepSeek \
-**Frontend:** React, TypeScript, Node.js \
-**Containerization:** Docker, Docker Compose \
-**Package Management:** uv 
-## Project Structure
-
-```
-Incalmo/
-├── .dockerignore              # Docker build exclusions
-├── .env                       # Environment variables (API keys, debug settings)
-├── .env.example               # Template for environment configuration
-├── .gitignore                 # Git exclusions (venv, cache, db files)
-├── CITATION.cff               # Research paper citation metadata
-├── LICENSE                    # MIT License
-├── main.py                    # CLI entry point - runs Incalmo strategy
-├── pyproject.toml             # Project dependencies and metadata (uv/pip)
-├── uv.lock                    # Dependency lock file for reproducibility
-├── README.md                  # Project Guide
-├── config/                    # Configuration management
-│   ├── attacker_config.py     # AttackerConfig model 
-│   ├── config.json            # Active configuration file 
-│   └── config_example.json    # LLM strategy configuration template
-├── docker/                    # Docker containerization
-│   ├── docker-compose.yml     # Multi-container orchestration (attacker, webserver, db)
-│   ├── docker-compose.attacker.yml  # Standalone attacker service
-│   │
-│   ├── attacker/              # Attacker container configuration
-│   │   ├── incalmo.Dockerfile # Incalmo Dockerfile
-│   │   └── start.sh           # Container startup script
-│   │
-│   └── equifax/               # Target environment (Equifax breach simulation)
-│       ├── database/          # Database server container
-│       │   ├── Dockerfile     # SSH server with stored credentials
-│       │   ├── data.json      # Sensitive data payload
-│       │   ├── authorized_keys
-│       │   └── id_rsa.pub
-│       │
-│       └── webserver/         # Web server container
-│           ├── Dockerfile     # Apache Struts vulnerable application
-│           ├── ssh/           # SSH configuration
-│           │   ├── config
-│           │   ├── id_rsa
-│           │   └── id_rsa.pub
-│           └── struts/        # Vulnerable Struts application files
-├── incalmo/                   # Core application code
-│   ├── exceptions.py          # Custom exceptions 
-│   ├── incalmo_runner.py      # Main strategy execution runner
-│   ├── server.py              # Flask server entry point
-│   │
-│   ├── api/                   # Client API for C2 server communication
-│   │   └── server_api.py      # C2ApiClient 
-│   │
-│   ├── c2server/              # Command & Control server
-│   │   ├── c2server.py        # Main Flask application
-│   │   ├── shared.py          # Shared utilities, state management, and constants
-│   │   ├── state_store.py     # SQLite-based environment state persistence
-│   │   │
-│   │   ├── agents/            # Agent implementations
-│   │   │   └── sandcat.go     # Go-based agent
-│   │   │
-│   │   ├── celery/            # Async task queue
-│   │   │   ├── celery_app.py  # Celery application factory
-│   │   │   ├── celery_tasks.py    # Task definitions 
-│   │   │   └── celery_worker.py   # Worker configuration 
-│   │   │
-│   │   ├── payloads/          # Exploit and deployment payloads
-│   │   │   ├── sandcat.go         # Agent source code
-│   │   │   ├── sandcat.go-linux   # Compiled Linux agent
-│   │   │   ├── createBindShellCronJob.sh
-│   │   │   ├── downloadAgent.sh
-│   │   │   ├── runDeployAgent.sh
-│   │   │   ├── runHackerAgent.sh
-│   │   │   ├── strutsExploit.py   
-│   │   │   ├── sudo_baron_exploit.py
-│   │   │   ├── sudo_bypass.py
-│   │   │   ├── sudoedit_exploit.sh
-│   │   │   ├── writeable_passwd.sh
-│   │   │   ├── writeable_sudoers_exploit.sh
-│   │   │   └── template_payloads/
-│   │   │       └── Exec_Bash_Template.sh
-│   │   │
-│   │   └── routes/            # Flask blueprints for API endpoints
-│   │       ├── agent_routes.py        # Agent management
-│   │       ├── command_routes.py      # Command execution and status polling
-│   │       ├── environment_routes.py  # Environment state updates
-│   │       ├── file_routes.py         # File upload/download operations
-│   │       ├── llm_routes.py          # LLM action queue management
-│   │       ├── logging_routes.py      # Log retrieval and streaming
-│   │       └── strategy_routes.py     # Strategy lifecycle
-│   │
-│   ├── core/                  # Core attack framework
-│   │   ├── actions/           # Action classes 
-│   │   │   ├── high_level_action.py   # Abstract base for high-level actions
-│   │   │   ├── low_level_action.py    # Abstract base for low-level commands
-│   │   │   │
-│   │   │   ├── EmptyServiceActions/   # Placeholder actions
-│   │   │   │   ├── escelate_privledge.py
-│   │   │   │   ├── exfiltrate_data.py
-│   │   │   │   ├── find_information_on_host.py
-│   │   │   │   ├── lateral_move.py
-│   │   │   │   └── scan.py
-│   │   │   │
-│   │   │   ├── HighLevel/         # High-level actions
-│   │   │   │   ├── scan.py                    # Network/host reconnaissance
-│   │   │   │   ├── lateral_move_to_host.py    # Single-host lateral movement
-│   │   │   │   ├── attack_path_lateral_move.py # Multi-hop lateral movement
-│   │   │   │   ├── escelate_privledge.py      # Privilege escalation orchestration
-│   │   │   │   ├── find_information_on_host.py # File/credential discovery
-│   │   │   │   ├── exfiltrate_data.py         # Data exfiltration
-│   │   │   │   │
-│   │   │   │   └── llm_agents/        # LLM-agent action implementations
-│   │   │   │       ├── llm_agent_action.py    # Base LLM agent action class
-│   │   │   │       ├── scan/                  # LLM scanning 
-│   │   │   │       ├── lateral_movement/      # LLM lateral move 
-│   │   │   │       ├── privilege_escalation/  # LLM privesc 
-│   │   │   │       ├── find_information/      # LLM information gathering
-│   │   │   │       └── exfiltrate_data/       # LLM data exfiltration
-│   │   │   │
-│   │   │   └── LowLevel/          # Low-level commands
-│   │   │       ├── run_bash_command.py        # Generic bash execution
-│   │   │       ├── scan_network.py            # Network discovery 
-│   │   │       ├── scan_host.py               # Host service enumeration
-│   │   │       ├── nikto_scan.py              # Web vulnerability scanning
-│   │   │       ├── ssh_lateral_move.py        # SSH-based lateral movement
-│   │   │       ├── nc_lateral_move.py         # Netcat reverse shell
-│   │   │       ├── scp_file.py                # Secure file copy
-│   │   │       ├── exploit_struts.py          # Struts exploitation
-│   │   │       ├── find_ssh_config.py         # SSH credential discovery
-│   │   │       ├── add_ssh_key.py             # SSH key persistence
-│   │   │       ├── read_file.py               # Remote file reading
-│   │   │       ├── write_file.py              # Remote file writing
-│   │   │       ├── copy_file.py               # Local file copy
-│   │   │       ├── list_files_in_directory.py # File list
-│   │   │       ├── md5sum_attacker_data.py    # MD5Sum Information
-│   │   │       ├── wgetFile.py                # File download
-│   │   │       └── privledge_escalation/      # Privilege escalation exploits
-│   │   │           ├── check_passwd_permissions.py
-│   │   │           ├── get_sudo_version.py
-│   │   │           ├── sudo_baron.py
-│   │   │           ├── sudoedit_exploit.py
-│   │   │           ├── writeable_passwd.py
-│   │   │           └── writeable_sudoers_exploit.py
-│   │   │
-│   │   ├── models/            # Core domain models
-│   │   │   ├── events/        # Event system for state updates
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── event.py                   # Base event class
-│   │   │   │   ├── bash_output_event.py
-│   │   │   │   ├── hosts_discovered_event.py
-│   │   │   │   ├── services_discovered_on_host_event.py
-│   │   │   │   ├── vulnerable_service_found_event.py
-│   │   │   │   ├── scan_report_event.py
-│   │   │   │   ├── infected_new_host_event.py
-│   │   │   │   ├── root_access_on_host_event.py
-│   │   │   │   ├── credentail_found_event.py
-│   │   │   │   ├── files_found_event.py
-│   │   │   │   ├── file_contents_found_event.py
-│   │   │   │   ├── critical_data_found_event.py
-│   │   │   │   ├── exfiltrated_data_event.py
-│   │   │   │   ├── flag_found_event.py
-│   │   │   │   ├── sudo_version_event.py
-│   │   │   │   └── writeable_sudoers_event.py
-│   │   │   │
-│   │   │   └── network/       # Network infrastructure models
-│   │   │       ├── network.py             # Network topology container
-│   │   │       ├── subnet.py              # Subnet representation
-│   │   │       ├── host.py                # Host with services and vulnerabilities
-│   │   │       ├── open_port.py           # Port and service info
-│   │   │       ├── credential.py          # Authentication credentials
-│   │   │       ├── scan_results.py        # Scan result aggregation
-│   │   │       └── attack_path.py         # Attack graph path representation
-│   │   │
-│   │   ├── services/          # Core logic services
-│   │   │   ├── __init__.py
-│   │   │   ├── config_service.py              # Configuration loading and management
-│   │   │   ├── environment_initializer.py     # Environment setup and bootstrap
-│   │   │   ├── environment_state_service.py   # State tracking and event processing
-│   │   │   ├── attack_graph_service.py        # Attack path planning and graph analysis
-│   │   │   ├── action_context.py              # Context management for action execution
-│   │   │   ├── high_level_action_orchestrator.py  # High-level action coordination
-│   │   │   ├── low_level_action_orchestrator.py   # Low-level command execution
-│   │   │   └── logging_service.py             # Structured logging
-│   │   │
-│   │   └── strategies/        # Attack strategies
-│   │       ├── incalmo_strategy.py    # Abstract base strategy class
-│   │       ├── strategy_factory.py    # Strategy instantiation factory
-│   │       ├── strategy_registry.py   # Dynamic strategy discovery and registration
-│   │       │
-│   │       ├── llm/               # LLM-based strategies
-│   │       │   ├── llm_strategy.py            # Base LLM strategy
-│   │       │   ├── langchain_strategy.py      # LangChain-based strategy implementation
-│   │       │   ├── langchain_registry.py      # LangChain tool registration
-│   │       │   ├── llm_agent_registry.py      # LLM agent registration
-│   │       │   ├── llm_response.py            # LLM response parsing and validation
-│   │       │   │
-│   │       │   └── interfaces/        # LLM interfaces and prompts
-│   │       │       ├── llm_interface.py
-│   │       │       ├── langchain_interface.py
-│   │       │       ├── llm_agent_interface.py
-│   │       │       └── preprompts/    # System prompts and templates
-│   │       │
-│   │       ├── state_machine/     # Rule-based strategies
-│   │       │   ├── __init__.py
-│   │       │   ├── graph_search.py        # Base graph search strategy
-│   │       │   ├── bfs.py                 # Breadth-first search strategy
-│   │       │   ├── dfs.py                 # Depth-first search strategy
-│   │       │   ├── struts_strategy.py     # Apache Struts exploitation chain
-│   │       │   ├── equifax_test.py        # Equifax breach simulation
-│   │       │   ├── MHBench_equifax_test.py # MHBench evaluation harness
-│   │       │   ├── darkside.py            # DarkSide ransomware simulation
-│   │       │   └── debug.py               # Debug/testing strategy
-│   │       │
-│   │       ├── testers/           # Strategy testing utilities
-│   │       │
-│   │       └── util/              # Strategy utilities
-│   │           └── event_util.py  # Event processing helpers
-│   │
-│   ├── frontend/              # Web interface
-│   │   └── incalmo-ui/        # React-based UI
-│   │       ├── .gitignore
-│   │       ├── package.json       # Node.js dependencies
-│   │       ├── tsconfig.json      # TypeScript configuration
-│   │       ├── README.md
-│   │       ├── public/            # Static assets
-│   │       └── src/               # React components and application logic
-│   │
-│   └── models/                # Shared data models (Pydantic)
-│       ├── __init__.py
-│       ├── agent.py               # Agent representation 
-│       ├── command.py             # Command structure with status enum
-│       ├── command_result.py      # Command execution results
-│       ├── instruction.py         # Agent instruction format
-│       ├── llm_agent_action_data.py   # LLM action data transfer object
-│       └── logging_schema.py      # Structured logging schemas
-└── output/                    # Execution logs and results
-
-```
 ## Usage
 
 To use an your choice of an LLM-based attack:
@@ -423,7 +148,61 @@ It may be easier to look at examples of existing strategies to understand format
 To use the UI:
 
 - Instead of running ```main.py```, launch the frontend and use the UI to start and stop attacks and observe logs. This is the cleanest/easiest way to observe the attacks in real time 
+    
+## Tech Stack
 
+**Backend:** Python 3.13, Flask, Celery, SQLite \
+**LLM Integration:** LangChain, OpenAI, Anthropic, Google Gemini, DeepSeek \
+**Frontend:** React, TypeScript, Node.js \
+**Containerization:** Docker, Docker Compose \
+**Package Management:** uv 
+
+## Project Structure
+
+```
+Incalmo/
+├── .env.example               # Template for environment configuration
+├── CITATION.cff               # Research paper citation metadata
+├── LICENSE                    # MIT License
+├── main.py                    # CLI entry point - runs Incalmo strategy
+├── README.md                  # Project Guide
+├── config/                    # Configuration management
+├── docker/                    # Docker containerization
+│   ├── attacker/              # Attacker container configuration
+│   └── equifax/               # Target environment (Equifax breach simulation)
+│       ├── database/          # Database server container
+│       └── webserver/         # Web server container
+├── incalmo/                   # Core application code
+│   ├── incalmo_runner.py      # Main strategy execution runner
+│   ├── server.py              # Flask server entry point
+│   ├── api/                   # Client API for C2 server communication
+│   ├── c2server/              # Command & Control server
+│   │   ├── agents/            # Agent implementations
+│   │   ├── celery/            # Async task queue
+│   │   ├── payloads/          # Exploit and deployment payloads
+│   │   └── routes/            # Flask blueprints for API endpoints
+│   ├── core/                  # Core attack framework
+│   │   ├── actions/           # Action classes 
+│   │   │   ├── EmptyServiceActions/   # Placeholder actions
+│   │   │   ├── HighLevel/         # High-level actions
+│   │   │   │   └── llm_agents/        # LLM-agent action implementations
+│   │   │   └── LowLevel/          # Low-level commands
+│   │   │       └── privledge_escalation/      # Privilege escalation exploits
+│   │   ├── models/            # Core domain models
+│   │   │   ├── events/        # Event system for state updates
+│   │   │   └── network/       # Network infrastructure models
+│   │   ├── services/          # Core logic services
+│   │   └── strategies/        # Attack strategies
+│   │       ├── llm/               # LLM-based strategies
+│   │       ├── state_machine/     # Rule-based strategies
+│   │       ├── testers/           # Strategy testing utilities
+│   │       └── util/              # Strategy utilities
+│   ├── frontend/              # Web interface
+│   │   └── incalmo-ui/        # React-based UI
+│   └── models/                # Shared data models (Pydantic)
+└── output/                    # Execution logs and results
+
+```
 
 ## Contributing
 
