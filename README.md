@@ -118,7 +118,7 @@ To use an your choice of an LLM-based attack:
 
 - Follow the [setup](#installation) and then:
 
-- Specify in ```config/config.json``` what LLM's to use (list is available in the [registry](incalmo/core/strategies/llm/langchain_registry.py)). Use the ```config_example.json``` as a template
+- Specify in ```config/config.json``` what LLMs to use (list is available in the [registry](incalmo/core/strategies/llm/langchain_registry.py)). Use the ```config_example.json``` as a template
 
 - Run ```main.py``` as described in the setup
 
@@ -127,6 +127,8 @@ To use an your choice of an LLM-based attack:
 This is the most stable way to test attack.
 
 To use a custom strategy for attacks:
+
+Note: A "strategy" is the logic behind an attack. See the [strategies/](incalmo/core/strategies) folder for examples.
 
 -  Follow the [setup](#installation) and then:
 
