@@ -114,6 +114,8 @@ This will lauch the frontend at [http://localhost:3000](http://localhost:3000)
 
 ## Usage
 
+Note: A "strategy" is the logic behind an attack. See the [strategies/](incalmo/core/strategies) folder for examples of llm based attacks and state machine based attacks.
+
 To use an your choice of an LLM-based attack:
 
 - Follow the [setup](#installation) and then:
@@ -126,19 +128,17 @@ To use an your choice of an LLM-based attack:
 
 This is the most stable way to test attack.
 
-To use a custom strategy for attacks:
-
-Note: A "strategy" is the logic behind an attack. See the [strategies/](incalmo/core/strategies) folder for examples.
+To use a custom (non-LLM/manual) strategy for attacks:
 
 -  Follow the [setup](#installation) and then:
 
-- Specify in ```config/config.json``` what manual strategy to use (list is available in the [state machine registry](incalmo/core/strategies/state_machine)). Use the ```config_example_state_machine.json``` as a template
+- Specify in ```config/config.json``` what manual strategy to use (list is available in [strategies/state_machine](incalmo/core/strategies/state_machine)). Use the ```config_example_state_machine.json``` as a template and fill in the strategy name as the class name.
 
 - Run ```main.py``` as described in the setup
 
 - Observe the status of the attack through the logs in the output directory. Your attack will be timestamped and used to name the logs folder
 
-- To use your own strategy, create a file in the state machine registry as follows:
+- To create your own basic strategy, create a file in [strategies/state_machine](incalmo/core/strategies/state_machine) as follows:
 
 ```
 class YourStrategyName(IncalmoStrategy):
