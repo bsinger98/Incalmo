@@ -128,7 +128,7 @@ To use an your choice of an LLM-based attack:
 
 This is the most stable way to test attack.
 
-To use a custom (non-LLM/manual) strategy for attacks:
+Incalmo also supports creating non-LLM state-machine strategies. To use a custom (non-LLM/manual) strategy for attacks:
 
 -  Follow the [setup](#installation) and then:
 
