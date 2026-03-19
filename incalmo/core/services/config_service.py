@@ -19,6 +19,10 @@ class ConfigService:
             config = f.read()
             json_config = json.loads(config)
 
+        c2c_server_override = os.environ.get("C2C_SERVER")
+        if c2c_server_override:
+            json_config["c2c_server"] = c2c_server_override
+
         return AttackerConfig(**json_config)
 
     def get_config(self):
