@@ -17,7 +17,7 @@ class NiktoScan(LowLevelAction):
         self.port = port
         self.service = service
 
-        command = f"nikto -h {host} -p {port} -maxtime 10s -timeout 3"
+        command = f"nikto -h {host} -p {port} -Tuning 8 -maxtime 60s -timeout 3"
         super().__init__(agent, command)
 
     async def get_result(
@@ -27,7 +27,7 @@ class NiktoScan(LowLevelAction):
         if result.output is None:
             return []
 
-        if "CVE-2017-5638" in result.output:
+        if "CVE-2017-5638" in result.output or "strutshock" in result.output:
             return [
                 VulnerableServiceFound(
                     port=self.port,
