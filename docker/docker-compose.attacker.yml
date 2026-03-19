@@ -9,6 +9,7 @@ services:
       - SERVER_IP=localhost
       - MODE=remote
       - DEBUG=false
+      - C2C_SERVER=${C2C_SERVER:-}
     volumes:
       - ../:/incalmo
       - frontend-ignore:/incalmo/incalmo/frontend
