@@ -8,8 +8,8 @@ from celery import Celery
 import os
 
 # Configure Celery for worker
-broker = "sqlalchemy+sqlite:///celery.db"
-backend = "db+sqlite:///celery_results.db"
+broker = os.environ.get("broker_url", "sqlalchemy+sqlite:///celery.db")
+backend = os.environ.get("result_backend", "db+sqlite:///celery_results.db")
 
 # Create standalone Celery app for worker
 celery_worker = Celery(
