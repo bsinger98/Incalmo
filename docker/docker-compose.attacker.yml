@@ -10,14 +10,15 @@ services:
       - MODE=remote
       - DEBUG=false
       - C2C_SERVER=${C2C_SERVER:-}
+      - C2C_PORT=${C2C_PORT:-8888}
+      - broker_url=sqlalchemy+sqlite:////tmp/celery.db
+      - result_backend=db+sqlite:////tmp/celery_results.db
     volumes:
       - ../:/incalmo
       - frontend-ignore:/incalmo/incalmo/frontend
       - venv-volume:/incalmo/.venv
     ports:
-      - "8888:8888"
-      - "6379:6379"
-      - "5678:5678"
+      - "${C2C_PORT:-8888}:8888"
     # Uses the default network only; no test/web/db networks attached
 
 volumes:
