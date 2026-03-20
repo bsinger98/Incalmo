@@ -4,6 +4,7 @@ Handles command execution and status tracking.
 """
 
 import json
+import os
 import uuid
 from flask import Blueprint, request, jsonify
 
@@ -17,6 +18,10 @@ from incalmo.c2server.shared import (
     read_template_file,
     PAYLOADS_DIR,
 )
+
+# Suffix payload filenames with the host-side C2C port so parallel containers
+# (each mapped to a different host port) don't overwrite each other's scripts.
+_PORT_SUFFIX = os.getenv("C2C_PORT", "8888")
 
 # Create blueprint
 command_bp = Blueprint("command", __name__)
@@ -39,16 +44,17 @@ def send_manual_command():
     # Create a command directly without using the API client
     exec_template = read_template_file("Exec_Bash_Template.sh")
     executor_script_content = exec_template.safe_substitute(command=command)
-    executor_script_path = PAYLOADS_DIR / "manual_command.sh"
+    manual_payload_name = f"manual_command_{_PORT_SUFFIX}.sh"
+    executor_script_path = PAYLOADS_DIR / manual_payload_name
     executor_script_path.write_text(executor_script_content)
 
     command_id = str(uuid.uuid4())
     instruction = Instruction(
         id=command_id,
-        command=encode_base64("./manual_command.sh"),
+        command=encode_base64(f"./{manual_payload_name}"),
         executor="sh",
         timeout=60,
-        payloads=["manual_command.sh"],
+        payloads=[manual_payload_name],
         uploads=[],
         delete_payload=True,
     )
@@ -83,14 +89,15 @@ def send_command():
 
     exec_template = read_template_file("Exec_Bash_Template.sh")
     executor_script_content = exec_template.safe_substitute(command=command)
-    executor_script_path = PAYLOADS_DIR / "dynamic_payload.sh"
+    dynamic_payload_name = f"dynamic_payload_{_PORT_SUFFIX}.sh"
+    executor_script_path = PAYLOADS_DIR / dynamic_payload_name
     executor_script_path.write_text(executor_script_content)
-    payloads.append("dynamic_payload.sh")
+    payloads.append(dynamic_payload_name)
 
     command_id = str(uuid.uuid4())
     instruction = Instruction(
         id=command_id,
-        command=encode_base64("./dynamic_payload.sh"),
+        command=encode_base64(f"./{dynamic_payload_name}"),
         executor="sh",
         timeout=60,
         payloads=payloads,
