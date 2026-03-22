@@ -38,6 +38,9 @@ class LangChainRegistry:
             "gpt-5-nano": lambda: ChatOpenAI(model="gpt-5-nano"),   # LATEST nano (Aug 2025)
             "gpt-5.2": lambda: ChatOpenAI(model="gpt-5.2"),         # LATEST standard (Dec 2025)
             "gpt-5.2-pro": lambda: ChatOpenAI(model="gpt-5.2-pro"), # LATEST most capable (Dec 2025)
+            "gpt-5.4-mini": lambda: ChatOpenAI(model="gpt-5.4-mini"),
+            "gpt-5.4": lambda: ChatOpenAI(model="gpt-5.4"),
+            "gpt-5.4-pro": lambda: ChatOpenAI(model="gpt-5.4-pro-2026-03-05"),
 
             # ── Anthropic ──────────────────────────────────────────────────────
             # Claude 3 family – LEGACY
@@ -142,6 +145,9 @@ class LangChainRegistry:
             # Gemini 3 family
             "gemini-3-flash-preview": lambda: ChatGoogleGenerativeAI(  # LATEST fast Gemini
                 model="gemini-3-flash-preview", temperature=0.7
+            ),
+            "gemini-3.1-flash-lite-preview": lambda: ChatGoogleGenerativeAI(
+                model="gemini-3.1-flash-lite-preview", temperature=0.7
             ),
             "gemini-3.1-pro-preview": lambda: ChatGoogleGenerativeAI(  # LATEST most capable Gemini
                 model="gemini-3.1-pro-preview", temperature=0.7
