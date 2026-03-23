@@ -75,6 +75,15 @@ cd docker
 docker compose up
 ```
 
+> **MHBench Integration**
+>
+> Before starting the containers, set the `MODE` environment variable to `"remote"` in both `docker/docker-compose.attacker.yml` and `docker/docker-compose.yml`.
+>
+> Before Step 4, compile and set up the MHBench environment for your experiment. Ensure `config.json` has the C2 server configured as:
+> ```json
+> "c2c_server": "http://localhost:8888"
+> ```
+
 #### 4. Run Incalmo
 
 In a new terminal window, attach to the running container and execute Incalmo:
