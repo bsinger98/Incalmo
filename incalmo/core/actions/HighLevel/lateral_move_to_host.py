@@ -71,12 +71,14 @@ class LateralMoveToHost(HighLevelAction):
 
             if service_to_attack.CVE and self.host_to_attack.has_an_ip_address():
                 # Can only be used when using LLM strategies
+                print("[+] Using LLM lateral move with Metasploit")
                 if context.llm_interface:
                     events += await LLMLateralMoveMetasploit(
                         self.attacking_host,
                         self.host_to_attack,
+                        service_to_attack.CVE[0],
+                        service_to_attack.port,
                         context.llm_interface,
-                        msf_service,
                     ).run(
                         low_level_action_orchestrator,
                         environment_state_service,
