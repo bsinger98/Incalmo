@@ -8,6 +8,9 @@ from incalmo.core.services import (
 from incalmo.core.services.action_context import HighLevelContext
 
 from ..high_level_action import HighLevelAction
+from .llm_agents.msf_lateral_movement.llm_ms_lateral_move import (
+    LLMLateralMoveMetasploit,
+)
 from ..LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
 
 
@@ -66,15 +69,28 @@ class LateralMoveToHost(HighLevelAction):
         ) in self.host_to_attack.open_ports.items():
             action_to_run = None
 
-            if (
-                "CVE-2017-5638" in service_to_attack.CVE
-                and self.host_to_attack.has_an_ip_address()
-            ):
-                action_to_run = ExploitStruts(
-                    agent,
-                    self.host_to_attack.get_ip_address(),
-                    str(port_to_attack),
-                )
+            if service_to_attack.CVE and self.host_to_attack.has_an_ip_address():
+                # Can only be used when using LLM strategies
+                print("[+] Using LLM lateral move with Metasploit")
+                if context.llm_interface:
+                    events += await LLMLateralMoveMetasploit(
+                        self.attacking_host,
+                        self.host_to_attack,
+                        service_to_attack.CVE[0],
+                        service_to_attack.port,
+                        context.llm_interface,
+                    ).run(
+                        low_level_action_orchestrator,
+                        environment_state_service,
+                        attack_graph_service,
+                        context,
+                    )
+                elif "CVE-2017-5638" in service_to_attack.CVE:
+                    action_to_run = ExploitStruts(
+                        agent,
+                        self.host_to_attack.get_ip_address(),
+                        str(port_to_attack),
+                    )
             elif port_to_attack == 4444 and self.host_to_attack.has_an_ip_address():
                 action_to_run = NCLateralMove(
                     agent,

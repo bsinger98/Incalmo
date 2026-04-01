@@ -1,1 +1,1 @@
-from .agent import LLMLateralMoveMetasploit
+from .llm_ms_lateral_move import LLMLateralMoveMetasploit

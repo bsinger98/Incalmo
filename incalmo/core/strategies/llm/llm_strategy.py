@@ -53,6 +53,8 @@ class LLMStrategy(IncalmoStrategy, ABC):
             strategy=self.config.strategy,
         )
         self.agent_registry = LLMAgentRegistry()
+        # Set agent interface on orchestrator for high-level actions
+        self.high_level_action_orchestrator.llm_interface = self.agent_interface
         # Logging Start
         self.logger.info(
             f"[LLMStrategy] Starting LLM strategy with config: {self.config}"

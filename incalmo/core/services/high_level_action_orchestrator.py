@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from incalmo.core.actions.high_level_action import HighLevelAction
+    from incalmo.core.strategies.llm.interfaces.llm_agent_interface import LLMAgentInterface
 
 from incalmo.core.services import (
     EnvironmentStateService,
@@ -23,15 +24,17 @@ class HighLevelActionOrchestrator:
         attack_graph_service: AttackGraphService,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         logging_service: IncalmoLogger,
+        llm_interface: Optional["LLMAgentInterface"] = None,
     ):
         self.environment_state_service = environment_state_service
         self.attack_graph_service = attack_graph_service
         self.low_level_action_orchestrator = low_level_action_orchestrator
+        self.llm_interface = llm_interface
         self.logger = logging_service.action_logger()
 
     async def run_action(self, action: "HighLevelAction"):
         hl_id = str(uuid4())
-        context = HighLevelContext(hl_id=hl_id)
+        context = HighLevelContext(hl_id=hl_id, llm_interface=self.llm_interface)
         events = await action.run(
             self.low_level_action_orchestrator,
             self.environment_state_service,
