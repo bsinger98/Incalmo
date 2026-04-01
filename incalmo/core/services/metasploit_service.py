@@ -46,7 +46,7 @@ class MetasploitService:
             for entry in raw
         ]
 
-        modules.sort(key=lambda m: _RANK_ORDER.get(m.rank.lower()))
+        modules.sort(key=lambda m: _RANK_ORDER.get(m.rank.lower(), len(_RANK_ORDER)))
         return modules
 
     def get_exploit_module_options(self, module_fullname: str) -> ExploitModuleOptions:
@@ -64,7 +64,7 @@ class MetasploitService:
             missing_required=module.missing_required or [],
             current_values=module.runoptions or {},
             available_payloads=payloads,
-            targets=module.targets() or {},
+            targets=module.targets or {},
         )
 
     def get_payload_options(self, payload_name: str) -> PayloadModuleOptions:
@@ -96,7 +96,6 @@ class MetasploitService:
 
         for key, value in exploit_options.items():
             exploit[key] = value
-        exploit["ForceExploit"] = True  # ForceExploit bypasses some checks
 
         # Build payload
         payload = self.client.modules.use("payload", payload_module_fullname)
