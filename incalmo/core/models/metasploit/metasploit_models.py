@@ -69,9 +69,33 @@ class PayloadModuleOptions(BaseModel):
     current_values: dict[str, Any] = Field(..., description="Current run options")
 
 
-class MetasploitExploitResult(BaseModel):
-    """Returned by MetasploitService.run_exploit()"""
-
-    cve_id: str
+class MetasploitModuleResult(BaseModel):
     console_cid: str
     console_output: str = Field(default="")
+
+
+class MetasploitExploitResult(MetasploitModuleResult):
+    cve_id: str
+
+
+class MetasploitSessionInfo(BaseModel):
+    session_id: str
+    type: str = Field(default="")
+    session_host: str = Field(default="")
+    tunnel_peer: str = Field(default="")
+    via_exploit: str = Field(default="")
+    via_payload: str = Field(default="")
+    routes: str = Field(default="")
+
+
+class AutorouteResult(BaseModel):
+    session_id: str
+    cmd: str
+    subnet: Optional[str] = Field(default=None)
+    netmask: Optional[str] = Field(default=None)
+    output: str = Field(default="")
+
+
+class RouteTableResult(BaseModel):
+    output: str = Field(default="")
+    routes: list[str] = Field(default_factory=list)

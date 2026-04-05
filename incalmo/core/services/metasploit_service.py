@@ -1,12 +1,17 @@
+import json
 from typing import Any, Optional
 
-from pymetasploit3.msfrpc import MsfRpcClient, ExploitModule, MsfRpcError
+from pymetasploit3.msfrpc import MsfRpcClient
 
 from incalmo.core.models.metasploit.metasploit_models import (
-    MetasploitExploitResult,
+    AutorouteResult,
     ExploitModuleInfo,
     ExploitModuleOptions,
+    MetasploitModuleResult,
+    MetasploitExploitResult,
+    MetasploitSessionInfo,
     PayloadModuleOptions,
+    RouteTableResult,
 )
 
 _RANK_ORDER = {
@@ -111,4 +116,107 @@ class MetasploitService:
             cve_id=cve_id,
             console_cid=cid,
             console_output=console_output,
+        )
+
+    def list_sessions(self) -> list[MetasploitSessionInfo]:
+        sessions = self.client.sessions.list or {}
+        output: list[MetasploitSessionInfo] = []
+
+        for session_id, details in sessions.items():
+            output.append(
+                MetasploitSessionInfo(
+                    session_id=session_id,
+                    type=details.get("type", ""),
+                    session_host=details.get("session_host", ""),
+                    tunnel_peer=details.get("tunnel_peer", ""),
+                    via_exploit=details.get("via_exploit", ""),
+                    via_payload=details.get("via_payload", ""),
+                    routes=details.get("routes", ""),
+                )
+            )
+
+        return output
+
+    def run_post_module(
+        self,
+        module_fullname: str,
+        options: dict[str, Any],
+    ) -> MetasploitModuleResult:
+        module = self.client.modules.use("post", module_fullname)
+        for key, value in options.items():
+            module[key] = value
+
+        cid = self.client.consoles.console().cid
+        console_output = self.client.consoles.console(cid).run_module_with_output(
+            module
+        )
+        return MetasploitModuleResult(
+            console_cid=cid,
+            console_output=console_output,
+        )
+
+    def autoroute_add(
+        self,
+        session_id: str,
+        subnet: str,
+        netmask: str,
+    ) -> AutorouteResult:
+        result = self.run_post_module(
+            module_fullname="multi/manage/autoroute",
+            options={
+                "SESSION": session_id,
+                "CMD": "add",
+                "SUBNET": subnet,
+                "NETMASK": netmask,
+            },
+        )
+        output = json.dumps(result.model_dump(), indent=2)
+        return AutorouteResult(
+            session_id=session_id,
+            cmd="add",
+            subnet=subnet,
+            netmask=netmask,
+            output=output,
+        )
+
+    def autoroute_print(
+        self,
+        session_id: str,
+    ) -> RouteTableResult:
+        result = self.run_post_module(
+            module_fullname="multi/manage/autoroute",
+            options={
+                "SESSION": session_id,
+                "CMD": "print",
+            },
+        )
+        output = json.dumps(result.model_dump(), indent=2)
+        return RouteTableResult(output=output, routes=[])
+
+    def autoroute_delete(
+        self,
+        session_id: str,
+        subnet: str | None = None,
+        netmask: str | None = None,
+    ) -> AutorouteResult:
+        options: dict[str, Any] = {
+            "SESSION": session_id,
+            "CMD": "delete",
+        }
+        if subnet is not None:
+            options["SUBNET"] = subnet
+        if netmask is not None:
+            options["NETMASK"] = netmask
+
+        result = self.run_post_module(
+            module_fullname="multi/manage/autoroute",
+            options=options,
+        )
+        output = json.dumps(result.model_dump(), indent=2)
+        return AutorouteResult(
+            session_id=session_id,
+            cmd="delete",
+            subnet=subnet,
+            netmask=netmask,
+            output=output,
         )
