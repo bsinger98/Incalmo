@@ -5,11 +5,17 @@ networks:
       config:
         - subnet: 192.168.199.0/24
 
-  web_network:
+  web_1_network:
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.200.0/24
+  
+  web_2_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.201.0/24
 
 services:
   attacker:
@@ -29,25 +35,34 @@ services:
     networks:
       attacker_network:
         ipv4_address: 192.168.199.10
-      web_network:    
+      web_1_network:    
         ipv4_address: 192.168.200.10 
     ports:
       - "127.0.0.1:8888:8888"
       - "127.0.0.1:6379:6379"
       - "127.0.0.1:5678:5678"
 
-  webserver:
+  webserver_1:
     build:
       context: ./equifax/webserver
-    container_name: webserver_container
+    container_name: webserver_1_container
     restart: always
     networks:
       attacker_network:
         ipv4_address: 192.168.199.20
-      web_network:
+      web_1_network:
         ipv4_address: 192.168.200.20
-    ports:
-      - "127.0.0.1:8080:8080"
+
+  webserver_2:
+    build:
+      context: ./equifax/webserver
+    container_name: webserver_2_container
+    restart: always
+    networks:
+      web_1_network:
+        ipv4_address: 192.168.200.30
+      web_2_network:
+        ipv4_address: 192.168.201.30
 
 volumes:
   venv-volume:

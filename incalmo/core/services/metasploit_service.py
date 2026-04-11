@@ -137,6 +137,8 @@ class MetasploitService:
 
         return output
 
+    # For pivoting, but may not be possible with Incalmo
+
     def run_post_module(
         self,
         module_fullname: str,
