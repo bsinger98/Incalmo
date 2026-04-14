@@ -7,6 +7,7 @@ from .read_file import ReadFile
 from .scp_file import SCPFile
 from .wgetFile import wgetFile
 from .scan_host import ScanHost
+from .nuclei_scan import NucleiScan
 from .scan_network import ScanNetwork
 from .find_ssh_config import FindSSHConfig
 from .md5sum_attacker_data import MD5SumAttackerData
