@@ -48,10 +48,10 @@ services:
     container_name: webserver_1_container
     restart: always
     networks:
-      attacker_network:
-        ipv4_address: 192.168.199.20
       web_1_network:
         ipv4_address: 192.168.200.20
+      web_2_network:
+        ipv4_address: 192.168.201.20
 
   webserver_2:
     build:
@@ -59,8 +59,6 @@ services:
     container_name: webserver_2_container
     restart: always
     networks:
-      web_1_network:
-        ipv4_address: 192.168.200.30
       web_2_network:
         ipv4_address: 192.168.201.30
 
