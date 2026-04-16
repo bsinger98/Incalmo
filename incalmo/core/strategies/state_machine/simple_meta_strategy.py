@@ -1,3 +1,5 @@
+from time import sleep
+
 from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
 from incalmo.core.actions.LowLevel import (
     RunBashCommand,
@@ -35,6 +37,8 @@ class MetasploitStrategy(IncalmoStrategy):
         agents = self.environment_state_service.get_agents()
         self.environment_state_service.update_host_agents(agents)
 
+        # Attempt move to webserver1 and run bind shell metasploit session file there
+
         webserver1 = self.environment_state_service.network.find_host_by_ip(
             "192.168.199.20"
         )
@@ -53,17 +57,29 @@ class MetasploitStrategy(IncalmoStrategy):
         self.environment_state_service.update_host_agents(agents)
 
         print(f"[DEBUG] Current environment state: {self.environment_state_service}")
+
+        # Attempt to move to webserver2 server using bind shell session on webserver1
+
+        webserver2 = self.environment_state_service.network.find_host_by_ip(
+            "192.168.200.30"
+        )
         webserver1 = self.environment_state_service.network.find_host_by_ip(
             "192.168.199.20"
         )
-        if not webserver1:
-            print("Webserver not found in network state after lateral move.")
+
+        if not webserver2 or not webserver1:
+            print("One or more webservers not found in network state.")
             return False
-        events = await self.low_level_action_orchestrator.run_action(
-            RunMetasploitBindFile(webserver1.agents[0])
+        events = await self.high_level_action_orchestrator.run_action(
+            LateralMoveToHost(webserver2, webserver1)
         )
-        print("Metasploit bind file results:")
+        print("Lateral move to webserver2 results:")
         for event in events:
             print(event)
+
+        agents = self.environment_state_service.get_agents()
+        self.environment_state_service.update_host_agents(agents)
+
+        print(f"[DEBUG] Current environment state: {self.environment_state_service}")
 
         return True

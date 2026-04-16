@@ -36,15 +36,14 @@ class LLMLateralMoveMetasploit(LLMAgentAction):
         target_host: Host,
         cve_id: str,
         port_to_attack: int,
+        metasploit_service: MetasploitService,
         llm_interface: LLMAgentInterface,
     ) -> None:
         self.source_host = source_host
         self.target_host = target_host
         self.cve_id = cve_id
         self.port_to_attack = port_to_attack
-        self.metasploit_service = MetasploitService(
-            password="password"
-        )  # Password set in attacker startup file
+        self.metasploit_service = metasploit_service
         self.llm_interface = llm_interface
         self.llm_interface.set_preprompt(self.get_preprompt())
         super().__init__(llm_interface)

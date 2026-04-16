@@ -70,7 +70,7 @@ class PayloadModuleOptions(BaseModel):
 
 
 class MetasploitModuleResult(BaseModel):
-    console_cid: str
+    console_cid: int
     console_output: str = Field(default="")
 
 
@@ -79,7 +79,7 @@ class MetasploitExploitResult(MetasploitModuleResult):
 
 
 class MetasploitSessionInfo(BaseModel):
-    session_id: str
+    session_id: int
     type: str = Field(default="")
     session_host: str = Field(default="")
     tunnel_peer: str = Field(default="")
@@ -89,10 +89,8 @@ class MetasploitSessionInfo(BaseModel):
 
 
 class AutorouteResult(BaseModel):
-    session_id: str
+    session_id: int
     cmd: str
-    subnet: Optional[str] = Field(default=None)
-    netmask: Optional[str] = Field(default=None)
     output: str = Field(default="")
 
 
