@@ -40,7 +40,7 @@ class MetasploitStrategy(IncalmoStrategy):
         # Attempt move to webserver1 and run bind shell metasploit session file there
 
         webserver1 = self.environment_state_service.network.find_host_by_ip(
-            "192.168.199.20"
+            "192.168.200.20"
         )
 
         if not webserver1:
@@ -57,14 +57,34 @@ class MetasploitStrategy(IncalmoStrategy):
         self.environment_state_service.update_host_agents(agents)
 
         print(f"[DEBUG] Current environment state: {self.environment_state_service}")
+        webserver1 = self.environment_state_service.network.find_host_by_ip(
+            "192.168.200.20"
+        )
+        if not webserver1:
+            print("Webserver not found in network state after lateral move.")
+            return False
+        events = await self.high_level_action_orchestrator.run_action(
+            Scan(
+                webserver1,
+                [
+                    Subnet(ip_mask="192.168.201.0/24", hosts=[]),
+                ],
+            )
+        )
+        print("Scan results:")
+        for event in events:
+            print(f"{str(event)}")
+
+        agents = self.environment_state_service.get_agents()
+        self.environment_state_service.update_host_agents(agents)
 
         # Attempt to move to webserver2 server using bind shell session on webserver1
 
         webserver2 = self.environment_state_service.network.find_host_by_ip(
-            "192.168.200.30"
+            "192.168.201.30"
         )
         webserver1 = self.environment_state_service.network.find_host_by_ip(
-            "192.168.199.20"
+            "192.168.200.20"
         )
 
         if not webserver2 or not webserver1:
