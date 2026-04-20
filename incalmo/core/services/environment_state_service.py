@@ -210,6 +210,7 @@ class EnvironmentStateService:
         # If one host, we can use it
         elif len(hosts) == 1:
             host = hosts[0]
+            self.network.remove_hosts(hosts)
             host.hostname = new_agent.hostname
             host.infection_source_agent = (
                 source_agent
@@ -217,6 +218,10 @@ class EnvironmentStateService:
                 else host.infection_source_agent
             )
             host.add_agent(new_agent)
+            host.ip_addresses = list(
+                set(host.ip_addresses) | set(new_agent.host_ip_addrs)
+            )
+            self.network.add_host(host)
         # If the host already has the agent, we do nothing
         # If multiple hosts, we need to merge them
         elif len(hosts) > 1:
