@@ -2,7 +2,9 @@ from dataclasses import dataclass, field
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from incalmo.core.strategies.llm.interfaces.llm_agent_interface import LLMAgentInterface
+    from incalmo.core.strategies.llm.interfaces.llm_agent_interface import (
+        LLMAgentInterface,
+    )
 
 
 @dataclass

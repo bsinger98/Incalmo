@@ -2,7 +2,9 @@ from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from incalmo.core.actions.high_level_action import HighLevelAction
-    from incalmo.core.strategies.llm.interfaces.llm_agent_interface import LLMAgentInterface
+    from incalmo.core.strategies.llm.interfaces.llm_agent_interface import (
+        LLMAgentInterface,
+    )
 
 from incalmo.core.services import (
     EnvironmentStateService,
