@@ -95,7 +95,6 @@ class LateralMoveToHost(HighLevelAction):
                     f"Service {service_to_attack} on host {self.host_to_attack.ip_addresses} has CVEs: {service_to_attack.CVE}"
                 )
                 if context.llm_interface:
-                    print("[+] Using LLM lateral move with Metasploit")
                     new_events = await LLMLateralMoveMetasploit(
                         self.attacking_host,
                         self.host_to_attack,

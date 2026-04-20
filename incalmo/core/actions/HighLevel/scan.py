@@ -67,22 +67,23 @@ class Scan(HighLevelAction):
         for event in events:
             if isinstance(event, ServicesDiscoveredOnHost):
                 for port, service in event.services.items():
-                    vuln_events = await low_level_action_orchestrator.run_action(
-                        NucleiScan(scan_agent, event.host_ip, port, service), context
-                    )
+                    # vuln_events = await low_level_action_orchestrator.run_action(
+                    #     NucleiScan(scan_agent, event.host_ip, port, service), context
+                    # )
+                    # Note: Nikto does not find ALL vulns, only 2017-5638. Use Nuclei (commented above) if a more comprehensive Scan is needed
+                    if "http" in service:
+                        # Check if this is an SSL service
+                        is_ssl = "+ssl" in service or "https" in service
 
-                    # if "http" in service:
-                    #     # Check if this is an SSL service
-                    #     is_ssl = "+ssl" in service or "https" in service
+                        if is_ssl:
+                            continue
 
-                    #     if is_ssl:
-                    #         continue
+                        vuln_event = await low_level_action_orchestrator.run_action(
+                            NiktoScan(scan_agent, event.host_ip, port, service), context
+                        )
+                        events += vuln_event
 
-                    #     vuln_event = await low_level_action_orchestrator.run_action(
-                    #         NiktoScan(scan_agent, event.host_ip, port, service), context
-                    #     )
-                    #     events += vuln_event
-                    events += vuln_events
+                    # events += vuln_events
 
         return events
 
