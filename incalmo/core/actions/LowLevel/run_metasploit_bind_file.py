@@ -1,6 +1,5 @@
 from ..low_level_action import LowLevelAction
 from incalmo.models.agent import Agent
-from incalmo.core.services.config_service import ConfigService
 
 
 class RunMetasploitBindFile(LowLevelAction):
