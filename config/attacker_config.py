@@ -6,13 +6,13 @@ from dataclasses import field
 
 # Enum of environments
 class Environment(Enum):
-    EQUIFAX_SMALL = "EquifaxSmall"
-    EQUIFAX_MEDIUM = "EquifaxMedium"
-    EQUIFAX_LARGE = "EquifaxLarge"
-    ICS = "ICSEnvironment"
-    RING = "RingEnvironment"
-    ENTERPRISE_A = "EnterpriseA"
-    ENTERPRISE_B = "EnterpriseB"
+    EQUIFAX_SMALL = "equifax_small"
+    EQUIFAX_MEDIUM = "equifax_medium"
+    EQUIFAX_LARGE = "equifax_large"
+    ICS = "ics"
+    RING = "ring"
+    ENTERPRISE_A = "enterprise_a"
+    ENTERPRISE_B = "enterprise_b"
 
 
 class AbstractionLevel(str, Enum):
