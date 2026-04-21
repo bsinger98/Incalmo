@@ -169,7 +169,7 @@ export const useIncalmoApi = () => {
           abstraction: "incalmo"
         },
         execution_llm: "claude-3.5-haiku",
-        environment: "EquifaxLarge",
+        environment: "equifax_large",
         c2c_server: "http://host.docker.internal:8888",
         blacklist_ips: ["192.168.199.10", "192.168.200.10"]
       };
@@ -248,7 +248,7 @@ export const useIncalmoApi = () => {
           abstraction: "incalmo"
         },
         execution_llm: "claude-3.5-haiku",
-        environment: "EquifaxLarge",
+        environment: "equifax_large",
         c2c_server: "http://host.docker.internal:8888",
         blacklist_ips: ["192.168.199.10", "192.168.200.10"]
       };
