@@ -1,0 +1,141 @@
+Screen {
+    background: #1a1a1a;
+}
+
+Header {
+    background: #1a1a1a;
+    color: #ff5faf;
+    text-style: bold;
+    height: 1;
+    dock: top;
+}
+
+Footer {
+    background: #2a2a2a;
+    color: #808080;
+    height: 1;
+    dock: bottom;
+}
+
+.main-container {
+    layout: vertical;
+    height: 1fr;
+    background: #1a1a1a;
+    margin: 0 1;
+}
+
+.content-container {
+    layout: horizontal;
+    height: 1fr;
+}
+
+.status-bar {
+    height: 1;
+    background: #1a1a1a;
+    color: #ff5faf;
+    text-style: bold;
+    content-align: center middle;
+    margin-bottom: 1;
+    border: round #5f5fff;
+}
+
+.output-container {
+    height: 1fr;
+    width: 3.25fr;
+    background: #1a1a1a;
+    border: round #5f5fff;
+    margin-bottom: 1;
+    margin-right: 1;
+    padding: 1;
+}
+
+.sidebar-container {
+    height: 1fr;
+    width: 0.75fr;
+    background: #1a1a1a;
+    border: round #5f5fff;
+    margin-bottom: 1;
+    padding: 1;
+}
+
+RichLog {
+    background: #1a1a1a;
+    color: #d0d0d0;
+    scrollbar-background: #2a2a2a;
+    scrollbar-color: #00afff;
+    scrollbar-corner-color: #2a2a2a;
+}
+
+.input-container {
+    height: 3;
+    background: #1a1a1a;
+    border: round #1a1a1a;
+    padding: 0 1;
+}
+
+Input {
+    background: #1a1a1a;
+    color: #d0d0d0;
+    border: none;
+    margin: 0;
+    height: 1;
+    width: 1fr;
+}
+
+Input:focus {
+    border: none;
+    background: #1a1a1a;
+}
+
+Input>.input--placeholder {
+    color: #808080;
+}
+
+Input>.input--cursor {
+    background: #00afff;
+    color: #1a1a1a;
+}
+
+CommandSuggestionPopup {
+    background: #2a2a2a;
+    border: round #00afff;
+    height: auto;
+    max-height: 8;
+    width: 30;
+    display: none;
+    dock: bottom;
+    margin: 1 2;
+    offset: 0 -4;
+    layer: overlay;
+}
+
+CommandSuggestionPopup>.option-list--option {
+    background: transparent;
+    color: #d0d0d0;
+    padding: 0 1;
+    height: 1;
+}
+
+CommandSuggestionPopup>.option-list--option-highlighted {
+    background: #00afff;
+    color: #1a1a1a;
+}
+
+
+
+/* Hosts Widget Styling */
+HostsWidget {
+    background: #1a1a1a;
+    border: none;
+}
+
+.hosts-header {
+    color: #ff5faf;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+.hosts-content {
+    color: #d0d0d0;
+    background: #1a1a1a;
+}

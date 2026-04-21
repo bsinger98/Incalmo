@@ -178,3 +178,5 @@ attacker/c2server/payloads/dynamic_payloads
 
 # SQLite database files
 *.db
+celerybeat-schedule-shm
+celerybeat-schedule-wal
