@@ -9,13 +9,15 @@ import json
 
 class IncalmoLogger:
     def __init__(self, operation_id: str):
-        self.logger_dir_path = f"output/{operation_id}"
+        output_dir_override = os.environ.get("INCALMO_OUTPUT_DIR")
+        if output_dir_override:
+            self.logger_dir_path = output_dir_override
+        else:
+            self.logger_dir_path = f"output/{operation_id}"
+            if not os.path.exists("output"):
+                os.mkdir("output")
 
-        if not os.path.exists("output"):
-            os.mkdir("output")
-
-        if not os.path.exists(f"output/{operation_id}"):
-            os.mkdir(f"output/{operation_id}")
+        os.makedirs(self.logger_dir_path, exist_ok=True)
 
         self._configure_file_only_logging()
 
