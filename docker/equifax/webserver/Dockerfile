@@ -15,6 +15,18 @@ RUN apt-get update && \
 
 RUN apt-get install -y sshpass nmap ncat python3 python3-pip net-tools curl wget unzip
 
+# Install Go from official source for newer version
+RUN wget https://go.dev/dl/go1.24.2.linux-amd64.tar.gz && \
+    rm -rf /usr/local/go && \
+    tar -C /usr/local -xzf go1.24.2.linux-amd64.tar.gz && \
+    rm go1.24.2.linux-amd64.tar.gz
+
+ENV GOPATH /opt/go
+ENV PATH /usr/local/go/bin:$GOPATH/bin:$PATH
+
+RUN go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
+    cp $GOPATH/bin/nuclei /usr/local/bin/nuclei
+
 # Set default shell to be bash
 RUN chsh -s /bin/bash $TOMCAT_USER
 

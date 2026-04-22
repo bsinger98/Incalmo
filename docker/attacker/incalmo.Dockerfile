@@ -3,6 +3,15 @@ FROM kalilinux/kali-last-release
 RUN apt-get update && apt-get install -y python3 python3-pip
 RUN apt-get install -y nmap net-tools golang-go curl wget sshpass procps nikto
 
+RUN go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+ENV GOPATH /root/go
+ENV PATH $GOPATH/bin:$PATH
+
+# Install Metasploit dependencies
+RUN curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall && \
+  chmod 755 msfinstall && \
+  ./msfinstall
+
 RUN pip install --break-system-packages uv
 
 # Create ssh directory and server directory

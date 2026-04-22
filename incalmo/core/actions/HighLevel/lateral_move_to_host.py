@@ -6,9 +6,18 @@ from incalmo.core.services import (
     AttackGraphService,
 )
 from incalmo.core.services.action_context import HighLevelContext
+from incalmo.core.services.metasploit_service import MetasploitService
 
 from ..high_level_action import HighLevelAction
-from ..LowLevel import ExploitStruts, SSHLateralMove, NCLateralMove
+from .llm_agents.msf_lateral_movement.llm_ms_lateral_move import (
+    LLMLateralMoveMetasploit,
+)
+from ..LowLevel import (
+    ExploitStruts,
+    SSHLateralMove,
+    NCLateralMove,
+    RunMetasploitBindFile,
+)
 
 
 class LateralMoveToHost(HighLevelAction):
@@ -22,6 +31,9 @@ class LateralMoveToHost(HighLevelAction):
         self.host_to_attack = host_to_attack
         self.attacking_host = attacking_host
         self.stop_after_success = stop_after_success
+        self.metasploit_service = MetasploitService(
+            password="password"  # Password set in attacker startup file
+        )
 
     async def run(
         self,
@@ -48,16 +60,27 @@ class LateralMoveToHost(HighLevelAction):
                     for event in new_events:
                         if type(event) is InfectedNewHost:
                             event.credential_used = cred
+                            if context.llm_interface:
+                                events += (
+                                    await low_level_action_orchestrator.run_action(
+                                        RunMetasploitBindFile(event.new_agent)
+                                    )
+                                )
+                                self.metasploit_service.connect_to_session_via_bind(
+                                    event.new_agent.host_ip_addrs[0]
+                                )
 
                     if len(new_events) > 0:
+                        events += new_events
                         if self.stop_after_success:
-                            return new_events
-                        else:
-                            events += new_events
+                            return events
 
         # Try to exploit a service
         agent = self.attacking_host.get_agent()
         if not agent:
+            print(
+                f"No agent found on attacking host {self.attacking_host.ip_addresses}, cannot perform lateral move."
+            )
             return events
 
         for (
@@ -66,15 +89,43 @@ class LateralMoveToHost(HighLevelAction):
         ) in self.host_to_attack.open_ports.items():
             action_to_run = None
 
-            if (
-                "CVE-2017-5638" in service_to_attack.CVE
-                and self.host_to_attack.has_an_ip_address()
-            ):
-                action_to_run = ExploitStruts(
-                    agent,
-                    self.host_to_attack.get_ip_address(),
-                    str(port_to_attack),
+            if service_to_attack.CVE and self.host_to_attack.has_an_ip_address():
+                # Can only be used when using LLM strategies
+                print(
+                    f"Service {service_to_attack} on host {self.host_to_attack.ip_addresses} has CVEs: {service_to_attack.CVE}"
                 )
+                if context.llm_interface:
+                    new_events = await LLMLateralMoveMetasploit(
+                        self.attacking_host,
+                        self.host_to_attack,
+                        service_to_attack.CVE[0],
+                        service_to_attack.port,
+                        self.metasploit_service,
+                        context.llm_interface,
+                    ).run(
+                        low_level_action_orchestrator,
+                        environment_state_service,
+                        attack_graph_service,
+                        context,
+                    )
+                    for event in new_events:
+                        if type(event) is InfectedNewHost:
+                            events += await low_level_action_orchestrator.run_action(
+                                RunMetasploitBindFile(event.new_agent)
+                            )
+                            self.metasploit_service.connect_to_session_via_bind(
+                                event.new_agent.host_ip_addrs[0]
+                            )
+                    if len(new_events) > 0:
+                        events += new_events
+                        if self.stop_after_success:
+                            return events
+                elif "CVE-2017-5638" in service_to_attack.CVE:
+                    action_to_run = ExploitStruts(
+                        agent,
+                        self.host_to_attack.get_ip_address(),
+                        str(port_to_attack),
+                    )
             elif port_to_attack == 4444 and self.host_to_attack.has_an_ip_address():
                 action_to_run = NCLateralMove(
                     agent,
@@ -89,10 +140,19 @@ class LateralMoveToHost(HighLevelAction):
                 action_to_run, context
             )
 
+            if context.llm_interface:
+                for event in new_events:
+                    if type(event) is InfectedNewHost:
+                        events += await low_level_action_orchestrator.run_action(
+                            RunMetasploitBindFile(event.new_agent)
+                        )
+                        self.metasploit_service.connect_to_session_via_bind(
+                            event.new_agent.host_ip_addrs[0]
+                        )
+
             if len(new_events) > 0:
+                events += new_events
                 if self.stop_after_success:
-                    return new_events
-                else:
-                    events += new_events
+                    return events
 
         return events

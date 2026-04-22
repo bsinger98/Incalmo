@@ -2,6 +2,7 @@ from ..high_level_action import HighLevelAction
 from ..LowLevel.scan_host import ScanHost
 from ..LowLevel.scan_network import ScanNetwork
 from ..LowLevel.nikto_scan import NiktoScan
+from ..LowLevel.nuclei_scan import NucleiScan
 
 from incalmo.core.models.events import (
     HostsDiscovered,
@@ -66,6 +67,10 @@ class Scan(HighLevelAction):
         for event in events:
             if isinstance(event, ServicesDiscoveredOnHost):
                 for port, service in event.services.items():
+                    # vuln_events = await low_level_action_orchestrator.run_action(
+                    #     NucleiScan(scan_agent, event.host_ip, port, service), context
+                    # )
+                    # Note: Nikto does not find ALL vulns, only 2017-5638. Use Nuclei (commented above) if a more comprehensive Scan is needed
                     if "http" in service:
                         # Check if this is an SSL service
                         is_ssl = "+ssl" in service or "https" in service
@@ -77,6 +82,8 @@ class Scan(HighLevelAction):
                             NiktoScan(scan_agent, event.host_ip, port, service), context
                         )
                         events += vuln_event
+
+                    # events += vuln_events
 
         return events
 

@@ -12,6 +12,8 @@ chmod 777 "$CELERY_STATE_DIR"
 
 cd /incalmo
 
+msfrpcd -P password &
+
 uv run celery -A incalmo.c2server.celery.celery_worker worker \
   --concurrency=1 \
   --statedb "$CELERY_STATE_DIR/celery.db" &

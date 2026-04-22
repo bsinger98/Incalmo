@@ -23,6 +23,7 @@ dependencies = [
     "langchain-google-genai>=2.0.10",
     "langchain-deepseek>=0.1.3",
     "pytest>=8.4.2",
+    "pymetasploit3>=1.0.6",
 ]
 
 [dependency-groups]
