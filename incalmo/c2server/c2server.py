@@ -25,8 +25,8 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Configure Flask for Celery
 app.config.update(
-    broker_url="sqlalchemy+sqlite:///celery.db",
-    result_backend="db+sqlite:///celery_results.db",
+    broker_url="sqlalchemy+sqlite:////tmp/celery.db",
+    result_backend="db+sqlite:////tmp/celery_results.db",
 )
 celery = make_celery(app)
 app.extensions["celery"] = celery
