@@ -87,14 +87,14 @@ def send_command():
     if agent not in agents:
         return jsonify({"error": "Agent not found"}), 404
 
+    command_id = str(uuid.uuid4())
+
     exec_template = read_template_file("Exec_Bash_Template.sh")
     executor_script_content = exec_template.safe_substitute(command=command)
-    dynamic_payload_name = f"dynamic_payload_{_PORT_SUFFIX}.sh"
+    dynamic_payload_name = f"dynamic_payload_{_PORT_SUFFIX}_{agent}.sh"
     executor_script_path = PAYLOADS_DIR / dynamic_payload_name
     executor_script_path.write_text(executor_script_content)
     payloads.append(dynamic_payload_name)
-
-    command_id = str(uuid.uuid4())
     instruction = Instruction(
         id=command_id,
         command=encode_base64(f"./{dynamic_payload_name}"),

@@ -8,6 +8,7 @@ import requests
 from incalmo.c2server.celery.celery_worker import celery_worker
 from incalmo.c2server.shared import (
     TaskState,
+    PAYLOADS_DIR,
 )
 
 
@@ -20,6 +21,11 @@ def run_incalmo_strategy_task(self, config_dict: dict):
     # Run the strategy
     task_id = config.id
     asyncio.run(run_incalmo_strategy(config, task_id))
+
+    # Clean up per-agent dynamic payload files written during this run
+    port_suffix = os.getenv("C2C_PORT", "8888")
+    for path in PAYLOADS_DIR.glob(f"dynamic_payload_{port_suffix}_*.sh"):
+        path.unlink(missing_ok=True)
 
     return {"status": str(TaskState.SUCCESS)}
 
