@@ -72,7 +72,7 @@ class AttackPathLateralMove(HighLevelAction):
         if self.attack_path.attack_technique.CredentialToUse:
             credential = self.attack_path.attack_technique.CredentialToUse
             new_events = await low_level_action_orchestrator.run_action(
-                SSHLateralMove(credential.agent_discovered, credential.hostname),
+                SSHLateralMove(credential.agent_discovered, credential.host_ip),
                 context,
             )
             for event in new_events:
