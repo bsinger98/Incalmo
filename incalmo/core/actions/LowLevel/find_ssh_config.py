@@ -24,7 +24,7 @@ def parse_ssh_config(config):
 
 class FindSSHConfig(LowLevelAction):
     def __init__(self, agent: Agent):
-        command = "cat ~/.ssh/config /home/*/.ssh/config 2>/dev/null"
+        command = "cat ~/.ssh/config"
         super().__init__(agent, command)
 
     async def get_result(
