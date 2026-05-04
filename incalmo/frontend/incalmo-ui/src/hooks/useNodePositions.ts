@@ -13,16 +13,23 @@ export const useNodePositions = () => {
     const [nodePositions, setNodePositions] = useState<Map<string, Position>>(new Map());
 
     const updateNodePosition = useCallback((nodeId: string, position: Position) => {
-        setNodePositions(prev => new Map(prev.set(nodeId, position)));
+        setNodePositions(prev => {
+            const next = new Map(prev);
+            next.set(nodeId, position);
+            return next;
+        });
     }, []);
 
     const handleNodesChange = useCallback((changes: NodeChange[], originalOnNodesChange: (changes: NodeChange[]) => void) => {
+        // Apply the React Flow nodes change first so the graph updates immediately,
+        // then persist the positions for layout persistence.
+        originalOnNodesChange(changes);
+
         changes.forEach((change) => {
             if (change.type === 'position' && change.position) {
                 updateNodePosition(change.id, change.position);
             }
         });
-        originalOnNodesChange(changes);
     }, [updateNodePosition]);
 
     const getNodePosition = useCallback((nodeId: string): Position | undefined => {

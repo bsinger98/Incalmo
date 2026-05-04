@@ -5,34 +5,30 @@ import { getHostId } from '../utils/graphUtils';
 
 interface UseGraphDataProps {
     hosts: Host[];
-    nodePositions: Map<string, { x: number; y: number }>;
+    nodePositions?: Map<string, { x: number; y: number }>;
 }
 
 /**
  * Custom hook for transforming hosts data into ReactFlow nodes and edges
  */
-export const useGraphData = ({ hosts, nodePositions }: UseGraphDataProps) => {
+export const useGraphData = ({ hosts }: UseGraphDataProps) => {
     // Convert hosts to ReactFlow nodes
     const hostNodes = useMemo((): Node<Host>[] => {
         if (!hosts || hosts.length === 0) return [];
 
         return hosts.map((host, index) => {
             const hostId = getHostId(host, index);
-            const position = nodePositions.has(hostId)
-                ? nodePositions.get(hostId)!
-                : { x: 0, y: 0 };
-
             return {
                 id: hostId,
                 type: 'hostNode',
-                position: position,
+                position: { x: 0, y: 0 }, // overridden by layout / saved positions
                 data: { ...host },
                 draggable: true,
                 sourcePosition: Position.Bottom,
                 targetPosition: Position.Top,
             } as Node<Host>;
         });
-    }, [hosts, nodePositions]);
+    }, [hosts]);
 
     // Convert infection relationships to ReactFlow edges
     const infectionEdges = useMemo((): Edge[] => {
@@ -58,10 +54,11 @@ export const useGraphData = ({ hosts, nodePositions }: UseGraphDataProps) => {
                             source: sourceHostId,
                             target: targetHostId,
                             type: 'smoothstep',
-                            animated: true,
+                            animated: false,
                             style: {
                                 stroke: '#f44336',
-                                strokeWidth: 4,
+                                strokeWidth: 3,
+                                strokeDasharray: '6 3',
                             },
                             label: targetHost.infected_by,
                             labelStyle: {
@@ -72,6 +69,8 @@ export const useGraphData = ({ hosts, nodePositions }: UseGraphDataProps) => {
                             markerEnd: {
                                 type: 'arrowclosed',
                                 color: '#f44336',
+                                width: 20,
+                                height: 20,
                             },
                         } as Edge);
                     }

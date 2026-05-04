@@ -6,8 +6,8 @@ import { Host } from '../types';
 export const GRAPH_CONFIG = {
     NODE_WIDTH: 220,
     NODE_HEIGHT: 100,
-    NODES_SEPARATION: 50,
-    RANKS_SEPARATION: 100,
+    NODES_SEPARATION: 100,
+    RANKS_SEPARATION: 250,
     LAYOUT_DIRECTION: 'TB' as const,
 } as const;
 

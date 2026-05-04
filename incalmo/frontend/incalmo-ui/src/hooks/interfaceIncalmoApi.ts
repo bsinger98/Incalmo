@@ -71,6 +71,26 @@ export const useIncalmoApi = () => {
   const actionEventSourceRef = useRef<EventSource | null>(null);
   const llmEventSourceRef = useRef<EventSource | null>(null);
 
+  // Connect log streams on load so the UI can display existing/latest logs
+  // even when no strategy is started from this browser session.
+  useEffect(() => {
+    connectToActionLogStream();
+    connectToLLMLogStream();
+
+    return () => {
+      if (actionEventSourceRef.current) {
+        actionEventSourceRef.current.close();
+        actionEventSourceRef.current = null;
+      }
+      if (llmEventSourceRef.current) {
+        llmEventSourceRef.current.close();
+        llmEventSourceRef.current = null;
+      }
+    };
+    // Intentionally run once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     fetchAgents();
     fetchRunningStrategies();
@@ -230,7 +250,7 @@ export const useIncalmoApi = () => {
       const data = response.data;
       
       setHosts(data.hosts || []);
-      setLastHostsUpdate(new Date().toLocaleTimeString());
+        setLastHostsUpdate(new Date().toLocaleTimeString());
     } catch (err) {
       setHostsError(`Network error: ${err.message}`);
       console.error('[API] Error fetching hosts:', err);
@@ -278,7 +298,10 @@ export const useIncalmoApi = () => {
           console.log("Parsed log data:", data);
           
           if (data.status) {
-            console.log('Log stream status:', data.status);
+            if (data.status === 'Switched to new log file') {
+              setLowLevelLogs([]);
+              setHighLevelLogs([]);
+            }
             return;
           }
           
@@ -309,6 +332,8 @@ export const useIncalmoApi = () => {
       eventSource.onopen = () => {
         setActionStreamConnected(true);
         setActionStreamError(null);
+        setLowLevelLogs([]);
+        setHighLevelLogs([]);
       };
       
       eventSource.onerror = () => {
@@ -338,15 +363,35 @@ export const useIncalmoApi = () => {
 
       eventSource.onmessage = (event) => {
         try {
-          const data = event.data;
-          
-          setLLMLogs(prevLogs => {
-          const newLogs = [...prevLogs, data];
-          if (newLogs.length > 200) {
-            return newLogs.slice(-200);
+          const payload = event.data;
+
+          // LLM stream may emit JSON status/error frames from the backend.
+          // Do not render status frames as fake log lines.
+          if (payload && (payload.startsWith('{') || payload.startsWith('['))) {
+            try {
+              const parsed = JSON.parse(payload);
+              if (parsed.status) {
+                if (parsed.status === 'Switched to new log file') {
+                  setLLMLogs([]);
+                }
+                return;
+              }
+              if (parsed.error) {
+                setLLMStreamError(parsed.error);
+                return;
+              }
+            } catch {
+              // Not a control frame; treat as plain text log.
+            }
           }
-          return newLogs;
-        });
+
+          setLLMLogs(prevLogs => {
+            const newLogs = [...prevLogs, payload];
+            if (newLogs.length > 200) {
+              return newLogs.slice(-200);
+            }
+            return newLogs;
+          });
         } catch (e) {
           console.error('Error parsing LLM log data:', e);
         }

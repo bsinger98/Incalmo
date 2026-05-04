@@ -7,7 +7,6 @@ from typing import Any, Optional
 class StateStore:
     TABLE_NAME = "environment"
     DB_PATH = "state_store.db"
-    _db_connection: Optional[sqlite3.Connection] = None
 
     @classmethod
     def initialize(cls) -> None:
@@ -16,33 +15,36 @@ class StateStore:
             os.remove(cls.DB_PATH)
 
     @classmethod
+    def _connect(cls) -> sqlite3.Connection:
+        return sqlite3.connect(cls.DB_PATH, check_same_thread=False)
+
+    @classmethod
     def set_hosts(cls, hosts: list[dict]) -> None:
-        cls._db_connection = sqlite3.connect(cls.DB_PATH)
-        cursor = cls._db_connection.cursor()
-        cursor.execute(
-            f"""
-            CREATE TABLE IF NOT EXISTS {cls.TABLE_NAME} (
-                host_id TEXT PRIMARY KEY,
-                host TEXT
-            )
-            """
-        )
-        for host in hosts:
-            cursor.execute(
+        with cls._connect() as conn:
+            conn.execute(
                 f"""
-                INSERT OR REPLACE INTO {cls.TABLE_NAME} (host_id, host)
-                VALUES (?, ?)
-                """,
-                (host.get("host_id"), json.dumps(host)),
+                CREATE TABLE IF NOT EXISTS {cls.TABLE_NAME} (
+                    host_id TEXT PRIMARY KEY,
+                    host TEXT
+                )
+                """
             )
-        cls._db_connection.commit()
+            for host in hosts:
+                conn.execute(
+                    f"""
+                    INSERT OR REPLACE INTO {cls.TABLE_NAME} (host_id, host)
+                    VALUES (?, ?)
+                    """,
+                    (host.get("host_id"), json.dumps(host)),
+                )
 
     @classmethod
     def get_hosts(cls) -> list[dict]:
-        if cls._db_connection is None:
-            cls._db_connection = sqlite3.connect(cls.DB_PATH)
-        cursor = cls._db_connection.cursor()
-        cursor.execute(f"SELECT host from {cls.TABLE_NAME}")
-        rows = cursor.fetchall()
-        cls._db_connection.commit()
+        if not os.path.exists(cls.DB_PATH):
+            return []
+        with cls._connect() as conn:
+            try:
+                rows = conn.execute(f"SELECT host FROM {cls.TABLE_NAME}").fetchall()
+            except sqlite3.OperationalError:
+                return []
         return [json.loads(row[0]) for row in rows]

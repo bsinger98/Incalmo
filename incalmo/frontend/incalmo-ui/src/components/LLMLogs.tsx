@@ -123,7 +123,9 @@ const LLMLogs = ({ logs, isConnected, error }: LLMLogsProps) => {
       >
         {logs.length === 0 && !error ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <Typography color="text.secondary">Waiting for LLM logs...</Typography>
+            <Typography color="text.secondary">
+              {isConnected ? 'No LLM logs available.' : 'Waiting for LLM logs...'}
+            </Typography>
           </Box>
         ) : (
           <Box

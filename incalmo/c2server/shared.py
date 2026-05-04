@@ -88,9 +88,20 @@ def read_template_file(filename):
     return Template(template_path.read_text())
 
 
+def _all_output_dirs():
+    output = Path("output")
+    if not output.exists():
+        return []
+    return sorted(
+        (d for d in output.iterdir() if d.is_dir()),
+        key=lambda d: d.stat().st_mtime,
+        reverse=True,
+    )
+
+
 def get_latest_log_path(strategy_name=None, task_id=None):
     """Get the latest log file paths for a strategy."""
-    output_dirs = sorted(Path("output").glob("*_*_*-*-*_*-*-*"), reverse=True)
+    output_dirs = _all_output_dirs()
     if not output_dirs:
         raise FileNotFoundError("No log directories found")
 
@@ -118,13 +129,12 @@ def get_latest_log_path(strategy_name=None, task_id=None):
 
 
 def get_log_path(strategy_id: str):
-    # Get all directories in the output directory
-    output_dirs = sorted(Path("output").glob("*_*_*-*-*_*-*-*"), reverse=True)
+    output_dirs = _all_output_dirs()
     if not output_dirs:
         raise FileNotFoundError("No log directories found")
 
-    for dir in output_dirs:
-        if strategy_id in dir.name:
-            return dir
+    for d in output_dirs:
+        if strategy_id in d.name:
+            return d
 
     raise FileNotFoundError(f"No log directory found for strategy: {strategy_id}")

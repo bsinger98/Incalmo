@@ -11,147 +11,148 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import {
-  Paper,
   Typography,
   Box,
   Alert,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
+import { Refresh } from '@mui/icons-material';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 
 import { NetworkGraphProps } from '../types/components.types';
 import HostNode from './HostNode';
-import NetworkGraphStats from './NetworkGraphStats';
-import NetworkGraphLegend from './NetworkGraphLegend';
 import { useNodePositions } from '../hooks/useNodePositions';
 import { useErrorSuppression } from '../hooks/useErrorSuppression';
 import { useGraphData } from '../hooks/useGraphData';
-import { getTreeLayoutedElements, calculateNetworkStats } from '../utils/graphUtils';
+import { getTreeLayoutedElements } from '../utils/graphUtils';
 
-const nodeTypes = {
-  hostNode: HostNode,
-};
+const nodeTypes = { hostNode: HostNode };
 
 const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkGraphProps) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
+  const prevInfectedIds = useRef<string>('');
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Custom hooks for managing component state and behavior
   const { nodePositions, handleNodesChange } = useNodePositions();
+  // Keep a ref so the layout effect can read current positions without reacting to drags.
+  const nodePositionsRef = useRef(nodePositions);
+  useEffect(() => { nodePositionsRef.current = nodePositions; }, [nodePositions]);
+
   useErrorSuppression();
 
-  // Transform hosts data into graph nodes and edges
-  const { nodes: hostNodes, edges: infectionEdges } = useGraphData({
-    hosts,
-    nodePositions
-  });
+  // hostNodes and infectionEdges only change when host data changes, not on drag.
+  const { nodes: hostNodes, edges: infectionEdges } = useGraphData({ hosts, nodePositions });
 
-  // Apply layout algorithm to position nodes
-  const [layoutedNodes, layoutedEdges] = useMemo(() => {
-    if (!hostNodes.length) return [[], []];
+  // Layout only recomputes when actual host data changes (hostNodes/infectionEdges),
+  // NOT when the user drags a node (nodePositions). Positions are applied from the ref.
+  const layoutedNodes = useMemo(() => {
+    if (!hostNodes.length) return [];
+    const positions = nodePositionsRef.current;
+    return getTreeLayoutedElements(hostNodes, infectionEdges, positions).map(node =>
+      positions.has(node.id) ? { ...node, position: positions.get(node.id)! } : node
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hostNodes, infectionEdges]);
 
-    const allLayoutedNodes = getTreeLayoutedElements(hostNodes, infectionEdges, nodePositions);
-    const finalNodes = allLayoutedNodes.map(node => {
-      if (nodePositions.has(node.id)) {
-        return {
-          ...node,
-          position: nodePositions.get(node.id)!
-        };
-      }
-      return node;
-    });
-
-    return [finalNodes, infectionEdges];
-  }, [hostNodes, infectionEdges, nodePositions]);
-
-  // Update ReactFlow state when layout changes
+  // Apply layout to ReactFlow only when host data changes, never during drags.
   useEffect(() => {
     if (layoutedNodes.length > 0) {
       setNodes(layoutedNodes);
-      setEdges(layoutedEdges);
+      if (!isInitialized && !loading) setIsInitialized(true);
 
-      if (!isInitialized && !loading) {
-        setIsInitialized(true);
-      }
-
-      // Trigger fitView when nodes or edges change (after initialization)
       if (reactFlowInstance.current && isInitialized) {
-        setTimeout(() => {
-          reactFlowInstance.current?.fitView({ padding: 0.1, duration: 1000 });
-        }, 100); // Small delay to ensure nodes are rendered
+        const infectedNodes = layoutedNodes.filter(n => n.data?.infected);
+        const infectedKey = infectedNodes.map(n => n.id).sort().join(',');
+        if (infectedKey !== prevInfectedIds.current) {
+          prevInfectedIds.current = infectedKey;
+          const targetNodes = infectedNodes.length > 0 ? infectedNodes : layoutedNodes;
+          setTimeout(() => {
+            reactFlowInstance.current?.fitView({ nodes: targetNodes, padding: 0.25, duration: 800 });
+          }, 100);
+        }
       }
     }
-  }, [layoutedNodes, layoutedEdges, loading, setNodes, setEdges, isInitialized]);
+  }, [layoutedNodes, loading, setNodes, isInitialized]);
 
-  // Handle edge connections
+  // Edges update independently of node positions.
+  useEffect(() => {
+    setEdges(infectionEdges);
+  }, [infectionEdges, setEdges]);
+
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
-  // Handle node position changes
-  const onNodesChangeHandler = useCallback((changes) => {
-    handleNodesChange(changes, onNodesChange);
-  }, [handleNodesChange, onNodesChange]);
+  const onNodesChangeHandler = useCallback(
+    (changes: Parameters<typeof onNodesChange>[0]) => handleNodesChange(changes, onNodesChange),
+    [handleNodesChange, onNodesChange]
+  );
 
-  // Handle ReactFlow initialization
   const onInit = useCallback((instance: ReactFlowInstance) => {
     reactFlowInstance.current = instance;
   }, []);
 
-  // Calculate network statistics
-  const stats = useMemo(() => calculateNetworkStats(hosts), [hosts]);
+  const toggleFullscreen = useCallback(() => {
+    if (!isFullscreen) containerRef.current?.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }, [isFullscreen]);
 
-  // Show loading state until initialized
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
+  }, []);
+
   if (!isInitialized && loading) {
     return (
-      <Paper sx={{ p: 3, mb: 3, height: 700 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-          <Typography>Loading network graph...</Typography>
-        </Box>
-      </Paper>
+      <Box sx={{ p: 3, height: 700, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Typography>Loading network graph...</Typography>
+      </Box>
     );
   }
 
   return (
-    <Box sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      width: '100%'
-    }}>
-      {/* Header with title and stats */}
+    <Box
+      ref={containerRef}
+      sx={{
+        display: 'flex', flexDirection: 'column', height: '100%', width: '100%',
+        ...(isFullscreen && { background: '#fff', p: 2 }),
+      }}
+    >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
         <Typography variant="h6">Network Attack Graph</Typography>
-        <NetworkGraphStats
-          stats={stats}
-          loading={loading}
-          onRefresh={onRefresh}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title="Refresh network graph">
+            <span>
+              <IconButton size="small" onClick={onRefresh} disabled={loading}>
+                <Refresh />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}>
+            <IconButton size="small" onClick={toggleFullscreen}>
+              {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
 
-      {/* Error alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 1 }}>
-          {error}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>}
 
-      {/* Last update info */}
       {lastUpdate && (
         <Typography variant="caption" color="textSecondary" sx={{ mb: 1, display: 'block' }}>
           Last updated: {lastUpdate} • Hover over nodes for details
         </Typography>
       )}
 
-      {/* Main graph container */}
-      <Box sx={{
-        flex: 1,
-        border: '1px solid #ddd',
-        borderRadius: 1,
-        overflow: 'hidden',
-        minHeight: 0
-      }}>
+      <Box sx={{ flex: 1, border: '1px solid #ddd', borderRadius: 1, overflow: 'hidden', minHeight: 0 }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -161,8 +162,8 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
           onInit={onInit}
           nodeTypes={nodeTypes}
           connectionLineType={ConnectionLineType.SmoothStep}
-          fitView={true}
-          fitViewOptions={{ padding: 0.1, duration: 1000 }}
+          fitView
+          fitViewOptions={{ padding: 0.25 }}
           style={{ width: '100%', height: '100%' }}
           proOptions={{ hideAttribution: true }}
         >
@@ -171,7 +172,6 @@ const NetworkGraph = ({ hosts, loading, error, lastUpdate, onRefresh }: NetworkG
         </ReactFlow>
       </Box>
 
-      {/* Empty state */}
       {(!hosts || hosts.length === 0) && !loading && (
         <Box sx={{ textAlign: 'center', py: 2 }}>
           <Typography color="textSecondary">

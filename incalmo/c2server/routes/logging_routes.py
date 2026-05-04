@@ -17,6 +17,24 @@ from incalmo.c2server.shared import (
 logging_bp = Blueprint("logging", __name__)
 
 
+def _get_latest_running_strategy_task():
+    """Return the most recently started active running strategy task, if any."""
+    active_states = {"PENDING", "STARTED", "RECEIVED", "PROGRESS"}
+
+    for strategy_id, config in reversed(list(running_strategy_tasks.items())):
+        try:
+            from incalmo.c2server.celery.celery_tasks import run_incalmo_strategy_task
+
+            task_state = str(run_incalmo_strategy_task.AsyncResult(strategy_id).state)
+            if task_state in active_states:
+                return strategy_id, config
+        except Exception:
+            # If Celery state lookup fails, fall back to this entry so streaming continues.
+            return strategy_id, config
+
+    return None, None
+
+
 @logging_bp.route("/get_latest_logs", methods=["GET"])
 def get_latest_logs():
     """Get the latest logs for all log files."""
@@ -94,6 +112,7 @@ def _generate_log_stream(log_index):
 
     # Track the currently streaming log file
     current_log_path = None
+    current_active_task_id = None
     position = 0
     last_check_time = 0
 
@@ -101,13 +120,27 @@ def _generate_log_stream(log_index):
         # Check for a newer log file every 10 seconds
         current_time = time.time()
         if current_time - last_check_time > 10 or current_log_path is None:
-            if not running_strategy_tasks:
-                time.sleep(2)
-                continue
             try:
-                strategy_name = next(iter(running_strategy_tasks.keys()))
-                task_id = running_strategy_tasks[strategy_name]
-                latest_log_path = get_latest_log_path(strategy_name, task_id)[log_index]
+                task_id, config = _get_latest_running_strategy_task()
+                if task_id and config:
+                    if task_id != current_active_task_id:
+                        current_active_task_id = task_id
+                        current_log_path = None
+                        position = 0
+                        yield f"data: {json.dumps({'status': 'Switched to new log file'})}\n\n"
+
+                    try:
+                        latest_log_path = get_latest_log_path(config.name, task_id)[log_index]
+                    except FileNotFoundError:
+                        current_log_path = None
+                        position = 0
+                        last_check_time = current_time
+                        yield f"data: {json.dumps({'status': 'No log file available yet'})}\n\n"
+                        time.sleep(1)
+                        continue
+                else:
+                    current_active_task_id = None
+                    latest_log_path = get_latest_log_path()[log_index]
 
                 if latest_log_path != current_log_path:
                     current_log_path = latest_log_path
@@ -121,11 +154,20 @@ def _generate_log_stream(log_index):
 
         # Stream from current log file
         if current_log_path:
-            with open(current_log_path, "r") as f:
-                f.seek(position)
-                for line in f:
-                    yield f"data: {line.strip()}\n\n"
-                position = f.tell()
+            if not current_log_path.exists():
+                yield f"data: {json.dumps({'status': 'No log file available yet'})}\n\n"
+                time.sleep(1)
+                continue
+
+            try:
+                with open(current_log_path, "r") as f:
+                    f.seek(position)
+                    for line in f:
+                        yield f"data: {line.strip()}\n\n"
+                    position = f.tell()
+            except OSError as e:
+                # Keep the stream alive even if the file is briefly unavailable.
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
         else:
             yield f"data: {json.dumps({'status': 'No log file available yet'})}\n\n"
 

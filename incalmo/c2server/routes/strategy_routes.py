@@ -182,7 +182,7 @@ def list_strategies():
 def get_available_strategies():
     """Get all available strategies from the registry."""
     strategies = []
-    for strategy_name, strategy_class in IncalmoStrategy._registry.items():
+    for strategy_name, strategy_class in getattr(IncalmoStrategy, "_registry", {}).items():
         if strategy_name not in ["langchain", "llmstrategy"]:
             strategies.append(
                 {
