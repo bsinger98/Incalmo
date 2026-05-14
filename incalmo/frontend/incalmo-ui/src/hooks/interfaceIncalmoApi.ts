@@ -70,6 +70,11 @@ export const useIncalmoApi = () => {
 
   const actionEventSourceRef = useRef<EventSource | null>(null);
   const llmEventSourceRef = useRef<EventSource | null>(null);
+  const runningStrategiesRef = useRef<RunningStrategies>({});
+
+  useEffect(() => {
+    runningStrategiesRef.current = runningStrategies;
+  }, [runningStrategies]);
 
   // Connect log streams on load so the UI can display existing/latest logs
   // even when no strategy is started from this browser session.
@@ -177,9 +182,6 @@ export const useIncalmoApi = () => {
 
     setLoading(true);
     setMessage('');
-    setLowLevelLogs([]);
-    setHighLevelLogs([]);
-    setLLMLogs([]);
 
     try {
       const config = {
@@ -332,14 +334,24 @@ export const useIncalmoApi = () => {
       eventSource.onopen = () => {
         setActionStreamConnected(true);
         setActionStreamError(null);
-        setLowLevelLogs([]);
-        setHighLevelLogs([]);
       };
       
       eventSource.onerror = () => {
+        const hasActiveStrategies = Object.keys(runningStrategiesRef.current).length > 0;
+
         setActionStreamConnected(false);
+
+        if (!hasActiveStrategies) {
+          // Normal end-of-run: keep the UI quiet and stop reconnecting.
+          if (actionEventSourceRef.current === eventSource) {
+            actionEventSourceRef.current.close();
+            actionEventSourceRef.current = null;
+          }
+          return;
+        }
+
         setActionStreamError('Connection to action log stream failed. Will try to reconnect...');
-        
+
         setTimeout(() => {
           if (actionEventSourceRef.current === eventSource) {
             connectToActionLogStream();
