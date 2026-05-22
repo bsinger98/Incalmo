@@ -2,6 +2,7 @@ from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from incalmo.core.services.config_service import ConfigService
 from incalmo.core.services import EnvironmentStateService
+from incalmo.core.services.logging_service import TokenUsageLogger
 from config.attacker_config import LLMStrategyConfig
 
 
@@ -11,6 +12,7 @@ class LLMAgentInterface:
         logger,
         environment_state_service: EnvironmentStateService,
         strategy: LLMStrategyConfig,
+        token_logger: TokenUsageLogger | None = None,
     ):
         # Initialize the conversation
         self.logger = logger
@@ -21,6 +23,10 @@ class LLMAgentInterface:
         self.execution_llm = strategy.execution_llm
 
         self.max_message_len = 30000
+        self.token_logger = token_logger
+        self.step = 0
+        self.action_id: str | None = None
+        self.action_name: str | None = None
 
     def send_message(self, message: str) -> str:
         # Trim message to fit within the max length
@@ -55,6 +61,18 @@ class LLMAgentInterface:
                 langchain_messages.append(SystemMessage(content=msg["content"]))
         model = self._registry.get_model(model_name)
         response = model.invoke(langchain_messages)
+
+        if self.token_logger and response.usage_metadata:
+            u = response.usage_metadata
+            self.token_logger.log(
+                call_type="agent",
+                model=model_name,
+                step=self.step,
+                action_id=self.action_id,
+                action_name=self.action_name,
+                input_tokens=u.get("input_tokens", 0),
+                output_tokens=u.get("output_tokens", 0),
+            )
 
         return response.content
 

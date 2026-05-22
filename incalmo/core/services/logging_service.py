@@ -7,6 +7,43 @@ import structlog
 import json
 
 
+class TokenUsageLogger:
+    def __init__(self, path: str):
+        self._path = path
+        self._cum_input = 0
+        self._cum_output = 0
+
+    def log(
+        self,
+        *,
+        call_type: str,
+        model: str,
+        step: int,
+        action_id: str | None,
+        action_name: str | None,
+        input_tokens: int,
+        output_tokens: int,
+    ):
+        self._cum_input += input_tokens
+        self._cum_output += output_tokens
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "call_type": call_type,
+            "model": model,
+            "step": step,
+            "action_id": action_id,
+            "action_name": action_name,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": input_tokens + output_tokens,
+            "cumulative_input_tokens": self._cum_input,
+            "cumulative_output_tokens": self._cum_output,
+            "cumulative_total_tokens": self._cum_input + self._cum_output,
+        }
+        with open(self._path, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+
+
 class IncalmoLogger:
     def __init__(self, operation_id: str):
         output_dir_override = os.environ.get("INCALMO_OUTPUT_DIR")
@@ -63,6 +100,9 @@ class IncalmoLogger:
         logger.propagate = False
 
         return logger
+
+    def token_usage_logger(self) -> TokenUsageLogger:
+        return TokenUsageLogger(f"{self.logger_dir_path}/token_usage.json")
 
     def action_logger(self):
         actions_log_path = f"{self.logger_dir_path}/actions.json"

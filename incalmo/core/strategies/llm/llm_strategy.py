@@ -45,12 +45,14 @@ class LLMStrategy(IncalmoStrategy, ABC):
             raise ValueError("Strategy must be an instance of LLMStrategy")
 
         self.abstraction = self.config.strategy.abstraction
+        self.token_logger = self.logging_service.token_usage_logger()
 
         # LLM Agent Interface and registry
         self.agent_interface = LLMAgentInterface(
             logger=self.agent_logger,
             environment_state_service=self.environment_state_service,
             strategy=self.config.strategy,
+            token_logger=self.token_logger,
         )
         self.agent_registry = LLMAgentRegistry()
         # Logging Start
@@ -96,6 +98,9 @@ class LLMStrategy(IncalmoStrategy, ABC):
         #     f.write(pre_prompt)
 
     async def step(self) -> bool:
+        self.llm_interface.step = self.cur_step
+        self.agent_interface.step = self.cur_step
+
         # Check if any new agents were created
         agents = self.c2_client.get_agents()
         self.environment_state_service.update_host_agents(agents)
