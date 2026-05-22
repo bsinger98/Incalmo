@@ -53,7 +53,7 @@ class LLMAgentScan(LLMAgentAction):
         ]
         return cls(scan_host, subnets_to_scan, llm_interface)
 
-    async def run(
+    async def _run(
         self,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,

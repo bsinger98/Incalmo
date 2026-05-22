@@ -3,6 +3,7 @@ from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from config.attacker_config import AttackerConfig, LLMStrategyConfig
 from incalmo.core.services import EnvironmentStateService
+from incalmo.core.services.logging_service import TokenUsageLogger
 
 
 class LangChainInterface(LLMInterface):
@@ -11,6 +12,7 @@ class LangChainInterface(LLMInterface):
         logger,
         environment_state_service: EnvironmentStateService,
         config: AttackerConfig,
+        token_logger: TokenUsageLogger | None = None,
     ):
         super().__init__(logger, environment_state_service, config)
 
@@ -22,6 +24,8 @@ class LangChainInterface(LLMInterface):
         self.conversation = [
             {"role": "system", "content": self.pre_prompt},
         ]
+        self.token_logger = token_logger
+        self.step = 0
 
     def get_response(self, incalmo_response: str | None = None) -> str:
         if not incalmo_response and len(self.conversation) <= 1:
@@ -58,5 +62,17 @@ class LangChainInterface(LLMInterface):
                 langchain_messages.append(SystemMessage(content=msg["content"]))
         model = self._registry.get_model(model_name)
         response = model.invoke(langchain_messages)
+
+        if self.token_logger and response.usage_metadata:
+            u = response.usage_metadata
+            self.token_logger.log(
+                call_type="planning",
+                model=model_name,
+                step=self.step,
+                action_id=None,
+                action_name=None,
+                input_tokens=u.get("input_tokens", 0),
+                output_tokens=u.get("output_tokens", 0),
+            )
 
         return response.content

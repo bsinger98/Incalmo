@@ -20,5 +20,6 @@ class LangChainStrategy(LLMStrategy, name="langchain"):
 
     def create_llm_interface(self) -> LLMInterface:
         return LangChainInterface(
-            self.logger, self.environment_state_service, self.config
+            self.logger, self.environment_state_service, self.config,
+            token_logger=self.token_logger,
         )
