@@ -65,12 +65,20 @@ class LangChainInterface(LLMInterface):
 
         if self.token_logger and response.usage_metadata:
             u = response.usage_metadata
+            # both detail dicts are total=False and provider-dependent, so every key is .get(k, 0):
+            # a provider that reports no cache split really did serve none of it from cache
+            itd = u.get("input_token_details") or {}
+            otd = u.get("output_token_details") or {}
             self.token_logger.record(
-                call_type="planning",
+                call_type="master",
                 model=model_name,
                 step=self.step,
                 input_tokens=u.get("input_tokens", 0),
                 output_tokens=u.get("output_tokens", 0),
+                cache_read_tokens=itd.get("cache_read", 0),
+                cache_creation_tokens=itd.get("cache_creation", 0),
+                reasoning_tokens=otd.get("reasoning", 0),
+                response_id=response.response_metadata.get("id") or response.id,
             )
 
         return response.content

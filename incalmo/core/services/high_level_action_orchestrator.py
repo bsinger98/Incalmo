@@ -38,6 +38,7 @@ class HighLevelActionOrchestrator:
         hl_id = str(uuid4())
         self.last_hl_id = hl_id
         context = HighLevelContext(hl_id=hl_id, llm_interface=self.llm_interface)
+        ts_start = datetime.now().isoformat()
         events = await action.run(
             self.low_level_action_orchestrator,
             self.environment_state_service,
@@ -47,7 +48,8 @@ class HighLevelActionOrchestrator:
         self.logger.info(
             "HighLevelAction started execution",
             type="HighLevelAction",
-            timestamp=datetime.now().isoformat(),
+            ts_start=ts_start,
+            ts_finish=datetime.now().isoformat(),
             high_level_action_id=context.hl_id,
             low_level_action_ids=context.ll_id,
             action_name=action.__class__.__name__,

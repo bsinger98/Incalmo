@@ -10,9 +10,6 @@ import json
 class TokenUsageLogger:
     def __init__(self, path: str):
         self._path = path
-        self._pending: list[dict] = []
-        self._cum_input = 0
-        self._cum_output = 0
 
     def record(
         self,
@@ -22,40 +19,35 @@ class TokenUsageLogger:
         step: int,
         input_tokens: int,
         output_tokens: int,
+        cache_read_tokens: int,
+        cache_creation_tokens: int,
+        reasoning_tokens: int,
+        response_id: str | None,
     ):
-        self._pending.append({
-            "timestamp": datetime.now().isoformat(),
-            "call_type": call_type,
-            "model": model,
-            "step": step,
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
-            "total_tokens": input_tokens + output_tokens,
-        })
-
-    def flush(
-        self,
-        *,
-        high_level_action_id: str | None,
-        high_level_action_name: str | None,
-        low_level_action_id: str | None = None,
-        low_level_action_name: str | None = None,
-    ):
-        if not self._pending:
-            return
-        with open(self._path, "a") as f:
-            for entry in self._pending:
-                self._cum_input += entry["input_tokens"]
-                self._cum_output += entry["output_tokens"]
-                entry["high_level_action_id"] = high_level_action_id
-                entry["high_level_action_name"] = high_level_action_name
-                entry["low_level_action_id"] = low_level_action_id
-                entry["low_level_action_name"] = low_level_action_name
-                entry["cumulative_input_tokens"] = self._cum_input
-                entry["cumulative_output_tokens"] = self._cum_output
-                entry["cumulative_total_tokens"] = self._cum_input + self._cum_output
-                f.write(json.dumps(entry) + "\n")
-        self._pending = []
+        # input_tokens and output_tokens are LangChain's normalised TOTALS: input_tokens already INCLUDES the
+        # cached tokens and output_tokens already includes the reasoning tokens. The three detail counts break
+        # those totals down, they do not add to them - never sum a detail onto its total.
+        #
+        # Without cache_read/cache_creation a run's cost is not computable, only bounded. Every call resends
+        # the whole conversation, so input_tokens grows monotonically and the same prefix is billed on each
+        # call - at the full input rate if it missed cache, at ~10-20% of it if it hit. Measured across our
+        # corpus that is a 5x spread between the two bounds ($586 vs $116), so the split is the number.
+        #
+        # response_id is the provider's own id for this call: the join key back to their billing records, so
+        # cost can be reconciled against ground truth instead of trusted as our own arithmetic.
+        with open(self._path, "a") as f:   # one row per LLM call, written immediately
+            f.write(json.dumps({
+                "timestamp": datetime.now().isoformat(),
+                "call_type": call_type,
+                "model": model,
+                "step": step,
+                "response_id": response_id,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "cache_read_tokens": cache_read_tokens,
+                "cache_creation_tokens": cache_creation_tokens,
+                "reasoning_tokens": reasoning_tokens,
+            }) + "\n")
 
 
 class IncalmoLogger:
