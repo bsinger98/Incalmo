@@ -66,7 +66,8 @@ class LLMStrategy(IncalmoStrategy, ABC):
         self.bash_log = ""
 
         self.cur_step = 0
-        self.total_steps = 100
+        self.total_steps = 10_000_000  # effectively unbounded — runs are time-limited (incalmo_runner TIMEOUT), not step-limited
+
         self.last_response = None
 
     @abstractmethod
@@ -115,8 +116,8 @@ class LLMStrategy(IncalmoStrategy, ABC):
             events = await self.high_level_action_orchestrator.run_action(action)
             return False
 
-        if self.cur_step % 5 == 0:
-            await self.data_exfiltration_check()
+        # if self.cur_step % 5 == 0:
+        #     await self.data_exfiltration_check()
 
         finished = await self.llm_request()
         if self.cur_step > self.total_steps or finished:

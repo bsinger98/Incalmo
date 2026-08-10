@@ -38,6 +38,7 @@ class LowLevelActionOrchestrator:
         prior_agents = c2client.get_agents()
 
         # Run action with C2C server and get result
+        ts_start = datetime.now().isoformat()
         command_result = c2client.send_command(low_level_action)
 
         # Some command delay for agents to contact the server
@@ -55,7 +56,8 @@ class LowLevelActionOrchestrator:
         self.logger.info(
             "LowLevelAction executed",
             type="LowLevelAction",
-            timestamp=datetime.now().isoformat(),
+            ts_start=ts_start,
+            ts_finish=datetime.now().isoformat(),
             high_level_action_id=context.hl_id if context else "",
             low_level_action_id=action_ll_id,
             action_name=low_level_action.__class__.__name__,

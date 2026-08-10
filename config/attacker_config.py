@@ -36,6 +36,7 @@ class LLMStrategyConfig(BaseModel):
 
 class StateMachineStrategy(BaseModel):
     name: str
+    script_path: Optional[str] = None
 
 
 def convert_to_environment(env: str) -> Environment:

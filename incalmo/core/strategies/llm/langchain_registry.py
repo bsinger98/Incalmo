@@ -1,3 +1,5 @@
+import os
+
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -41,6 +43,11 @@ class LangChainRegistry:
             "gpt-5.4-mini": lambda: ChatOpenAI(model="gpt-5.4-mini"),
             "gpt-5.4": lambda: ChatOpenAI(model="gpt-5.4"),
             "gpt-5.4-pro": lambda: ChatOpenAI(model="gpt-5.4-pro-2026-03-05"),
+            "gpt-5.5": lambda: ChatOpenAI(model="gpt-5.5"),
+            # GPT-5.6 family (2026) — three named variants, no bare gpt-5.6
+            "gpt-5.6-luna": lambda: ChatOpenAI(model="gpt-5.6-luna"),
+            "gpt-5.6-sol": lambda: ChatOpenAI(model="gpt-5.6-sol"),
+            "gpt-5.6-terra": lambda: ChatOpenAI(model="gpt-5.6-terra"),
 
             # ── Anthropic ──────────────────────────────────────────────────────
             # Claude 3 family – LEGACY
@@ -113,9 +120,33 @@ class LangChainRegistry:
                 timeout=None,
                 stop=None,
             ),
-            "claude-opus-4-6": lambda: ChatAnthropic(        # LATEST Claude Opus
+            "claude-opus-4-6": lambda: ChatAnthropic(        # superseded by claude-opus-5
                 model_name="claude-opus-4-6",
                 temperature=0.7,
+                timeout=None,
+                stop=None,
+            ),
+            "claude-opus-5": lambda: ChatAnthropic(          # Claude 5 (Jul 24 2026); Claude 5 only accepts temperature=1
+                model_name="claude-opus-5",
+                temperature=1,
+                timeout=None,
+                stop=None,
+            ),
+            "claude-sonnet-5": lambda: ChatAnthropic(        # Claude 5 Sonnet (Jun 30 2026)
+                model_name="claude-sonnet-5",
+                temperature=1,
+                timeout=None,
+                stop=None,
+            ),
+            "claude-fable-5": lambda: ChatAnthropic(         # Claude 5 Fable frontier (Jun 9 2026)
+                model_name="claude-fable-5",
+                temperature=1,
+                timeout=None,
+                stop=None,
+            ),
+            "claude-mythos-5": lambda: ChatAnthropic(        # Claude 5 Mythos frontier; restricted / trusted-access (Jun 9 2026)
+                model_name="claude-mythos-5",
+                temperature=1,
                 timeout=None,
                 stop=None,
             ),
@@ -165,6 +196,14 @@ class LangChainRegistry:
             # LATEST: DeepSeek-R1 reasoning model (Jan 2025)
             "deepseek-r1": lambda: ChatDeepSeek(
                 model="deepseek-reasoner", temperature=0.7
+            ),
+
+            # ── Z.AI / GLM (OpenAI-compatible endpoint) ────────────────────────
+            "glm-5.2": lambda: ChatOpenAI(                    # z.ai GLM via OpenAI-compat base_url; key = ZAI_API_KEY
+                model="glm-5.2",
+                base_url="https://api.z.ai/api/paas/v4/",
+                api_key=os.environ["ZAI_API_KEY"],
+                temperature=0.7,
             ),
         }
 
