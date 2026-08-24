@@ -26,7 +26,7 @@ services:
       - ../.env
     environment:
       - SERVER_IP=localhost
-      - MODE=docker
+      - MODE=openstack
       - DEBUG=true
     volumes:
       - ../:/incalmo
