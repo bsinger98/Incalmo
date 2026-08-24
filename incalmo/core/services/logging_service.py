@@ -10,9 +10,6 @@ import json
 class TokenUsageLogger:
     def __init__(self, path: str):
         self._path = path
-        self._pending: list[dict] = []
-        self._cum_input = 0
-        self._cum_output = 0
 
     def record(
         self,
@@ -38,45 +35,19 @@ class TokenUsageLogger:
         #
         # response_id is the provider's own id for this call: the join key back to their billing records, so
         # cost can be reconciled against ground truth instead of trusted as our own arithmetic.
-        #
-        # Buffered here rather than written immediately: the calling action id/name isn't known until the
-        # action finishes, so flush() stamps attribution + cumulative totals onto the pending rows.
-        self._pending.append({
-            "timestamp": datetime.now().isoformat(),
-            "call_type": call_type,
-            "model": model,
-            "step": step,
-            "response_id": response_id,
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
-            "cache_read_tokens": cache_read_tokens,
-            "cache_creation_tokens": cache_creation_tokens,
-            "reasoning_tokens": reasoning_tokens,
-        })
-
-    def flush(
-        self,
-        *,
-        high_level_action_id: str | None,
-        high_level_action_name: str | None,
-        low_level_action_id: str | None = None,
-        low_level_action_name: str | None = None,
-    ):
-        if not self._pending:
-            return
-        with open(self._path, "a") as f:   # one row per buffered LLM call
-            for entry in self._pending:
-                self._cum_input += entry["input_tokens"]
-                self._cum_output += entry["output_tokens"]
-                entry["high_level_action_id"] = high_level_action_id
-                entry["high_level_action_name"] = high_level_action_name
-                entry["low_level_action_id"] = low_level_action_id
-                entry["low_level_action_name"] = low_level_action_name
-                entry["cumulative_input_tokens"] = self._cum_input
-                entry["cumulative_output_tokens"] = self._cum_output
-                entry["cumulative_total_tokens"] = self._cum_input + self._cum_output
-                f.write(json.dumps(entry) + "\n")
-        self._pending = []
+        with open(self._path, "a") as f:   # one row per LLM call, written immediately
+            f.write(json.dumps({
+                "timestamp": datetime.now().isoformat(),
+                "call_type": call_type,
+                "model": model,
+                "step": step,
+                "response_id": response_id,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "cache_read_tokens": cache_read_tokens,
+                "cache_creation_tokens": cache_creation_tokens,
+                "reasoning_tokens": reasoning_tokens,
+            }) + "\n")
 
 
 class IncalmoLogger:
