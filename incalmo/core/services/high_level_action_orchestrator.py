@@ -36,6 +36,7 @@ class HighLevelActionOrchestrator:
 
     async def run_action(self, action: "HighLevelAction"):
         hl_id = str(uuid4())
+        self.last_hl_id = hl_id
         context = HighLevelContext(hl_id=hl_id, llm_interface=self.llm_interface)
         events = await action.run(
             self.low_level_action_orchestrator,

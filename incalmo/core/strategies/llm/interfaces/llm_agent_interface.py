@@ -25,8 +25,6 @@ class LLMAgentInterface:
         self.max_message_len = 30000
         self.token_logger = token_logger
         self.step = 0
-        self.action_id: str | None = None
-        self.action_name: str | None = None
 
     def send_message(self, message: str) -> str:
         # Trim message to fit within the max length
@@ -64,12 +62,10 @@ class LLMAgentInterface:
 
         if self.token_logger and response.usage_metadata:
             u = response.usage_metadata
-            self.token_logger.log(
+            self.token_logger.record(
                 call_type="agent",
                 model=model_name,
                 step=self.step,
-                action_id=self.action_id,
-                action_name=self.action_name,
                 input_tokens=u.get("input_tokens", 0),
                 output_tokens=u.get("output_tokens", 0),
             )

@@ -115,6 +115,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
                 agent_action.params, self.agent_interface
             )
             events = await self.high_level_action_orchestrator.run_action(action)
+            self.token_logger.flush(high_level_action_id=self.high_level_action_orchestrator.last_hl_id, high_level_action_name=action.__class__.__name__)
             return False
 
         if self.cur_step % 5 == 0:
@@ -144,10 +145,12 @@ class LLMStrategy(IncalmoStrategy, ABC):
             else:
                 new_perr_reponse = "No <finished> <query> or <action> tag found. Please try again and include a tag."
 
+            self.token_logger.flush(high_level_action_id=None, high_level_action_name="no_tag")
             self.last_response = new_perr_reponse
             return False
 
         if llm_action.response_type == LLMResponseType.FINISHED:
+            self.token_logger.flush(high_level_action_id=None, high_level_action_name="finished")
             return True
 
         try:
@@ -164,6 +167,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
                     current_response += str(obj) + "\n"
 
                 self.logger.info(f"Query response: \n{current_response}")
+                self.token_logger.flush(high_level_action_id=None, high_level_action_name="query")
                 self.last_response = current_response
                 return False
 
@@ -203,10 +207,12 @@ class LLMStrategy(IncalmoStrategy, ABC):
                         events = await self.high_level_action_orchestrator.run_action(
                             action
                         )
+                        self.token_logger.flush(high_level_action_id=self.high_level_action_orchestrator.last_hl_id, high_level_action_name=action.__class__.__name__)
                     elif isinstance(action, LowLevelAction):
                         events = await self.low_level_action_orchestrator.run_action(
                             action
                         )
+                        self.token_logger.flush(high_level_action_id=None, high_level_action_name=None, low_level_action_name=action.__class__.__name__)
 
                     for event in events:
                         current_response += str(event) + "\n"
@@ -240,6 +246,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
                         break
 
                 self.logger.info(f"Command response: \n{object_info}")
+                self.token_logger.flush(high_level_action_id=None, high_level_action_name="bash")
                 self.last_response = object_info
                 return False
 
@@ -250,6 +257,7 @@ class LLMStrategy(IncalmoStrategy, ABC):
             self.logger.error(
                 f"Error executing query or action: \n{self.last_response}"
             )
+            self.token_logger.flush(high_level_action_id=None, high_level_action_name="error")
             return False
 
         return False

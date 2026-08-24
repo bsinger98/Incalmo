@@ -37,7 +37,7 @@ class LLMExfiltrateData(LLMAgentAction):
         )
         return cls(host, llm_interface)
 
-    async def _run(
+    async def run(
         self,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         environment_state_service: EnvironmentStateService,

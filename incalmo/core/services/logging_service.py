@@ -10,38 +10,52 @@ import json
 class TokenUsageLogger:
     def __init__(self, path: str):
         self._path = path
+        self._pending: list[dict] = []
         self._cum_input = 0
         self._cum_output = 0
 
-    def log(
+    def record(
         self,
         *,
         call_type: str,
         model: str,
         step: int,
-        action_id: str | None,
-        action_name: str | None,
         input_tokens: int,
         output_tokens: int,
     ):
-        self._cum_input += input_tokens
-        self._cum_output += output_tokens
-        entry = {
+        self._pending.append({
             "timestamp": datetime.now().isoformat(),
             "call_type": call_type,
             "model": model,
             "step": step,
-            "action_id": action_id,
-            "action_name": action_name,
             "input_tokens": input_tokens,
             "output_tokens": output_tokens,
             "total_tokens": input_tokens + output_tokens,
-            "cumulative_input_tokens": self._cum_input,
-            "cumulative_output_tokens": self._cum_output,
-            "cumulative_total_tokens": self._cum_input + self._cum_output,
-        }
+        })
+
+    def flush(
+        self,
+        *,
+        high_level_action_id: str | None,
+        high_level_action_name: str | None,
+        low_level_action_id: str | None = None,
+        low_level_action_name: str | None = None,
+    ):
+        if not self._pending:
+            return
         with open(self._path, "a") as f:
-            f.write(json.dumps(entry) + "\n")
+            for entry in self._pending:
+                self._cum_input += entry["input_tokens"]
+                self._cum_output += entry["output_tokens"]
+                entry["high_level_action_id"] = high_level_action_id
+                entry["high_level_action_name"] = high_level_action_name
+                entry["low_level_action_id"] = low_level_action_id
+                entry["low_level_action_name"] = low_level_action_name
+                entry["cumulative_input_tokens"] = self._cum_input
+                entry["cumulative_output_tokens"] = self._cum_output
+                entry["cumulative_total_tokens"] = self._cum_input + self._cum_output
+                f.write(json.dumps(entry) + "\n")
+        self._pending = []
 
 
 class IncalmoLogger:
