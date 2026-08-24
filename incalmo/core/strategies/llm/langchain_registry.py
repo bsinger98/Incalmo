@@ -51,13 +51,15 @@ class LangChainRegistry:
                 stop=None,
             ),
             "claude-3-sonnet": lambda: ChatAnthropic(        # LEGACY: superseded by claude-3.5-sonnet+
-                model_name="claude-3-sonnet-latest",
+                # retired July 2025; no -latest alias exists, pin the snapshot
+                model_name="claude-3-sonnet-20240229",
                 temperature=0.7,
                 timeout=None,
                 stop=None,
             ),
             "claude-3-haiku": lambda: ChatAnthropic(         # LEGACY: use claude-3.5-haiku or claude-haiku-4-5
-                model_name="claude-3-haiku-latest",
+                # retired; no -latest alias exists, pin the snapshot
+                model_name="claude-3-haiku-20240307",
                 temperature=0.7,
                 timeout=None,
                 stop=None,
@@ -90,7 +92,7 @@ class LangChainRegistry:
                 stop=None,
             ),
             "claude-4.5-sonnet": lambda: ChatAnthropic(      # Superseded by claude-sonnet-4-6
-                model_name="claude-sonnet-4-5",
+                model_name="claude-sonnet-4-5-20250929",
                 temperature=0.7,
                 timeout=None,
                 stop=None,
@@ -108,7 +110,7 @@ class LangChainRegistry:
                 stop=None,
             ),
             "claude-opus-4-1": lambda: ChatAnthropic(        # Older Claude 4 Opus; superseded by claude-opus-4-6
-                model_name="claude-opus-4-1",
+                model_name="claude-opus-4-1-20250805",
                 temperature=0.7,
                 timeout=None,
                 stop=None,
