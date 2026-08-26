@@ -5,6 +5,7 @@ Loads the pre-computed plan AND the MHBench environment spec at startup.
 Uses known host IPs and data file paths directly, so no network scanning or
 credential discovery is needed — every action is issued with exact parameters.
 """
+
 from __future__ import annotations
 
 import json
@@ -33,19 +34,20 @@ from incalmo.core.services.action_context import HighLevelContext
 from incalmo.core.strategies.incalmo_strategy import IncalmoStrategy
 
 _PLAN_DIR = Path("/home/cyberautonomy/v3_MHBench/mulval/graphs")
-_ENV_DIR  = Path("/home/cyberautonomy/v3_MHBench/environments")
+_ENV_DIR = Path("/home/cyberautonomy/v3_MHBench/environments")
 
 _ENV_STEMS: dict[str, str] = {
-    "EquifaxSmall":   "equifax_small",
-    "EquifaxMedium":  "equifax_medium",
-    "EquifaxLarge":   "equifax_large",
+    "EquifaxSmall": "equifax_small",
+    "EquifaxMedium": "equifax_medium",
+    "EquifaxLarge": "equifax_large",
     "ICSEnvironment": "ics",
-    "EnterpriseA":    "enterprise_a",
-    "EnterpriseB":    "enterprise_b",
+    "EnterpriseA": "enterprise_a",
+    "EnterpriseB": "enterprise_b",
 }
 
 
 # ── env / plan loading ────────────────────────────────────────────────────────
+
 
 def _env_to_stem(env_name: str) -> str:
     bare = env_name.split("/")[-1]
@@ -70,7 +72,9 @@ def _load_env_spec(env_name: str) -> dict:
     raise FileNotFoundError(f"Environment spec not found for {env_name!r}")
 
 
-def _parse_env_spec(spec: dict) -> tuple[dict[str, str], dict[str, dict[str, list[str]]]]:
+def _parse_env_spec(
+    spec: dict,
+) -> tuple[dict[str, str], dict[str, dict[str, list[str]]]]:
     """Extract host IPs and data file paths from the MHBench environment spec.
 
     Returns:
@@ -89,8 +93,8 @@ def _parse_env_spec(spec: dict) -> tuple[dict[str, str], dict[str, dict[str, lis
     for pb in spec.get("playbooks", []):
         if pb["name"] == "add_data":
             args = pb["args"]
-            host  = args["host"]
-            user  = args["host_user"]
+            host = args["host"]
+            user = args["host_user"]
             fpath = args["path"]
             data_files.setdefault(host, {}).setdefault(user, []).append(fpath)
 
@@ -98,6 +102,7 @@ def _parse_env_spec(spec: dict) -> tuple[dict[str, str], dict[str, dict[str, lis
 
 
 # ── thin HL wrapper for running a single LL action ────────────────────────────
+
 
 class _RunLL(HighLevelAction):
     """Wraps a low-level action so it can be run through the HL orchestrator."""
@@ -117,6 +122,7 @@ class _RunLL(HighLevelAction):
 
 
 # ── strategy ──────────────────────────────────────────────────────────────────
+
 
 class MulvalOptimal(IncalmoStrategy, name="MulvalOptimal"):
     """Execute the MulVAL-optimal attack plan with oracle knowledge of the environment."""
@@ -151,12 +157,12 @@ class MulvalOptimal(IncalmoStrategy, name="MulvalOptimal"):
     # ── step dispatch ─────────────────────────────────────────────────────────
 
     async def _execute(self, step: dict) -> None:
-        action    = step["action"]
+        action = step["action"]
         technique = step.get("technique")
 
         if action == "lateral_move":
             src_agent = self._get_agent(step["source_host"], step.get("source_user"))
-            tgt_ip    = self._host_ips.get(step["target_host"])
+            tgt_ip = self._host_ips.get(step["target_host"])
             if src_agent is None or tgt_ip is None:
                 return
 
@@ -214,7 +220,9 @@ class MulvalOptimal(IncalmoStrategy, name="MulvalOptimal"):
 
     # ── helpers ───────────────────────────────────────────────────────────────
 
-    def _get_agent(self, logical_name: str | None, username: str | None = None) -> Agent | None:
+    def _get_agent(
+        self, logical_name: str | None, username: str | None = None
+    ) -> Agent | None:
         host = self._resolve(logical_name)
         if host is None:
             return None
