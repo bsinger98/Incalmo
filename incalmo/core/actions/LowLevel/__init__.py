@@ -1,6 +1,8 @@
 from .exploit_struts import ExploitStruts
 from .nc_lateral_move import NCLateralMove
 from .ssh_lateral_move import SSHLateralMove
+from .ssh_spawn_agent import SSHSpawnAgent
+from .become_user import BecomeUser
 from .list_files_in_directory import ListFilesInDirectory
 
 from .read_file import ReadFile
