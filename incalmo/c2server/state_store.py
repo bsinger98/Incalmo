@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 class StateStore:
     TABLE_NAME = "environment"
-    DB_PATH = "state_store.db"
+    DB_PATH = "/tmp/state_store.db"  # container-local, NOT /incalmo (the shared bind-mount): concurrent C2s must not share/clobber one DB
     _db_connection: Optional[sqlite3.Connection] = None
 
     @classmethod
