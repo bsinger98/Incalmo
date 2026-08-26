@@ -3,6 +3,7 @@ from incalmo.core.strategies.llm.langchain_registry import LangChainRegistry
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from config.attacker_config import AttackerConfig, LLMStrategyConfig
 from incalmo.core.services import EnvironmentStateService
+from incalmo.core.services.logging_service import TokenUsageLogger
 
 
 class LangChainInterface(LLMInterface):
@@ -11,6 +12,7 @@ class LangChainInterface(LLMInterface):
         logger,
         environment_state_service: EnvironmentStateService,
         config: AttackerConfig,
+        token_logger: TokenUsageLogger | None = None,
     ):
         super().__init__(logger, environment_state_service, config)
 
@@ -22,6 +24,8 @@ class LangChainInterface(LLMInterface):
         self.conversation = [
             {"role": "system", "content": self.pre_prompt},
         ]
+        self.token_logger = token_logger
+        self.step = 0
 
     def get_response(self, incalmo_response: str | None = None) -> str:
         if not incalmo_response and len(self.conversation) <= 1:
@@ -58,5 +62,23 @@ class LangChainInterface(LLMInterface):
                 langchain_messages.append(SystemMessage(content=msg["content"]))
         model = self._registry.get_model(model_name)
         response = model.invoke(langchain_messages)
+
+        if self.token_logger and response.usage_metadata:
+            u = response.usage_metadata
+            # both detail dicts are total=False and provider-dependent, so every key is .get(k, 0):
+            # a provider that reports no cache split really did serve none of it from cache
+            itd = u.get("input_token_details") or {}
+            otd = u.get("output_token_details") or {}
+            self.token_logger.record(
+                call_type="master",
+                model=model_name,
+                step=self.step,
+                input_tokens=u.get("input_tokens", 0),
+                output_tokens=u.get("output_tokens", 0),
+                cache_read_tokens=itd.get("cache_read", 0),
+                cache_creation_tokens=itd.get("cache_creation", 0),
+                reasoning_tokens=otd.get("reasoning", 0),
+                response_id=response.response_metadata.get("id") or response.id,
+            )
 
         return response.content
