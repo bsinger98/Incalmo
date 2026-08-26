@@ -35,19 +35,24 @@ class TokenUsageLogger:
         #
         # response_id is the provider's own id for this call: the join key back to their billing records, so
         # cost can be reconciled against ground truth instead of trusted as our own arithmetic.
-        with open(self._path, "a") as f:   # one row per LLM call, written immediately
-            f.write(json.dumps({
-                "timestamp": datetime.now().isoformat(),
-                "call_type": call_type,
-                "model": model,
-                "step": step,
-                "response_id": response_id,
-                "input_tokens": input_tokens,
-                "output_tokens": output_tokens,
-                "cache_read_tokens": cache_read_tokens,
-                "cache_creation_tokens": cache_creation_tokens,
-                "reasoning_tokens": reasoning_tokens,
-            }) + "\n")
+        with open(self._path, "a") as f:  # one row per LLM call, written immediately
+            f.write(
+                json.dumps(
+                    {
+                        "timestamp": datetime.now().isoformat(),
+                        "call_type": call_type,
+                        "model": model,
+                        "step": step,
+                        "response_id": response_id,
+                        "input_tokens": input_tokens,
+                        "output_tokens": output_tokens,
+                        "cache_read_tokens": cache_read_tokens,
+                        "cache_creation_tokens": cache_creation_tokens,
+                        "reasoning_tokens": reasoning_tokens,
+                    }
+                )
+                + "\n"
+            )
 
 
 class IncalmoLogger:
