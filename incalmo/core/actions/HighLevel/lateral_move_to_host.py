@@ -35,14 +35,23 @@ class LateralMoveToHost(HighLevelAction):
         # from here (harness-side), not dispatched via MsfRpcCommand like
         # LLMLateralMoveMetasploit's own module calls now are - it has the same
         # "msfrpcd only listens on 127.0.0.1 on the Kali host, not the harness
-        # host" problem (see msf_rpc_client.py's docstring) and will fail the
-        # same way once actually reached. Not yet hit in practice: every
-        # observed failure so far happened earlier, in LLMLateralMoveMetasploit's
-        # own search_exploits call, before any exploit could succeed and reach
-        # this code at all.
-        self.metasploit_service = MetasploitService(
-            password="password"  # Password set in attacker startup file
-        )
+        # host" problem (see msf_rpc_client.py's docstring) and WILL fail the
+        # same way if actually reached (confirmed live: an earlier eager
+        # `self.metasploit_service = MetasploitService(...)` right here crashed
+        # in MsfRpcClient's own __init__ - which connects immediately - before
+        # .run() ever got called, let alone LLMLateralMoveMetasploit's own
+        # (already-fixed) search_exploits call). Deferred to first use below so
+        # constructing a LateralMoveToHost doesn't fail before an exploit even
+        # starts; connect_to_session_via_bind() itself is still unported.
+        self._metasploit_service: MetasploitService | None = None
+
+    @property
+    def metasploit_service(self) -> MetasploitService:
+        if self._metasploit_service is None:
+            self._metasploit_service = MetasploitService(
+                password="password"  # Password set in attacker startup file
+            )
+        return self._metasploit_service
 
     async def run(
         self,
