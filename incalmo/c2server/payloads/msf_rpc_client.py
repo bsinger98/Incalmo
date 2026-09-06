@@ -40,6 +40,16 @@ _RANK_ORDER = {
 }
 
 
+def _bare_module_name(mtype: str, fullname: str) -> str:
+    """client.modules.use(mtype, name) wants name WITHOUT the type prefix - passing
+    the fully-qualified form (e.g. "exploit/multi/http/struts2_content_type_ognl",
+    exactly what search_exploits's own "fullname" field returns) makes msfrpcd
+    double it up as "exploit/exploit/multi/..." and fail to load. Strip it so
+    callers can pass through whatever search_exploits gave them unmodified."""
+    prefix = mtype + "/"
+    return fullname[len(prefix):] if fullname.startswith(prefix) else fullname
+
+
 def _client() -> MsfRpcClient:
     # Password matches install_metasploit.yml's `msfrpcd -P password` - this
     # script only ever talks to the msfrpcd instance on its own host, so
@@ -65,7 +75,7 @@ def search_exploits(client: MsfRpcClient, args: dict) -> list[dict]:
 
 
 def get_exploit_module_options(client: MsfRpcClient, args: dict) -> dict:
-    module = client.modules.use("exploit", args["module_fullname"])
+    module = client.modules.use("exploit", _bare_module_name("exploit", args["module_fullname"]))
     return {
         "fullname": args["module_fullname"],
         "all_options": module.options or [],
@@ -78,7 +88,7 @@ def get_exploit_module_options(client: MsfRpcClient, args: dict) -> dict:
 
 
 def get_payload_options(client: MsfRpcClient, args: dict) -> dict:
-    payload = client.modules.use("payload", args["payload_name"])
+    payload = client.modules.use("payload", _bare_module_name("payload", args["payload_name"]))
     return {
         "fullname": args["payload_name"],
         "all_options": payload.options or [],
@@ -89,11 +99,11 @@ def get_payload_options(client: MsfRpcClient, args: dict) -> dict:
 
 
 def run_exploit(client: MsfRpcClient, args: dict) -> dict:
-    exploit = client.modules.use("exploit", args["exploit_module_fullname"])
+    exploit = client.modules.use("exploit", _bare_module_name("exploit", args["exploit_module_fullname"]))
     for key, value in args["exploit_options"].items():
         exploit[key] = value
 
-    payload = client.modules.use("payload", args["payload_module_fullname"])
+    payload = client.modules.use("payload", _bare_module_name("payload", args["payload_module_fullname"]))
     for key, value in args["payload_options"].items():
         payload[key] = value
 
